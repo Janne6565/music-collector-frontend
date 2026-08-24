@@ -1,7 +1,7 @@
-import { describe, expect, it } from "vitest";
-import fixture from "@/domain/merge-fixture.json";
 import { mergeCollections, mergeCopies } from "@/domain/merge";
+import fixture from "@/domain/merge-fixture.json";
 import type { Copy } from "@/domain/types";
+import { describe, expect, it } from "vitest";
 
 interface FixtureCase {
   readonly name: string;

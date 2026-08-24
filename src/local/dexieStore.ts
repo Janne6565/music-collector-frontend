@@ -5,6 +5,8 @@ import Dexie, { type EntityTable } from "dexie";
 
 const DEVICE_ID_KEY = "deviceId";
 const CLOCK_KEY = "clock";
+const CURSOR_KEY = "syncCursor";
+const PENDING_KEY = "pendingIds";
 
 interface MetaRow {
   key: string;
@@ -73,6 +75,10 @@ export class DexieLocalStore implements LocalStore {
     return copy?.deletedAt === null ? copy : undefined;
   }
 
+  async getCopyIncludingDeleted(id: string): Promise<Copy | undefined> {
+    return this.db.copies.get(id);
+  }
+
   async listCopiesInReleaseGroup(releaseGroupMbid: string): Promise<Copy[]> {
     const releases = await this.db.releases
       .where("releaseGroupMbid")
@@ -85,12 +91,18 @@ export class DexieLocalStore implements LocalStore {
 
   async putCopy(copy: Copy): Promise<void> {
     await this.db.copies.put(copy);
+    await this.markPending(copy.id);
   }
 
-  async softDeleteCopy(id: string, at: number): Promise<void> {
-    // Tombstone, not a removal: a deleted row that simply disappeared locally would be
-    // handed straight back by the server on the next sync.
-    await this.db.copies.update(id, { deletedAt: at });
+  async adoptCopy(copy: Copy): Promise<void> {
+    await this.db.copies.put(copy);
+  }
+
+  private async markPending(id: string): Promise<void> {
+    const pending = new Set(await this.readPendingIds());
+    if (pending.has(id)) return;
+    pending.add(id);
+    await this.writePendingIds([...pending]);
   }
 
   async cacheReleases(releases: readonly Release[]): Promise<void> {
@@ -142,6 +154,24 @@ export class DexieLocalStore implements LocalStore {
 
   async writeClock(encoded: string): Promise<void> {
     await this.db.meta.put({ key: CLOCK_KEY, value: encoded });
+  }
+
+  async readSyncCursor(): Promise<number> {
+    const row = await this.db.meta.get(CURSOR_KEY);
+    return row === undefined ? 0 : Number.parseInt(row.value, 10);
+  }
+
+  async writeSyncCursor(cursor: number): Promise<void> {
+    await this.db.meta.put({ key: CURSOR_KEY, value: String(cursor) });
+  }
+
+  async readPendingIds(): Promise<string[]> {
+    const row = await this.db.meta.get(PENDING_KEY);
+    return row === undefined ? [] : (JSON.parse(row.value) as string[]);
+  }
+
+  async writePendingIds(ids: readonly string[]): Promise<void> {
+    await this.db.meta.put({ key: PENDING_KEY, value: JSON.stringify(ids) });
   }
 }
 

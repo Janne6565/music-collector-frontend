@@ -88,7 +88,10 @@ function losingNotes(local: Copy, remote: Copy, winning: string | null): string 
   return carried[0] ?? null;
 }
 
-function pickWinner(localClock: string | undefined, remoteClock: string | undefined): "local" | "remote" {
+function pickWinner(
+  localClock: string | undefined,
+  remoteClock: string | undefined,
+): "local" | "remote" {
   if (remoteClock === undefined) return "local";
   if (localClock === undefined) return "remote";
   return remoteClock > localClock ? "remote" : "local";

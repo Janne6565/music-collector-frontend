@@ -1,0 +1,94 @@
+import { setAccessToken, setRefreshHandler } from "@/api/axios-instance";
+import { refresh } from "@/api/generated/auth/auth";
+import { useStore } from "@/local/StoreProvider";
+import { signedIn, signedOut } from "@/store/authSlice";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { SyncEngine } from "@/sync/syncEngine";
+import { useQueryClient } from "@tanstack/react-query";
+import { type ReactNode, useEffect, useRef } from "react";
+
+/** How often a signed-in tab reconciles with the server while it is open. */
+const SYNC_INTERVAL_MS = 60_000;
+
+/**
+ * Restores the session from the refresh cookie on load, then keeps a signed-in tab in sync.
+ *
+ * Renders its children immediately and never blocks on the network: the app works with no
+ * account and no connection, so making the first paint wait on a refresh call would make
+ * the offline case worse than the online one for no reason.
+ */
+export function SessionBootstrap({ children }: { readonly children: ReactNode }) {
+  const dispatch = useAppDispatch();
+  const { store, clock } = useStore();
+  const queryClient = useQueryClient();
+  const auth = useAppSelector((state) => state.auth);
+  const syncing = useRef(false);
+
+  useEffect(() => {
+    // Lets a 401 on any call attempt one silent refresh before surfacing as an error.
+    setRefreshHandler(async () => {
+      try {
+        const session = await refresh();
+        if (session.accessToken === undefined) return null;
+        setAccessToken(session.accessToken);
+        return session.accessToken;
+      } catch {
+        return null;
+      }
+    });
+    return () => setRefreshHandler(null);
+  }, []);
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const session = await refresh();
+        if (session.accessToken === undefined || session.user === undefined) {
+          dispatch(signedOut());
+          return;
+        }
+        setAccessToken(session.accessToken);
+        const hasLocalCollection = (await store.listCopies()).length > 0;
+        const hasSyncedBefore = (await store.readSyncCursor()) > 0;
+        dispatch(
+          signedIn({
+            user: session.user,
+            firstSyncPending: hasLocalCollection && !hasSyncedBefore,
+          }),
+        );
+      } catch {
+        // No cookie, or the server is unreachable. Either way the app runs anonymously,
+        // which is a fully supported state rather than an error.
+        dispatch(signedOut());
+      }
+    })();
+  }, [dispatch, store]);
+
+  useEffect(() => {
+    if (auth.status !== "signedIn" || auth.firstSyncPending) return;
+
+    const engine = new SyncEngine(store, clock);
+    const run = async () => {
+      // A slow sync must not stack up behind itself on a flaky connection.
+      if (syncing.current) return;
+      syncing.current = true;
+      try {
+        const result = await engine.sync();
+        if (result.pulled > 0 || result.pushed > 0) {
+          await queryClient.invalidateQueries();
+        }
+      } catch {
+        // Offline, or the server is down. The next tick tries again; nothing is lost
+        // because every local change is still recorded as pending.
+      } finally {
+        syncing.current = false;
+      }
+    };
+
+    void run();
+    const timer = setInterval(() => void run(), SYNC_INTERVAL_MS);
+    return () => clearInterval(timer);
+  }, [auth.status, auth.firstSyncPending, store, clock, queryClient]);
+
+  return <>{children}</>;
+}

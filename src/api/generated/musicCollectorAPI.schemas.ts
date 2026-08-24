@@ -9,6 +9,69 @@ and read their library from a local store, so there are no CRUD endpoints
 for copies. The server participates only as a sync peer.
  * OpenAPI spec version: v1
  */
+export type SyncCopyDtoFieldClocks = {[key: string]: string};
+
+export interface SyncCopyDto {
+  id?: string;
+  releaseMbid?: string;
+  condition?: string;
+  pricePaidCents?: number;
+  currency?: string;
+  purchasedOn?: string;
+  purchasedAt?: string;
+  notes?: string;
+  notesConflict?: string;
+  rating?: number;
+  createdAt?: number;
+  deletedAt?: number;
+  fieldClocks?: SyncCopyDtoFieldClocks;
+}
+
+export interface SyncPushRequest {
+  /**
+   * @minItems 0
+   * @maxItems 500
+   */
+  copies: SyncCopyDto[];
+}
+
+export interface SyncPullDto {
+  copies?: SyncCopyDto[];
+  cursor?: number;
+  hasMore?: boolean;
+}
+
+export interface RegisterRequest {
+  /**
+   * @minLength 0
+   * @maxLength 254
+   */
+  email: string;
+  /**
+   * @minLength 10
+   * @maxLength 200
+   */
+  password: string;
+}
+
+export interface SessionDto {
+  accessToken?: string;
+  user?: UserDto;
+}
+
+export interface UserDto {
+  id?: string;
+  email?: string;
+  createdAt?: string;
+}
+
+export interface LoginRequest {
+  /** @minLength 1 */
+  email: string;
+  /** @minLength 1 */
+  password: string;
+}
+
 export interface CoverThemeDto {
   dominantColor?: string;
   accentColor?: string;
@@ -49,6 +112,13 @@ export interface HealthDto {
   version?: string;
   time?: string;
 }
+
+export type PullParams = {
+/**
+ * @minimum 0
+ */
+since?: number;
+};
 
 export type SearchParams = {
 /**

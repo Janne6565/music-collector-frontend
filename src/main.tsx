@@ -8,6 +8,7 @@ import "@/styles.css";
 import { StoreProvider } from "@/local/StoreProvider";
 import { routeTree } from "@/routeTree.gen";
 import { store } from "@/store";
+import { SessionBootstrap } from "@/sync/SessionBootstrap";
 
 const router = createRouter({ routeTree });
 const queryClient = new QueryClient();
@@ -28,7 +29,9 @@ createRoot(rootElement).render(
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
         <StoreProvider>
-          <RouterProvider router={router} />
+          <SessionBootstrap>
+            <RouterProvider router={router} />
+          </SessionBootstrap>
         </StoreProvider>
       </QueryClientProvider>
     </Provider>

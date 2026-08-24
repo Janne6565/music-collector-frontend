@@ -1,4 +1,4 @@
-import { FormatThumb } from "@/components/FormatThumb";
+import { ReleaseArt } from "@/components/ReleaseArt";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui";
 import type { Format } from "@/domain/types";
@@ -137,20 +137,10 @@ function GridItem({ row }: { readonly row: LibraryRow }) {
   return (
     <Link to="/copies/$copyId" params={{ copyId: row.copy.id }} className="group block">
       <div className="relative aspect-square">
-        {row.release?.coverArtUrl === null || row.release === undefined ? (
-          <FormatThumb format={row.release?.format ?? "OTHER"} />
-        ) : (
-          <img
-            src={row.release.coverArtUrl}
-            alt=""
-            loading="lazy"
-            className="h-full w-full rounded-sm object-cover shadow-[inset_0_0_0_1px_rgba(25,23,19,.08)]"
-            onError={(event) => {
-              // Cover Art Archive 404s are routine; fall back to the placeholder art.
-              event.currentTarget.style.display = "none";
-            }}
-          />
-        )}
+        <ReleaseArt
+          release={row.release}
+          className="rounded-sm shadow-[inset_0_0_0_1px_rgba(25,23,19,.08)]"
+        />
       </div>
       <div className="mt-1.5 truncate text-[12.5px] font-semibold leading-tight group-hover:text-accent">
         {row.release?.title ?? "—"}

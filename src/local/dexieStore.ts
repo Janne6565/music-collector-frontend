@@ -98,6 +98,7 @@ export class DexieLocalStore implements LocalStore {
     await this.db.copies.put(copy);
   }
 
+  /** One pending set for copies and wishes alike — they push in the same batch. */
   private async markPending(id: string): Promise<void> {
     const pending = new Set(await this.readPendingIds());
     if (pending.has(id)) return;
@@ -126,12 +127,25 @@ export class DexieLocalStore implements LocalStore {
     return items.sort((a, b) => b.createdAt - a.createdAt);
   }
 
+  async getWishlistItemIncludingDeleted(id: string): Promise<WishlistItem | undefined> {
+    return this.db.wishlist.get(id);
+  }
+
   async putWishlistItem(item: WishlistItem): Promise<void> {
+    await this.db.wishlist.put(item);
+    await this.markPending(item.id);
+  }
+
+  async adoptWishlistItem(item: WishlistItem): Promise<void> {
     await this.db.wishlist.put(item);
   }
 
-  async softDeleteWishlistItem(id: string, at: number): Promise<void> {
-    await this.db.wishlist.update(id, { deletedAt: at });
+  async wishlistHas(releaseGroupMbid: string): Promise<boolean> {
+    const matches = await this.db.wishlist
+      .where("releaseGroupMbid")
+      .equals(releaseGroupMbid)
+      .toArray();
+    return matches.some((item) => item.deletedAt === null);
   }
 
   async stats(): Promise<CollectionStats> {

@@ -32,11 +32,32 @@ export interface SyncPushRequest {
    * @minItems 0
    * @maxItems 500
    */
-  copies: SyncCopyDto[];
+  copies?: SyncCopyDto[];
+  /**
+   * @minItems 0
+   * @maxItems 500
+   */
+  wishes?: SyncWishDto[];
+}
+
+export type SyncWishDtoFieldClocks = {[key: string]: string};
+
+export interface SyncWishDto {
+  id?: string;
+  releaseGroupMbid?: string;
+  title?: string;
+  artistName?: string;
+  year?: number;
+  desiredFormat?: string;
+  note?: string;
+  createdAt?: number;
+  deletedAt?: number;
+  fieldClocks?: SyncWishDtoFieldClocks;
 }
 
 export interface SyncPullDto {
   copies?: SyncCopyDto[];
+  wishes?: SyncWishDto[];
   cursor?: number;
   hasMore?: boolean;
 }
@@ -56,6 +77,7 @@ export interface RegisterRequest {
 
 export interface SessionDto {
   accessToken?: string;
+  refreshToken?: string;
   user?: UserDto;
 }
 

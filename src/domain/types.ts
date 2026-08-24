@@ -96,7 +96,24 @@ export interface Copy {
   readonly fieldClocks: FieldClocks<CopyMergeableField>;
 }
 
+/**
+ * Fields of a WishlistItem that sync independently, mirroring how a Copy works. A wish is
+ * edited less often than a copy, but sharing the machinery costs less than inventing a
+ * second, subtly different merge.
+ */
+export const WISH_MERGEABLE_FIELDS = [
+  "releaseGroupMbid",
+  "title",
+  "artistName",
+  "year",
+  "desiredFormat",
+  "note",
+  "deletedAt",
+] as const;
+export type WishMergeableField = (typeof WISH_MERGEABLE_FIELDS)[number];
+
 export interface WishlistItem {
+  /** Client-generated, so an item added offline keeps its identity when it syncs. */
   readonly id: string;
   readonly releaseGroupMbid: string;
   readonly title: string;
@@ -107,6 +124,7 @@ export interface WishlistItem {
   readonly note: string | null;
   readonly createdAt: number;
   readonly deletedAt: number | null;
+  readonly fieldClocks: FieldClocks<WishMergeableField>;
 }
 
 export interface CollectionStats {

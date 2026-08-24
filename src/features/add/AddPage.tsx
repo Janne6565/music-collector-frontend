@@ -5,7 +5,7 @@ import type { Release } from "@/domain/types";
 import { FORMAT_LABELS } from "@/domain/types";
 import { useAddLogic } from "@/features/add/useAddLogic";
 import { Link } from "@tanstack/react-router";
-import { ArrowLeft, Plus, Search } from "lucide-react";
+import { ArrowLeft, Heart, Plus, Search } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 export function AddPage() {
@@ -62,6 +62,8 @@ function Results({
   hasSearched,
   addRelease,
   addingMbid,
+  wishFor,
+  wishingMbid,
 }: ReturnType<typeof useAddLogic>) {
   const { t } = useTranslation();
 
@@ -81,6 +83,8 @@ function Results({
           release={release}
           onAdd={() => addRelease(release)}
           adding={addingMbid === release.mbid}
+          onWish={() => wishFor(release)}
+          wishing={wishingMbid === release.mbid}
         />
       ))}
     </>
@@ -91,10 +95,12 @@ interface ResultRowProps {
   readonly release: Release;
   readonly onAdd: () => void;
   readonly adding: boolean;
+  readonly onWish: () => void;
+  readonly wishing: boolean;
 }
 
 /** One row per release *and* format, as screen 2a lists them. */
-function ResultRow({ release, onAdd, adding }: ResultRowProps) {
+function ResultRow({ release, onAdd, adding, onWish, wishing }: ResultRowProps) {
   const { t } = useTranslation();
   const subtitle = releaseDisambiguation(release);
 
@@ -118,9 +124,20 @@ function ResultRow({ release, onAdd, adding }: ResultRowProps) {
       </div>
       <Button
         variant="secondary"
+        onClick={onWish}
+        loading={wishing}
+        aria-label={t("wishlist.addToWishlist")}
+        title={t("wishlist.addToWishlist")}
+        className="h-9 w-9 flex-none rounded-full px-0 text-ink-muted"
+      >
+        {!wishing && <Heart size={15} strokeWidth={1.75} aria-hidden />}
+      </Button>
+      <Button
+        variant="secondary"
         onClick={onAdd}
         loading={adding}
         aria-label={t("add.add")}
+        title={t("add.add")}
         className="h-9 w-9 flex-none rounded-full px-0"
       >
         {!adding && <Plus size={16} strokeWidth={1.75} aria-hidden />}

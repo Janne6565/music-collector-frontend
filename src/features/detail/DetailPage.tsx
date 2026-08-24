@@ -47,7 +47,12 @@ export function DetailPage({ copyId }: { readonly copyId: string }) {
         <div className="min-w-0 flex-1 pt-11">
           <Header copy={copy} release={release} chrome={chrome} />
           <Fields copy={copy} release={release} chrome={chrome} />
-          <Notes copy={copy} chrome={chrome} />
+          <Notes
+            copy={copy}
+            chrome={chrome}
+            saving={logic.saving}
+            onKeep={(notes) => logic.save({ notes })}
+          />
           {otherCopies.length > 0 && <OtherCopies copies={otherCopies} chrome={chrome} />}
 
           <Button
@@ -158,22 +163,88 @@ function Fields({
   );
 }
 
-function Notes({ copy, chrome }: { readonly copy: Copy } & WithChrome) {
+function Notes({
+  copy,
+  chrome,
+  onKeep,
+  saving,
+}: {
+  readonly copy: Copy;
+  readonly onKeep: (notes: string) => void;
+  readonly saving: boolean;
+} & WithChrome) {
   const { t } = useTranslation();
   return (
-    <div className="mt-3.5 rounded-lg p-3.5" style={{ background: chrome.surface }}>
+    <>
+      <div className="mt-3.5 rounded-lg p-3.5" style={{ background: chrome.surface }}>
+        <div
+          className="font-mono text-[10px] uppercase tracking-[0.09em]"
+          style={{ color: chrome.muted }}
+        >
+          {t("detail.notes")}
+        </div>
+        <p
+          className="mt-1.5 text-sm leading-relaxed text-pretty"
+          style={{ color: copy.notes === null ? chrome.muted : chrome.ink }}
+        >
+          {copy.notes ?? t("detail.notesEmpty")}
+        </p>
+      </div>
+      {copy.notesConflict !== null && (
+        <NotesConflict copy={copy} chrome={chrome} onKeep={onKeep} saving={saving} />
+      )}
+    </>
+  );
+}
+
+/**
+ * Another device wrote different notes, and the merge kept that version instead of
+ * discarding it. Shown until the person picks one: sync can tell that two versions differ,
+ * but not which of them anybody has actually read.
+ */
+function NotesConflict({
+  copy,
+  chrome,
+  onKeep,
+  saving,
+}: {
+  readonly copy: Copy;
+  readonly onKeep: (notes: string) => void;
+  readonly saving: boolean;
+} & WithChrome) {
+  const { t } = useTranslation();
+  return (
+    <div
+      className="mt-2 rounded-lg p-3.5"
+      style={{ background: chrome.surface, boxShadow: `inset 0 0 0 1px ${chrome.accent}` }}
+    >
       <div
         className="font-mono text-[10px] uppercase tracking-[0.09em]"
-        style={{ color: chrome.muted }}
+        style={{ color: chrome.accent }}
       >
-        {t("detail.notes")}
+        {t("detail.conflict.title")}
       </div>
-      <p
-        className="mt-1.5 text-sm leading-relaxed text-pretty"
-        style={{ color: copy.notes === null ? chrome.muted : chrome.ink }}
-      >
-        {copy.notes ?? t("detail.notesEmpty")}
+      <p className="mt-1.5 text-sm leading-relaxed text-pretty" style={{ color: chrome.ink }}>
+        {copy.notesConflict}
       </p>
+      <div className="mt-3 flex gap-2">
+        <Button
+          variant="secondary"
+          loading={saving}
+          onClick={() => onKeep(copy.notesConflict as string)}
+          className="h-8 rounded-full px-3 text-xs"
+        >
+          {t("detail.conflict.keepThis")}
+        </Button>
+        <Button
+          variant="secondary"
+          loading={saving}
+          onClick={() => onKeep(copy.notes ?? "")}
+          className="h-8 rounded-full px-3 text-xs"
+        >
+          {t("detail.conflict.keepMine")}
+        </Button>
+      </div>
     </div>
   );
 }

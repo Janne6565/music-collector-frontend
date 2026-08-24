@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AddRouteImport } from './routes/add'
 import { Route as SigninRouteImport } from './routes/signin'
+import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as CopiesCopyIdRouteImport } from './routes/copies.$copyId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -29,6 +30,11 @@ const SigninRoute = SigninRouteImport.update({
   path: '/signin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WishlistRoute = WishlistRouteImport.update({
+  id: '/wishlist',
+  path: '/wishlist',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CopiesCopyIdRoute = CopiesCopyIdRouteImport.update({
   id: '/copies/$copyId',
   path: '/copies/$copyId',
@@ -39,12 +45,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/add': typeof AddRoute
   '/signin': typeof SigninRoute
+  '/wishlist': typeof WishlistRoute
   '/copies/$copyId': typeof CopiesCopyIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/add': typeof AddRoute
   '/signin': typeof SigninRoute
+  '/wishlist': typeof WishlistRoute
   '/copies/$copyId': typeof CopiesCopyIdRoute
 }
 export interface FileRoutesById {
@@ -52,20 +60,22 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/add': typeof AddRoute
   '/signin': typeof SigninRoute
+  '/wishlist': typeof WishlistRoute
   '/copies/$copyId': typeof CopiesCopyIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/add' | '/signin' | '/copies/$copyId'
+  fullPaths: '/' | '/add' | '/signin' | '/wishlist' | '/copies/$copyId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/add' | '/signin' | '/copies/$copyId'
-  id: '__root__' | '/' | '/add' | '/signin' | '/copies/$copyId'
+  to: '/' | '/add' | '/signin' | '/wishlist' | '/copies/$copyId'
+  id: '__root__' | '/' | '/add' | '/signin' | '/wishlist' | '/copies/$copyId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AddRoute: typeof AddRoute
   SigninRoute: typeof SigninRoute
+  WishlistRoute: typeof WishlistRoute
   CopiesCopyIdRoute: typeof CopiesCopyIdRoute
 }
 
@@ -92,6 +102,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SigninRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/wishlist': {
+      id: '/wishlist'
+      path: '/wishlist'
+      fullPath: '/wishlist'
+      preLoaderRoute: typeof WishlistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/copies/$copyId': {
       id: '/copies/$copyId'
       path: '/copies/$copyId'
@@ -106,6 +123,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AddRoute: AddRoute,
   SigninRoute: SigninRoute,
+  WishlistRoute: WishlistRoute,
   CopiesCopyIdRoute: CopiesCopyIdRoute,
 }
 export const routeTree = rootRouteImport

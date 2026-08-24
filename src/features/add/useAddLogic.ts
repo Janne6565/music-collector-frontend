@@ -2,6 +2,7 @@ import { lookupByBarcode, searchReleases } from "@/api/releases";
 import type { Release } from "@/domain/types";
 import { useStore } from "@/local/StoreProvider";
 import { createCopy } from "@/local/copyWrites";
+import { createWishlistItem } from "@/local/wishWrites";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useCallback, useState } from "react";
@@ -56,6 +57,34 @@ export function useAddLogic() {
     },
   });
 
+  /**
+   * Wishing for something you do not own yet. Keyed on the release *group*, not the
+   * release: you want the album on vinyl, not one particular pressing of it.
+   */
+  const addWish = useMutation({
+    mutationFn: async (release: Release) => {
+      if (await store.wishlistHas(release.releaseGroupMbid)) return;
+      await store.putWishlistItem(
+        createWishlistItem(
+          {
+            releaseGroupMbid: release.releaseGroupMbid,
+            title: release.title,
+            artistName: release.artistName,
+            year: release.year,
+            desiredFormat: release.format,
+            note: null,
+          },
+          clock,
+          Date.now(),
+          crypto.randomUUID(),
+        ),
+      );
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["wishlist"] });
+    },
+  });
+
   const submit = useCallback(() => setSubmitted(term), [term]);
 
   return {
@@ -69,5 +98,7 @@ export function useAddLogic() {
     hasSearched: submitted.trim() !== "",
     addRelease: (release: Release) => addCopy.mutate(release),
     addingMbid: addCopy.isPending ? addCopy.variables?.mbid : undefined,
+    wishFor: (release: Release) => addWish.mutate(release),
+    wishingMbid: addWish.isPending ? addWish.variables?.mbid : undefined,
   };
 }

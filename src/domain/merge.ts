@@ -1,5 +1,5 @@
-import type { Copy } from "@/domain/types";
-import { COPY_MERGEABLE_FIELDS } from "@/domain/types";
+import type { Copy, WishlistItem } from "@/domain/types";
+import { COPY_MERGEABLE_FIELDS, WISH_MERGEABLE_FIELDS } from "@/domain/types";
 
 /**
  * Field-level last-write-wins merge for a copy.
@@ -99,6 +99,51 @@ function pickWinner(
 
 function isMeaningful(notes: string | null | undefined): notes is string {
   return notes !== null && notes !== undefined && notes.trim() !== "";
+}
+
+/**
+ * The same field-level rule applied to a wishlist entry.
+ *
+ * No special case for the note: unlike a copy's notes, a wish note is a one-line reminder
+ * ("MOFI or Japanese pressing"), not a paragraph worth preserving both halves of.
+ */
+export function mergeWishlistItems(
+  local: WishlistItem | undefined,
+  remote: WishlistItem | undefined,
+): WishlistItem {
+  if (local === undefined && remote === undefined) {
+    throw new Error("mergeWishlistItems needs at least one side");
+  }
+  if (local === undefined) return remote as WishlistItem;
+  if (remote === undefined) return local;
+  if (local.id !== remote.id) {
+    throw new Error(`mergeWishlistItems got two different items: ${local.id} vs ${remote.id}`);
+  }
+
+  const merged: Record<string, unknown> = { id: local.id };
+  const clocks: Record<string, string> = {};
+
+  for (const field of WISH_MERGEABLE_FIELDS) {
+    const localClock = local.fieldClocks[field];
+    const remoteClock = remote.fieldClocks[field];
+    const winner = pickWinner(localClock, remoteClock);
+    merged[field] = winner === "remote" ? remote[field] : local[field];
+    clocks[field] = (winner === "remote" ? remoteClock : localClock) as string;
+  }
+
+  merged.createdAt = Math.min(local.createdAt, remote.createdAt);
+  merged.fieldClocks = clocks;
+  return merged as unknown as WishlistItem;
+}
+
+export function mergeWishlists(
+  local: readonly WishlistItem[],
+  remote: readonly WishlistItem[],
+): WishlistItem[] {
+  const byId = new Map<string, { local?: WishlistItem; remote?: WishlistItem }>();
+  for (const item of local) byId.set(item.id, { ...byId.get(item.id), local: item });
+  for (const item of remote) byId.set(item.id, { ...byId.get(item.id), remote: item });
+  return [...byId.values()].map((pair) => mergeWishlistItems(pair.local, pair.remote));
 }
 
 /** Merges two whole collections, keyed by copy id. */

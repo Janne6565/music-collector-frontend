@@ -42,8 +42,11 @@ export interface LocalStore {
   getReleases(mbids: readonly string[]): Promise<Map<string, Release>>;
 
   listWishlist(): Promise<WishlistItem[]>;
+  getWishlistItemIncludingDeleted(id: string): Promise<WishlistItem | undefined>;
   putWishlistItem(item: WishlistItem): Promise<void>;
-  softDeleteWishlistItem(id: string, at: number): Promise<void>;
+  adoptWishlistItem(item: WishlistItem): Promise<void>;
+  /** True when the wishlist already holds a live wish for this album. */
+  wishlistHas(releaseGroupMbid: string): Promise<boolean>;
 
   stats(): Promise<CollectionStats>;
 

@@ -3,6 +3,7 @@ import { hlcInitial, hlcTick } from "@/domain/hlc";
 import type { Release } from "@/domain/types";
 import { type ClockSource, createCopy, tombstoneCopy } from "@/local/copyWrites";
 import { DexieLocalStore } from "@/local/dexieStore";
+import { createWishlistItem, tombstoneWishlistItem } from "@/local/wishWrites";
 import Dexie from "dexie";
 import { beforeEach, describe, expect, it } from "vitest";
 
@@ -160,5 +161,76 @@ describe("DexieLocalStore", () => {
     await reopened.open();
 
     expect(await reopened.readClock()).toBe("000000000001000:0005:test-device");
+  });
+});
+
+describe("wishlist", () => {
+  let store: DexieLocalStore;
+  let clock: ClockSource;
+
+  beforeEach(async () => {
+    await Dexie.delete("music-collector");
+    store = new DexieLocalStore();
+    clock = clockSource();
+    await store.open();
+  });
+
+  function wish(id: string, group = "group-brew") {
+    return createWishlistItem(
+      {
+        releaseGroupMbid: group,
+        title: "Ege Bamyasi",
+        artistName: "Can",
+        year: 1972,
+        desiredFormat: "VINYL",
+        note: "Want an original Spoon press",
+      },
+      clock,
+      1000,
+      id,
+    );
+  }
+
+  it("round-trips a wish and marks it pending", async () => {
+    await store.putWishlistItem(wish("w-1"));
+
+    expect(await store.listWishlist()).toHaveLength(1);
+    // Wishes and copies share one pending set, so they push in a single request.
+    expect(await store.readPendingIds()).toEqual(["w-1"]);
+  });
+
+  it("hides a tombstoned wish but keeps the row for sync", async () => {
+    await store.putWishlistItem(wish("w-1"));
+    const stored = await store.getWishlistItemIncludingDeleted("w-1");
+    await store.putWishlistItem(
+      tombstoneWishlistItem(stored as NonNullable<typeof stored>, clock, 9000),
+    );
+
+    expect(await store.listWishlist()).toHaveLength(0);
+    expect((await store.getWishlistItemIncludingDeleted("w-1"))?.deletedAt).toBe(9000);
+  });
+
+  it("knows whether an album is already wished for", async () => {
+    await store.putWishlistItem(wish("w-1", "group-brew"));
+
+    expect(await store.wishlistHas("group-brew")).toBe(true);
+    expect(await store.wishlistHas("group-light")).toBe(false);
+  });
+
+  it("stops counting an album as wished for once the wish is deleted", async () => {
+    await store.putWishlistItem(wish("w-1", "group-brew"));
+    const stored = await store.getWishlistItemIncludingDeleted("w-1");
+    await store.putWishlistItem(
+      tombstoneWishlistItem(stored as NonNullable<typeof stored>, clock, 9000),
+    );
+
+    expect(await store.wishlistHas("group-brew")).toBe(false);
+  });
+
+  it("adopting a wish does not mark it pending", async () => {
+    // Otherwise the client pushes straight back what it just pulled, forever.
+    await store.adoptWishlistItem(wish("w-1"));
+
+    expect(await store.readPendingIds()).toEqual([]);
   });
 });

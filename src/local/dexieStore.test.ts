@@ -31,6 +31,7 @@ function copy(id: string, releaseMbid: string, overrides: Partial<Copy> = {}): C
     purchasedOn: null,
     purchasedAt: null,
     notes: null,
+    notesConflict: null,
     rating: null,
     createdAt: 0,
     deletedAt: null,

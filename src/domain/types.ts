@@ -78,6 +78,17 @@ export interface Copy {
   readonly purchasedOn: string | null;
   readonly purchasedAt: string | null;
   readonly notes: string | null;
+  /**
+   * The other device's version of the notes, when a merge found two different ones.
+   *
+   * Notes are the one long free-text field, so plain last-write-wins would silently
+   * discard a paragraph someone wrote elsewhere. The winner still becomes `notes`; the
+   * loser is kept here for the person to reconcile, and the detail screen surfaces it.
+   *
+   * Derived by the merge from its two inputs rather than written by a device, so it
+   * carries no clock of its own.
+   */
+  readonly notesConflict: string | null;
   readonly rating: number | null;
   readonly createdAt: number;
   /** Tombstone. Deletes have to be represented, or sync would resurrect the row. */

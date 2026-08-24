@@ -45,6 +45,7 @@ export function createCopy(
     purchasedOn: draft.purchasedOn,
     purchasedAt: draft.purchasedAt,
     notes: draft.notes,
+    notesConflict: null,
     rating: draft.rating,
     createdAt: now,
     deletedAt: null,
@@ -71,6 +72,11 @@ export function applyCopyPatch(copy: Copy, patch: Partial<CopyDraft>, clock: Clo
   const stamp = hlcEncode(clock.next());
   const fieldClocks = { ...copy.fieldClocks };
   const updated: Record<string, unknown> = { ...copy };
+  if (changed.includes("notes")) {
+    // Writing the notes is how a person resolves a conflict: they have seen both versions
+    // and chosen what the text should say, so the other one stops being pending.
+    updated.notesConflict = null;
+  }
   for (const key of changed) {
     fieldClocks[key as CopyMergeableField] = stamp;
     // Assigned key by key rather than by spreading `patch`: a patch carrying an explicit

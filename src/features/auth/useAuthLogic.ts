@@ -1,8 +1,9 @@
 import { setAccessToken } from "@/api/axios-instance";
-import { login, logout, register } from "@/api/generated/auth/auth";
+import { login, logout, providers, register } from "@/api/generated/auth/auth";
 import { useStore } from "@/local/StoreProvider";
 import { signedIn, signedOut } from "@/store/authSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { useQuery } from "@tanstack/react-query";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useCallback, useState } from "react";
@@ -20,12 +21,21 @@ export function useAuthLogic() {
   const [mode, setMode] = useState<AuthMode>("SIGN_IN");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [rememberMe, setRememberMe] = useState(true);
+  const [agreed, setAgreed] = useState(false);
   const [failed, setFailed] = useState<AuthError | null>(null);
+
+  // Only providers the server can actually complete a flow with, so an unconfigured one
+  // is absent rather than a button that fails when pressed.
+  const providerQuery = useQuery({ queryKey: ["authProviders"], queryFn: () => providers() });
 
   const submit = useMutation({
     mutationFn: async () => {
-      const credentials = { email: email.trim(), password };
-      const session = mode === "REGISTER" ? await register(credentials) : await login(credentials);
+      const session =
+        mode === "REGISTER"
+          ? await register({ email: email.trim(), password, displayName: displayName.trim() })
+          : await login({ email: email.trim(), password, rememberMe });
       if (session.accessToken === undefined || session.user === undefined) {
         throw new Error("The server did not return a session");
       }
@@ -73,9 +83,17 @@ export function useAuthLogic() {
     setEmail,
     password,
     setPassword,
+    displayName,
+    setDisplayName,
+    rememberMe,
+    setRememberMe,
+    agreed,
+    setAgreed,
+    availableProviders: providerQuery.data ?? [],
     // Completeness only — the server validates the address and password properly, and a
-    // dead button that will not say why is worse than a rejected submit.
-    canSubmit: email.trim().length > 0 && password.length > 0,
+    // dead button that will not say why is worse than a rejected submit. The terms box is
+    // the exception: it is a required acknowledgement, not a format rule.
+    canSubmit: email.trim().length > 0 && password.length > 0 && (mode === "SIGN_IN" || agreed),
     submit: () => submit.mutate(),
     submitting: submit.isPending,
     failed,

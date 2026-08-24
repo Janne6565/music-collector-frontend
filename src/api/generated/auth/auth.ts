@@ -10,8 +10,12 @@ for copies. The server participates only as a sync peer.
  * OpenAPI spec version: v1
  */
 import type {
+  AuthProviderDto,
+  CallbackParams,
+  ForgotPasswordRequest,
   LoginRequest,
   RegisterRequest,
+  ResetPasswordRequest,
   SessionDto,
   UserDto
 } from '../musicCollectorAPI.schemas';
@@ -20,6 +24,20 @@ import { customInstance } from '../../axios-instance';
 
 
 
+  /**
+ * Revokes every other session, since a reset may be locking somebody out.
+ * @summary Redeem a reset link and sign in
+ */
+export const resetPassword = (
+    resetPasswordRequest: ResetPasswordRequest,
+ ) => {
+      return customInstance<SessionDto>(
+      {url: `/api/v1/auth/reset-password`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: resetPasswordRequest
+    },
+      );
+    }
   /**
  * Also sets the refresh cookie.
  * @summary Create an account
@@ -72,6 +90,58 @@ export const login = (
       );
     }
   /**
+ * Always answers 204, whether or not the address has an account — a different answer would turn this into a way to find out who is registered.
+ * @summary Send a password reset link
+ */
+export const forgotPassword = (
+    forgotPasswordRequest: ForgotPasswordRequest,
+ ) => {
+      return customInstance<void>(
+      {url: `/api/v1/auth/forgot-password`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: forgotPasswordRequest
+    },
+      );
+    }
+  /**
+ * Only providers with credentials configured. Clients render a button per entry, so an unconfigured provider is absent rather than broken.
+ * @summary Sign-in providers this server can actually use
+ */
+export const providers = (
+    
+ ) => {
+      return customInstance<AuthProviderDto[]>(
+      {url: `/api/v1/auth/providers`, method: 'GET'
+    },
+      );
+    }
+  /**
+ * Sets the refresh cookie and redirects into the app. No token ever appears in a URL.
+ * @summary Where the provider sends the person back
+ */
+export const callback = (
+    provider: string,
+    params?: CallbackParams,
+ ) => {
+      return customInstance<unknown>(
+      {url: `/api/v1/auth/oauth/${provider}/callback`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * Redirects to the provider. Navigate to this, never fetch it.
+ * @summary Begin an external sign-in
+ */
+export const authorize = (
+    provider: string,
+ ) => {
+      return customInstance<unknown>(
+      {url: `/api/v1/auth/oauth/${provider}/authorize`, method: 'GET'
+    },
+      );
+    }
+  /**
  * @summary The signed-in account
  */
 export const me = (
@@ -82,8 +152,13 @@ export const me = (
     },
       );
     }
-  export type RegisterResult = NonNullable<Awaited<ReturnType<typeof register>>>
+  export type ResetPasswordResult = NonNullable<Awaited<ReturnType<typeof resetPassword>>>
+export type RegisterResult = NonNullable<Awaited<ReturnType<typeof register>>>
 export type RefreshResult = NonNullable<Awaited<ReturnType<typeof refresh>>>
 export type LogoutResult = NonNullable<Awaited<ReturnType<typeof logout>>>
 export type LoginResult = NonNullable<Awaited<ReturnType<typeof login>>>
+export type ForgotPasswordResult = NonNullable<Awaited<ReturnType<typeof forgotPassword>>>
+export type ProvidersResult = NonNullable<Awaited<ReturnType<typeof providers>>>
+export type CallbackResult = NonNullable<Awaited<ReturnType<typeof callback>>>
+export type AuthorizeResult = NonNullable<Awaited<ReturnType<typeof authorize>>>
 export type MeResult = NonNullable<Awaited<ReturnType<typeof me>>>

@@ -1,5 +1,6 @@
 import type { CollectionStats } from "@/domain/types";
 import { FORMAT_LABELS } from "@/domain/types";
+import { SidebarAccount } from "@/features/auth/SidebarAccount";
 import { Link } from "@tanstack/react-router";
 import { Heart, LibraryBig } from "lucide-react";
 import type { ReactNode } from "react";
@@ -40,6 +41,7 @@ function Sidebar({ stats }: { readonly stats: CollectionStats | undefined }) {
             does not exist is worse than no link, so they appear when they work. */}
       </div>
       {stats !== undefined && <FormatCounts stats={stats} />}
+      <SidebarAccount />
     </nav>
   );
 }

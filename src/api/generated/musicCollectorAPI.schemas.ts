@@ -89,12 +89,9 @@ export interface PhotoUploadDto {
   byteSize?: number;
 }
 
-export interface RegisterRequest {
-  /**
-   * @minLength 0
-   * @maxLength 254
-   */
-  email: string;
+export interface ResetPasswordRequest {
+  /** @minLength 1 */
+  token: string;
   /**
    * @minLength 10
    * @maxLength 200
@@ -111,7 +108,26 @@ export interface SessionDto {
 export interface UserDto {
   id?: string;
   email?: string;
+  displayName?: string;
   createdAt?: string;
+}
+
+export interface RegisterRequest {
+  /**
+   * @minLength 0
+   * @maxLength 254
+   */
+  email: string;
+  /**
+   * @minLength 10
+   * @maxLength 200
+   */
+  password: string;
+  /**
+   * @minLength 0
+   * @maxLength 120
+   */
+  displayName?: string;
 }
 
 export interface LoginRequest {
@@ -119,6 +135,12 @@ export interface LoginRequest {
   email: string;
   /** @minLength 1 */
   password: string;
+  rememberMe?: boolean;
+}
+
+export interface ForgotPasswordRequest {
+  /** @minLength 1 */
+  email: string;
 }
 
 export interface CoverThemeDto {
@@ -163,6 +185,11 @@ export interface HealthDto {
   time?: string;
 }
 
+export interface AuthProviderDto {
+  id?: string;
+  displayName?: string;
+}
+
 export type PullParams = {
 /**
  * @minimum 0
@@ -190,5 +217,11 @@ q: string;
  * @maximum 50
  */
 limit?: number;
+};
+
+export type CallbackParams = {
+code?: string;
+state?: string;
+error?: string;
 };
 

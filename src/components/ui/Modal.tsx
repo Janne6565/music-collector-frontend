@@ -18,6 +18,14 @@ interface ModalProps {
  */
 export function Modal({ onClose, labelledBy, width, children }: ModalProps) {
   const ref = useRef<HTMLDialogElement>(null);
+  /**
+   * Where the gesture that is about to become a click started.
+   *
+   * Only a press that both started and ended outside the panel closes the sheet. Without
+   * this, selecting the text in a field and releasing the mouse past the panel's edge
+   * reads as a backdrop click and throws away what was being typed.
+   */
+  const pressedBackdrop = useRef(false);
 
   useEffect(() => {
     const dialog = ref.current;
@@ -26,9 +34,6 @@ export function Modal({ onClose, labelledBy, width, children }: ModalProps) {
   }, []);
 
   return (
-    // The keyboard equivalent of the backdrop click below is Escape, which the browser
-    // already delivers as `cancel`; there is no second key gesture to add.
-    // biome-ignore lint/a11y/useKeyWithClickEvents: Escape is handled by onCancel
     <dialog
       ref={ref}
       aria-labelledby={labelledBy}
@@ -38,17 +43,30 @@ export function Modal({ onClose, labelledBy, width, children }: ModalProps) {
         event.preventDefault();
         onClose();
       }}
-      onClick={(event) => {
-        // Clicks land on the dialog itself only in the backdrop area, since the panel
-        // below stops them.
-        if (event.target === ref.current) onClose();
-      }}
       className={cn(
         "m-0 max-h-none max-w-none bg-transparent p-0 backdrop:bg-ink/35",
         "fixed inset-0 h-full w-full",
       )}
     >
-      <div className="flex h-full items-start justify-center p-6 pt-[70px]">
+      {/*
+       * The backdrop is this element, not the <dialog>: it is stretched over the whole
+       * viewport to centre the panel, so every click outside the panel lands here and
+       * never reaches the dialog itself. Comparing target with currentTarget is what
+       * separates "the padding around the panel" from "anything inside it" — and unlike
+       * a `contains` check it stays right when the clicked control unmounts itself.
+       */}
+      {/* biome-ignore lint/a11y/useKeyWithClickEvents: the keyboard gesture for this is
+          Escape, which the browser already delivers to the dialog as `cancel`. */}
+      <div
+        className="flex h-full items-start justify-center p-6 pt-[70px]"
+        onMouseDown={(event) => {
+          pressedBackdrop.current = event.target === event.currentTarget;
+        }}
+        onClick={(event) => {
+          if (pressedBackdrop.current && event.target === event.currentTarget) onClose();
+          pressedBackdrop.current = false;
+        }}
+      >
         <div
           className="flex max-h-full w-full flex-col overflow-hidden rounded-[14px] bg-paper text-ink shadow-[0_24px_60px_rgba(25,23,19,.28)]"
           style={{ maxWidth: width }}

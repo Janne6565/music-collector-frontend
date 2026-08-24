@@ -35,6 +35,7 @@ const enCommon = {
       action: "Add your first item",
     },
     noMatches: "No items match this filter.",
+    loading: "loading…",
   },
   photos: {
     add: "Add a photo of your copy",
@@ -74,6 +75,8 @@ const enCommon = {
     soon: "Soon",
     manualSoon: "Manual entry is still being designed. For now, search or scan the barcode.",
     searchPlaceholder: "Artist, title or catalog number",
+    clearSearch: "Clear the search",
+    searchingSource: "Searching MusicBrainz",
     barcodePlaceholder: "Scan or type the barcode",
     allFormats: "All formats",
     matchCount: "{{count}} matching releases",
@@ -85,6 +88,12 @@ const enCommon = {
     footerHint: "Pick a release to add it, or add one and fill in your copy's details.",
     noBarcodeMatch:
       "No release with the barcode {{barcode}}. Common with promos, club editions and anything pressed before the mid-eighties.",
+    noMatches: {
+      title: "No releases matched",
+      body: "Try the artist alone, or scan the barcode on the back of the sleeve.",
+      scan: "Scan barcode",
+      byTitle: "Search by title",
+    },
     csv: {
       title: "Import from a CSV",
       body: "One row per copy, with a releaseMbid column — the format this app exports. Rows without a release it can find are reported and skipped.",
@@ -321,6 +330,7 @@ const deCommon: CommonSchema = {
       action: "Erstes Exemplar hinzufügen",
     },
     noMatches: "Keine Einträge passen zu diesem Filter.",
+    loading: "lädt…",
   },
   photos: {
     add: "Foto deines Exemplars hinzufügen",
@@ -360,6 +370,8 @@ const deCommon: CommonSchema = {
     soon: "Bald",
     manualSoon: "Die manuelle Eingabe wird noch entworfen. Suche so lange oder scanne den Barcode.",
     searchPlaceholder: "Künstler, Titel oder Katalognummer",
+    clearSearch: "Suche leeren",
+    searchingSource: "Suche bei MusicBrainz",
     barcodePlaceholder: "Barcode scannen oder eingeben",
     allFormats: "Alle Formate",
     matchCount: "{{count}} passende Veröffentlichungen",
@@ -372,6 +384,12 @@ const deCommon: CommonSchema = {
       "Wähle eine Veröffentlichung aus oder trage direkt die Details deines Exemplars ein.",
     noBarcodeMatch:
       "Keine Veröffentlichung mit dem Barcode {{barcode}}. Typisch für Promos, Clubauflagen und alles vor Mitte der Achtziger.",
+    noMatches: {
+      title: "Keine Veröffentlichung gefunden",
+      body: "Versuch es nur mit dem Künstler oder scanne den Barcode auf der Rückseite der Hülle.",
+      scan: "Barcode scannen",
+      byTitle: "Nach Titel suchen",
+    },
     csv: {
       title: "Aus einer CSV importieren",
       body: "Eine Zeile pro Exemplar, mit einer Spalte releaseMbid — genau das Format, das diese App exportiert. Zeilen ohne auffindbare Veröffentlichung werden gemeldet und übersprungen.",

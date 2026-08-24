@@ -5,13 +5,24 @@ import { useStore } from "@/local/StoreProvider";
 import { type CopyDraft, createCopy } from "@/local/copyWrites";
 import { clearRecentSearches, readRecentSearches, rememberSearch } from "@/local/settings";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export type AddTab = "SEARCH" | "BARCODE" | "CSV";
 export type AddFormatFilter = Format | "ALL";
 
 /** A bare run of 8–14 digits is a scanned or pasted barcode, not a title. */
 const BARCODE = /^\d{8,14}$/;
+
+/**
+ * How long the field has to stand still before the search runs itself.
+ *
+ * Long enough that typing an artist's name is one request rather than eleven, short
+ * enough that it still feels like the list is following along.
+ */
+const DEBOUNCE_MS = 350;
+
+/** Below this, a title search matches most of the archive and tells you nothing. */
+const MIN_TERM_LENGTH = 2;
 
 const EMPTY_DRAFT: CopyDraft = {
   condition: null,
@@ -147,12 +158,19 @@ export function useAddDialogLogic(onClose: () => void) {
   const results = format === "ALL" ? all : all.filter((release) => release.format === format);
   const selected = results.find((release) => release.mbid === selectedMbid) ?? null;
 
-  const search = useCallback(
+  const search = useCallback((next: string) => {
+    setSubmitted(next);
+    setSelectedMbid(null);
+  }, []);
+
+  /**
+   * Recent searches hold things somebody meant, not every prefix they passed through on
+   * the way — which is why this is not called from the debounce. A search counts as meant
+   * once it is pressed for deliberately (Enter, or repeating an earlier one) or once it
+   * produces something that gets added.
+   */
+  const remember = useCallback(
     (next: string) => {
-      setSubmitted(next);
-      setSelectedMbid(null);
-      // Remembered on submit rather than on keystroke, so the list holds searches somebody
-      // meant, not every prefix they passed through on the way.
       void rememberSearch(store, next).then(() =>
         queryClient.invalidateQueries({ queryKey: ["recentSearches"] }),
       );
@@ -160,38 +178,90 @@ export function useAddDialogLogic(onClose: () => void) {
     [store, queryClient],
   );
 
+  const query = term.trim();
+  /**
+   * Whether what is in the field is worth sending. A barcode is only a barcode once it is
+   * complete, so a half-scanned number never reaches the proxy.
+   */
+  const queryReady = tab === "BARCODE" ? BARCODE.test(query) : query.length >= MIN_TERM_LENGTH;
+  /** Typed something new and the request has not gone out yet. */
+  const waiting = queryReady && query !== submitted;
+
+  /**
+   * The search runs itself after the field stands still.
+   *
+   * Adding a record is a search you repeat with small corrections — a misheard title, an
+   * artist spelled two ways — and an Enter between every attempt is a keystroke that only
+   * ever means "yes, I did mean the thing I just typed". Enter still works, and skips
+   * the wait.
+   */
+  useEffect(() => {
+    if (!queryReady) {
+      // Emptying or shortening the field drops the results with it, rather than leaving
+      // them stranded under a box that no longer says what produced them.
+      search("");
+      return;
+    }
+    if (query === submitted) return;
+    const timer = setTimeout(() => search(query), DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [query, queryReady, submitted, search]);
+
   return {
     tab,
-    setTab: useCallback((next: AddTab) => {
-      setTab(next);
-      setSelectedMbid(null);
-    }, []),
+    setTab: useCallback(
+      (next: AddTab) => {
+        setTab(next);
+        setSelectedMbid(null);
+        // The field is cleared with the tab, so the barcode box never opens holding a
+        // half-typed album title that no barcode can ever match — and, now that the
+        // search runs itself, never carries one tab's query into the other's request.
+        setTerm("");
+        search("");
+      },
+      [search],
+    ),
     term,
     setTerm,
-    submit: useCallback(() => search(term), [search, term]),
-    canSubmit: term.trim().length > 0,
+    /** Enter — the same search, without waiting out the debounce. */
+    submit: useCallback(() => {
+      if (query === "") return;
+      search(query);
+      if (!BARCODE.test(query)) remember(query);
+    }, [query, search, remember]),
+    canSubmit: query !== "",
     format,
     setFormat,
     results,
-    searching: resultsQuery.isFetching,
-    failed: resultsQuery.isError,
-    hasSearched: submitted.trim() !== "",
-    submittedTerm: submitted.trim(),
+    /**
+     * True from the keystroke, not from the request: the skeletons stand in for the wait
+     * as a whole, and a debounce the reader cannot see is still a wait.
+     */
+    searching: waiting || resultsQuery.isFetching,
+    failed: resultsQuery.isError && !waiting,
+    hasSearched: submitted !== "" || waiting,
+    submittedTerm: submitted,
     isOwned: (release: Release) => owned.data?.has(release.mbid) === true,
     selected,
     select: setSelectedMbid,
     /** Adds the copy and stays put, so several can be added in one sitting. */
-    addRelease: (release: Release) => add.mutate(release),
+    addRelease: (release: Release) => {
+      // The search that found something you kept is one worth offering again.
+      if (submitted !== "" && !BARCODE.test(submitted)) remember(submitted);
+      add.mutate(release);
+    },
     addingMbid: add.isPending ? add.variables?.mbid : undefined,
     /** Adds the copy and hands it to the details step (screen 8d). */
     addAndEdit: async (release: Release) => {
+      if (submitted !== "" && !BARCODE.test(submitted)) remember(submitted);
       const copy = await add.mutateAsync(release);
       return copy.id;
     },
     recentSearches: recent.data ?? [],
     repeatSearch: (term: string) => {
       setTerm(term);
-      search(term);
+      search(term.trim());
+      remember(term);
     },
     clearRecent: () => forgetSearches.mutate(),
     importCsv: (file: File) => importCsv.mutate(file),

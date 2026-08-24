@@ -52,3 +52,78 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
+
+/*
+ * Loading shimmer — turn 9 of the deck.
+ *
+ * Skeletons are given the same dimensions as the content they stand in for, so nothing
+ * jumps when the real thing arrives; these classes only supply the movement. The three
+ * tones mirror the deck's three bar weights (thumbnail and first line, second line,
+ * third line), which is what keeps a block of placeholders from reading as a wall.
+ */
+@keyframes mcshimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+
+@keyframes mcpulse {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.mc-shimmer {
+  background-image: linear-gradient(
+    90deg,
+    rgba(25, 23, 19, 0.07) 25%,
+    rgba(25, 23, 19, 0.03) 37%,
+    rgba(25, 23, 19, 0.07) 63%
+  );
+  background-size: 400% 100%;
+  animation: mcshimmer 1.4s ease-in-out infinite;
+}
+
+.mc-shimmer-soft {
+  background-image: linear-gradient(
+    90deg,
+    rgba(25, 23, 19, 0.06) 25%,
+    rgba(25, 23, 19, 0.025) 37%,
+    rgba(25, 23, 19, 0.06) 63%
+  );
+}
+
+.mc-shimmer-faint {
+  background-image: linear-gradient(
+    90deg,
+    rgba(25, 23, 19, 0.05) 25%,
+    rgba(25, 23, 19, 0.02) 37%,
+    rgba(25, 23, 19, 0.05) 63%
+  );
+}
+
+.mc-pulse {
+  animation: mcpulse 1.1s ease-in-out infinite;
+}
+
+/*
+ * A waiting indicator that will not stop moving is exactly the kind of motion people turn
+ * off. Held at a steady mid-tone instead, so the placeholder still reads as "not content".
+ */
+@media (prefers-reduced-motion: reduce) {
+  .mc-shimmer,
+  .mc-pulse {
+    animation: none;
+  }
+
+  .mc-pulse {
+    opacity: 0.55;
+  }
+}

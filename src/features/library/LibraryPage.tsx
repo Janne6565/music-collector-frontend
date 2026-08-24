@@ -1,6 +1,6 @@
 import { ReleaseArt } from "@/components/ReleaseArt";
 import { AppShell } from "@/components/layout/AppShell";
-import { Button } from "@/components/ui";
+import { Button, Skeleton } from "@/components/ui";
 import type { Format } from "@/domain/types";
 import { FORMAT_LABELS } from "@/domain/types";
 import { AddDialog } from "@/features/add/AddDialog";
@@ -17,6 +17,31 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 const FILTERS: readonly FormatFilter[] = ["ALL", "VINYL", "CD", "CASSETTE", "DIGITAL"];
+
+/**
+ * A grid page's worth of placeholders, in the widths the deck draws them.
+ *
+ * Enough to fill the fold at the widths the grid actually lands on, and no more: the
+ * point is that the page has its shape before the data arrives, not that the count is
+ * guessed right.
+ */
+const SKELETON_CARDS: readonly (readonly [string, string])[] = [
+  ["78%", "56%"],
+  ["62%", "44%"],
+  ["88%", "62%"],
+  ["54%", "38%"],
+  ["72%", "50%"],
+  ["84%", "46%"],
+  ["58%", "60%"],
+  ["76%", "40%"],
+  ["66%", "54%"],
+  ["90%", "48%"],
+  ["60%", "36%"],
+  ["80%", "58%"],
+];
+
+/** Shared so the skeleton grid cannot drift away from the real one. */
+const GRID_CLASS = "grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-x-4 gap-y-5";
 
 export function LibraryPage() {
   const { t } = useTranslation();
@@ -57,7 +82,11 @@ export function LibraryPage() {
 
       <div className="flex flex-none items-baseline justify-between px-7 pt-4 pb-1.5">
         <h1 className="font-serif text-[26px] leading-none">{t("library.title")}</h1>
-        {logic.stats !== undefined && (
+        {logic.stats === undefined ? (
+          logic.loading && (
+            <output className="font-mono text-xs text-ink-subtle">{t("library.loading")}</output>
+          )
+        ) : (
           <span className="font-mono text-xs text-ink-subtle">
             {t("library.counts", {
               copies: logic.stats.copyCount,
@@ -117,16 +146,37 @@ function LibraryBody({
 }) {
   const { t } = useTranslation();
 
-  if (loading) return <p className="pt-8 text-sm text-ink-muted">…</p>;
+  if (loading) return <LibrarySkeleton />;
   if (failed) return <p className="pt-8 text-sm text-ink-muted">{t("add.failed")}</p>;
   if (collectionEmpty) return <EmptyLibrary onAdd={onAdd} />;
   if (rows.length === 0)
     return <p className="pt-8 text-sm text-ink-muted">{t("library.noMatches")}</p>;
 
   return (
-    <div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-x-4 gap-y-5">
+    <div className={GRID_CLASS}>
       {rows.map((row) => (
         <GridItem key={row.copy.id} row={row} />
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Screen 9c — the same shimmer as the add dialog, in the shape of a cover card.
+ *
+ * The grid class and every dimension below are the ones GridItem uses, so the covers drop
+ * into the boxes the placeholders were already holding open and the page does not reflow
+ * under a reader who has started scrolling it.
+ */
+function LibrarySkeleton() {
+  return (
+    <div className={GRID_CLASS}>
+      {SKELETON_CARDS.map(([title, subtitle]) => (
+        <div key={title + subtitle}>
+          <Skeleton className="aspect-square rounded-sm" />
+          <Skeleton className="mt-1.5 h-[11px] rounded-[3px]" style={{ width: title }} />
+          <Skeleton tone="faint" className="mt-1.5 h-2 rounded-[3px]" style={{ width: subtitle }} />
+        </div>
       ))}
     </div>
   );

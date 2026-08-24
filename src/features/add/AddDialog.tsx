@@ -1,6 +1,6 @@
 import { releaseDisambiguation } from "@/api/releases";
 import { ReleaseArt } from "@/components/ReleaseArt";
-import { Button, Modal, ModalClose } from "@/components/ui";
+import { Button, FieldSpinner, Modal, ModalClose, PulsingDots, Skeleton } from "@/components/ui";
 import type { Format, Release } from "@/domain/types";
 import { FORMAT_LABELS } from "@/domain/types";
 import {
@@ -9,12 +9,35 @@ import {
   useAddDialogLogic,
 } from "@/features/add/useAddDialogLogic";
 import { cn } from "@/lib/utils";
-import { ArrowUpLeft, Clock, FileUp, Plus, ScanBarcode, Search } from "lucide-react";
+import {
+  ArrowUpLeft,
+  Clock,
+  FileUp,
+  Pencil,
+  Plus,
+  ScanBarcode,
+  Search,
+  SearchX,
+  X,
+} from "lucide-react";
 import { useId, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
 const FILTERS: readonly AddFormatFilter[] = ["ALL", "VINYL", "CD", "CASSETTE", "DIGITAL"];
 const TABS: readonly AddTab[] = ["SEARCH", "BARCODE", "CSV"];
+
+/**
+ * Four placeholder rows, in the widths the deck draws them.
+ *
+ * Four rather than "as many as fit": it fills the visible list without promising a result
+ * count nobody knows yet. The uneven widths are what stop the block reading as a table.
+ */
+const SKELETON_ROWS: readonly (readonly [string, string, string])[] = [
+  ["62%", "44%", "30%"],
+  ["48%", "56%", "24%"],
+  ["70%", "38%", "34%"],
+  ["54%", "48%", "28%"],
+];
 
 interface AddDialogProps {
   readonly onClose: () => void;
@@ -130,6 +153,21 @@ function SearchTab({
           <button type="submit" disabled={!logic.canSubmit} className="sr-only">
             {t("addDialog.tab.SEARCH")}
           </button>
+          {/* The spinner belongs to the field that caused the wait, so the cause and the
+              wait are in the same place. It replaces the clear button rather than sitting
+              beside it, which keeps the field's width from twitching mid-search. */}
+          {logic.searching ? (
+            <FieldSpinner />
+          ) : logic.term !== "" ? (
+            <button
+              type="button"
+              onClick={() => logic.setTerm("")}
+              aria-label={t("addDialog.clearSearch")}
+              className="flex-none text-ink-subtle hover:text-ink"
+            >
+              <X size={15} strokeWidth={1.75} aria-hidden />
+            </button>
+          ) : null}
         </label>
 
         {!barcode && (
@@ -187,18 +225,10 @@ function SearchTab({
 function Results({ logic }: { readonly logic: Logic }) {
   const { t } = useTranslation();
 
-  if (logic.searching) return <p className="pt-4 text-sm text-ink-muted">{t("add.searching")}</p>;
+  if (logic.searching) return <SearchingRows />;
   if (logic.failed) return <p className="pt-4 text-sm text-ink-muted">{t("add.failed")}</p>;
   if (!logic.hasSearched) return <RecentSearches logic={logic} />;
-  if (logic.results.length === 0) {
-    return (
-      <p className="pt-4 text-sm text-ink-muted">
-        {logic.tab === "BARCODE"
-          ? t("addDialog.noBarcodeMatch", { barcode: logic.submittedTerm })
-          : t("add.noResults")}
-      </p>
-    );
-  }
+  if (logic.results.length === 0) return <NoMatches logic={logic} />;
 
   return (
     <>
@@ -244,6 +274,91 @@ function RecentSearches({ logic }: { readonly logic: Logic }) {
         </button>
       ))}
     </>
+  );
+}
+
+/**
+ * The wait, in the shape of what is coming (screen 9a).
+ *
+ * Every dimension here is copied from ResultRow below — the 52px sleeve, the three lines,
+ * the round add button — so the results replace the placeholders without moving anything
+ * the reader had already started looking at.
+ */
+function SearchingRows() {
+  const { t } = useTranslation();
+
+  return (
+    <>
+      <output className="flex items-center gap-2.5 pt-2.5 pb-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-ink-subtle">
+        {t("addDialog.searchingSource")}
+        <PulsingDots />
+      </output>
+      {SKELETON_ROWS.map(([first, second, third]) => (
+        <div key={first + second} className="flex items-center gap-3.5 border-t border-line py-3">
+          <Skeleton className="h-13 w-13 flex-none rounded-sm" />
+          <div className="flex min-w-0 flex-1 flex-col gap-[7px]">
+            <Skeleton className="h-[11px] rounded-[3px]" style={{ width: first }} />
+            <Skeleton tone="soft" className="h-[9px] rounded-[3px]" style={{ width: second }} />
+            <Skeleton tone="faint" className="h-2 rounded-[3px]" style={{ width: third }} />
+          </div>
+          <div className="h-8 w-[68px] flex-none rounded-lg bg-ink/5" aria-hidden />
+        </div>
+      ))}
+    </>
+  );
+}
+
+/**
+ * Screen 9b — the search ran and matched nothing.
+ *
+ * The point of the screen is the two ways out: a barcode is the one identifier that is
+ * printed on the sleeve and cannot be misspelled, and manual entry is the way in for a
+ * pressing the archive has never heard of. Manual entry has not been designed yet, so it
+ * is shown plainly disabled rather than omitted — the same treatment it gets in the tab
+ * strip, for the same reason.
+ */
+function NoMatches({ logic }: { readonly logic: Logic }) {
+  const { t } = useTranslation();
+  const barcode = logic.tab === "BARCODE";
+
+  return (
+    <div className="flex flex-col items-center px-5 pt-10 pb-9 text-center">
+      <SearchX size={28} strokeWidth={1.5} className="text-ink-subtle" aria-hidden />
+      <h3 className="mt-4 font-serif text-[21px] leading-tight">
+        {t("addDialog.noMatches.title")}
+      </h3>
+      <p className="mt-2 max-w-[340px] text-[13px] leading-relaxed text-pretty text-ink-muted">
+        {barcode
+          ? t("addDialog.noBarcodeMatch", { barcode: logic.submittedTerm })
+          : t("addDialog.noMatches.body")}
+      </p>
+      <div className="mt-5 flex flex-wrap justify-center gap-2.5">
+        <Button
+          variant="secondary"
+          onClick={() => logic.setTab(barcode ? "SEARCH" : "BARCODE")}
+          className="h-[34px] rounded-lg px-3.5 text-[12.5px]"
+        >
+          {barcode ? (
+            <Search size={15} strokeWidth={1.75} aria-hidden />
+          ) : (
+            <ScanBarcode size={15} strokeWidth={1.75} aria-hidden />
+          )}
+          {t(barcode ? "addDialog.noMatches.byTitle" : "addDialog.noMatches.scan")}
+        </Button>
+        <Button
+          variant="secondary"
+          disabled
+          title={t("addDialog.manualSoon")}
+          className="h-[34px] rounded-lg px-3.5 text-[12.5px]"
+        >
+          <Pencil size={15} strokeWidth={1.75} aria-hidden />
+          {t("addDialog.tab.MANUAL")}
+          <span className="rounded-full bg-ink/6 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.08em]">
+            {t("addDialog.soon")}
+          </span>
+        </Button>
+      </div>
+    </div>
   );
 }
 

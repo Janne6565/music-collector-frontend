@@ -167,7 +167,11 @@ function Fields({
 }: { readonly copy: Copy; readonly release: Release | undefined } & WithChrome) {
   const { t } = useTranslation();
   const rows: readonly (readonly [string, string])[] = [
-    [t("detail.condition"), copy.condition === null ? "—" : CONDITION_LABELS[copy.condition]],
+    [t("detail.mediaCondition"), copy.condition === null ? "—" : CONDITION_LABELS[copy.condition]],
+    [
+      t("detail.sleeveCondition"),
+      copy.sleeveCondition === null ? "—" : CONDITION_LABELS[copy.sleeveCondition],
+    ],
     [t("detail.paid"), formatMoney(copy.pricePaidCents, copy.currency)],
     [t("detail.bought"), copy.purchasedOn ?? "—"],
     [t("detail.where"), copy.purchasedAt ?? "—"],

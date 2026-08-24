@@ -41,6 +41,7 @@ function release(mbid: string, overrides: Partial<Release> = {}): Release {
 
 const draft = {
   condition: "VG_PLUS" as const,
+  sleeveCondition: "NM" as const,
   pricePaidCents: 2800,
   currency: "EUR",
   purchasedOn: "2026-08-14",

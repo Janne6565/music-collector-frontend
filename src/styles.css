@@ -15,6 +15,8 @@
   --color-line: rgba(25, 23, 19, 0.09);
   --color-accent: #a2573a;
   --color-accent-hover: #7d3f27;
+  /* The darker accent the deck reserves for destructive wording ("Delete account"). */
+  --color-accent-strong: #8c4530;
 
   /* Dark chrome — used by the cover-derived theme on item detail screens. */
   --color-night: #141311;

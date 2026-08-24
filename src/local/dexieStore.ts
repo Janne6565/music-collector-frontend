@@ -7,6 +7,8 @@ const DEVICE_ID_KEY = "deviceId";
 const CLOCK_KEY = "clock";
 const CURSOR_KEY = "syncCursor";
 const PENDING_KEY = "pendingIds";
+/** Namespaced, so a preference can never collide with the sync bookkeeping above. */
+const SETTING_PREFIX = "setting:";
 
 interface MetaRow {
   key: string;
@@ -254,6 +256,14 @@ export class DexieLocalStore implements LocalStore {
 
   async writePendingIds(ids: readonly string[]): Promise<void> {
     await this.db.meta.put({ key: PENDING_KEY, value: JSON.stringify(ids) });
+  }
+
+  async readSetting(key: string): Promise<string | undefined> {
+    return (await this.db.meta.get(`${SETTING_PREFIX}${key}`))?.value;
+  }
+
+  async writeSetting(key: string, value: string): Promise<void> {
+    await this.db.meta.put({ key: `${SETTING_PREFIX}${key}`, value });
   }
 }
 

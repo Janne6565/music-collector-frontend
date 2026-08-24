@@ -127,3 +127,40 @@ body {
     opacity: 0.55;
   }
 }
+
+/*
+ * The sweep that runs over a cover placeholder while its image is still arriving.
+ *
+ * A highlight travelling over the format silhouette rather than a grey box: the
+ * silhouette is the same placeholder a release with no cover keeps for good, so a cover
+ * that loads and one that never existed do not look like two different kinds of absence.
+ * The sweep is the only thing that separates them, and it stops when the wait does.
+ */
+@keyframes mcsweep {
+  from {
+    background-position: 140% 0;
+  }
+  to {
+    background-position: -40% 0;
+  }
+}
+
+.mc-sweep::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(
+    90deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.5) 50%,
+    transparent 80%
+  );
+  background-size: 220% 100%;
+  animation: mcsweep 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-sweep::after {
+    display: none;
+  }
+}

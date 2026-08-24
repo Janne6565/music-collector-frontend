@@ -1,7 +1,7 @@
-import { renderHook, act } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
 import type { Copy } from "@/domain/types";
 import { useCopyEditorLogic } from "@/features/detail/useCopyEditorLogic";
+import { act, renderHook } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 
 function copy(overrides: Partial<Copy> = {}): Copy {
   return {
@@ -127,7 +127,14 @@ describe("useCopyEditorLogic", () => {
   it("starts blank for a copy that has nothing recorded yet", () => {
     const { result } = renderHook(() =>
       useCopyEditorLogic(
-        copy({ condition: null, pricePaidCents: null, purchasedOn: null, purchasedAt: null, notes: null, rating: null }),
+        copy({
+          condition: null,
+          pricePaidCents: null,
+          purchasedOn: null,
+          purchasedAt: null,
+          notes: null,
+          rating: null,
+        }),
         vi.fn(),
       ),
     );

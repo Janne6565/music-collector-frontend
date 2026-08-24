@@ -36,6 +36,12 @@ const enCommon = {
     },
     noMatches: "No items match this filter.",
   },
+  photos: {
+    add: "Add a photo of your copy",
+    remove: "Remove this photo",
+    pending: "Photo still downloading",
+    wrongType: "That file is not an image this app can store.",
+  },
   wishlist: {
     count: "{{count}} items",
     empty: "Nothing on the wishlist yet.",
@@ -153,6 +159,12 @@ const deCommon: CommonSchema = {
       action: "Erstes Exemplar hinzufügen",
     },
     noMatches: "Keine Einträge passen zu diesem Filter.",
+  },
+  photos: {
+    add: "Foto deines Exemplars hinzufügen",
+    remove: "Dieses Foto entfernen",
+    pending: "Foto wird noch geladen",
+    wrongType: "Diese Datei ist kein Bild, das die App speichern kann.",
   },
   wishlist: {
     count: "{{count}} Einträge",

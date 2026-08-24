@@ -27,6 +27,20 @@ export interface SyncCopyDto {
   fieldClocks?: SyncCopyDtoFieldClocks;
 }
 
+export type SyncPhotoDtoFieldClocks = {[key: string]: string};
+
+export interface SyncPhotoDto {
+  id?: string;
+  copyId?: string;
+  storageKey?: string;
+  contentType?: string;
+  byteSize?: number;
+  sortIndex?: number;
+  createdAt?: number;
+  deletedAt?: number;
+  fieldClocks?: SyncPhotoDtoFieldClocks;
+}
+
 export interface SyncPushRequest {
   /**
    * @minItems 0
@@ -38,6 +52,11 @@ export interface SyncPushRequest {
    * @maxItems 500
    */
   wishes?: SyncWishDto[];
+  /**
+   * @minItems 0
+   * @maxItems 500
+   */
+  photos?: SyncPhotoDto[];
 }
 
 export type SyncWishDtoFieldClocks = {[key: string]: string};
@@ -58,8 +77,16 @@ export interface SyncWishDto {
 export interface SyncPullDto {
   copies?: SyncCopyDto[];
   wishes?: SyncWishDto[];
+  photos?: SyncPhotoDto[];
   cursor?: number;
   hasMore?: boolean;
+}
+
+export interface PhotoUploadDto {
+  id?: string;
+  storageKey?: string;
+  contentType?: string;
+  byteSize?: number;
 }
 
 export interface RegisterRequest {
@@ -132,6 +159,7 @@ export interface ReleaseDto {
 export interface HealthDto {
   status?: string;
   version?: string;
+  builtAt?: string;
   time?: string;
 }
 
@@ -140,6 +168,15 @@ export type PullParams = {
  * @minimum 0
  */
 since?: number;
+};
+
+export type UploadParams = {
+photoId: string;
+copyId: string;
+};
+
+export type UploadBody = {
+  file: Blob;
 };
 
 export type SearchParams = {

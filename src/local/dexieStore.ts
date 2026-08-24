@@ -1,4 +1,4 @@
-import type { CollectionStats, Copy, Format, Release, WishlistItem } from "@/domain/types";
+import type { CollectionStats, Copy, Format, Photo, Release, WishlistItem } from "@/domain/types";
 import { FORMATS } from "@/domain/types";
 import type { LibraryFilter, LocalStore } from "@/local/LocalStore";
 import Dexie, { type EntityTable } from "dexie";
@@ -13,10 +13,24 @@ interface MetaRow {
   value: string;
 }
 
+/**
+ * Image bytes, in their own table so a library read never drags them along.
+ *
+ * Stored as an ArrayBuffer rather than a Blob: Blob support in IndexedDB is uneven across
+ * engines, and a buffer plus its content type reconstructs the Blob exactly.
+ */
+interface PhotoBytesRow {
+  id: string;
+  buffer: ArrayBuffer;
+  contentType: string;
+}
+
 class MusicCollectorDb extends Dexie {
   copies!: EntityTable<Copy, "id">;
   releases!: EntityTable<Release, "mbid">;
   wishlist!: EntityTable<WishlistItem, "id">;
+  photos!: EntityTable<Photo, "id">;
+  photoBytes!: EntityTable<PhotoBytesRow, "id">;
   meta!: EntityTable<MetaRow, "key">;
 
   constructor() {
@@ -26,6 +40,14 @@ class MusicCollectorDb extends Dexie {
       copies: "id, releaseMbid, createdAt, deletedAt",
       releases: "mbid, releaseGroupMbid",
       wishlist: "id, releaseGroupMbid, deletedAt",
+      meta: "key",
+    });
+    this.version(2).stores({
+      copies: "id, releaseMbid, createdAt, deletedAt",
+      releases: "mbid, releaseGroupMbid",
+      wishlist: "id, releaseGroupMbid, deletedAt",
+      photos: "id, copyId, storageKey, deletedAt",
+      photoBytes: "id",
       meta: "key",
     });
   }
@@ -120,6 +142,52 @@ export class DexieLocalStore implements LocalStore {
     return new Map(
       rows.filter((row): row is Release => row !== undefined).map((row) => [row.mbid, row]),
     );
+  }
+
+  async listPhotos(copyId: string): Promise<Photo[]> {
+    const photos = await this.db.photos.where("copyId").equals(copyId).toArray();
+    return photos
+      .filter((photo) => photo.deletedAt === null)
+      .sort((a, b) => a.sortIndex - b.sortIndex);
+  }
+
+  async getPhotoIncludingDeleted(id: string): Promise<Photo | undefined> {
+    return this.db.photos.get(id);
+  }
+
+  async listPhotosAwaitingUpload(): Promise<Photo[]> {
+    const photos = await this.db.photos
+      .filter((photo) => photo.storageKey === null && photo.deletedAt === null)
+      .toArray();
+    // Only those whose bytes are actually here; a photo pulled from another device has no
+    // local bytes to upload and nothing to do.
+    const withBytes: Photo[] = [];
+    for (const photo of photos) {
+      if ((await this.db.photoBytes.get(photo.id)) !== undefined) withBytes.push(photo);
+    }
+    return withBytes;
+  }
+
+  async putPhoto(photo: Photo): Promise<void> {
+    await this.db.photos.put(photo);
+    await this.markPending(photo.id);
+  }
+
+  async adoptPhoto(photo: Photo): Promise<void> {
+    await this.db.photos.put(photo);
+  }
+
+  async putPhotoBytes(id: string, buffer: ArrayBuffer, contentType: string): Promise<void> {
+    await this.db.photoBytes.put({ id, buffer, contentType });
+  }
+
+  async getPhotoBytes(id: string): Promise<Blob | undefined> {
+    const row = await this.db.photoBytes.get(id);
+    return row === undefined ? undefined : new Blob([row.buffer], { type: row.contentType });
+  }
+
+  async deletePhotoBytes(id: string): Promise<void> {
+    await this.db.photoBytes.delete(id);
   }
 
   async listWishlist(): Promise<WishlistItem[]> {

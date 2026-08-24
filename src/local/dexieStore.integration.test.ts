@@ -3,6 +3,7 @@ import { hlcInitial, hlcTick } from "@/domain/hlc";
 import type { Release } from "@/domain/types";
 import { type ClockSource, createCopy, tombstoneCopy } from "@/local/copyWrites";
 import { DexieLocalStore } from "@/local/dexieStore";
+import { createPhoto, markUploaded, tombstonePhoto } from "@/local/photoWrites";
 import { createWishlistItem, tombstoneWishlistItem } from "@/local/wishWrites";
 import Dexie from "dexie";
 import { beforeEach, describe, expect, it } from "vitest";
@@ -230,6 +231,86 @@ describe("wishlist", () => {
   it("adopting a wish does not mark it pending", async () => {
     // Otherwise the client pushes straight back what it just pulled, forever.
     await store.adoptWishlistItem(wish("w-1"));
+
+    expect(await store.readPendingIds()).toEqual([]);
+  });
+});
+
+describe("photos", () => {
+  let store: DexieLocalStore;
+  let clock: ClockSource;
+
+  beforeEach(async () => {
+    await Dexie.delete("music-collector");
+    store = new DexieLocalStore();
+    clock = clockSource();
+    await store.open();
+  });
+
+  function photo(id: string, copyId = "copy-1", sortIndex = 0) {
+    return createPhoto(
+      { copyId, contentType: "image/jpeg", byteSize: 1024, sortIndex },
+      clock,
+      1000,
+      id,
+    );
+  }
+
+  const bytes = () => new Uint8Array([1, 2, 3]).buffer;
+
+  it("round-trips a photo and its bytes", async () => {
+    await store.putPhoto(photo("p-1"));
+    await store.putPhotoBytes("p-1", bytes(), "image/jpeg");
+
+    expect(await store.listPhotos("copy-1")).toHaveLength(1);
+    expect((await store.getPhotoBytes("p-1"))?.size).toBe(3);
+  });
+
+  it("returns the strip in sort order", async () => {
+    await store.putPhoto(photo("p-c", "copy-1", 2));
+    await store.putPhoto(photo("p-a", "copy-1", 0));
+    await store.putPhoto(photo("p-b", "copy-1", 1));
+
+    expect((await store.listPhotos("copy-1")).map((p) => p.id)).toEqual(["p-a", "p-b", "p-c"]);
+  });
+
+  it("only lists photos for the copy asked about", async () => {
+    await store.putPhoto(photo("p-1", "copy-1"));
+    await store.putPhoto(photo("p-2", "copy-2"));
+
+    expect((await store.listPhotos("copy-1")).map((p) => p.id)).toEqual(["p-1"]);
+  });
+
+  it("hides a tombstoned photo but keeps the row for sync", async () => {
+    await store.putPhoto(photo("p-1"));
+    const stored = await store.getPhotoIncludingDeleted("p-1");
+    await store.putPhoto(tombstonePhoto(stored as NonNullable<typeof stored>, clock, 9000));
+
+    expect(await store.listPhotos("copy-1")).toHaveLength(0);
+    expect((await store.getPhotoIncludingDeleted("p-1"))?.deletedAt).toBe(9000);
+  });
+
+  it("offers for upload only photos whose bytes are actually here", async () => {
+    // A photo pulled from another device has metadata but no local bytes; uploading it
+    // would be impossible and retrying forever would be pointless.
+    await store.putPhoto(photo("p-local"));
+    await store.putPhotoBytes("p-local", bytes(), "image/jpeg");
+    await store.putPhoto(photo("p-elsewhere"));
+
+    expect((await store.listPhotosAwaitingUpload()).map((p) => p.id)).toEqual(["p-local"]);
+  });
+
+  it("stops offering a photo for upload once it has a storage key", async () => {
+    await store.putPhoto(photo("p-1"));
+    await store.putPhotoBytes("p-1", bytes(), "image/jpeg");
+    const stored = await store.getPhotoIncludingDeleted("p-1");
+    await store.putPhoto(markUploaded(stored as NonNullable<typeof stored>, "user/p-1", clock));
+
+    expect(await store.listPhotosAwaitingUpload()).toHaveLength(0);
+  });
+
+  it("adopting a photo does not mark it pending", async () => {
+    await store.adoptPhoto(photo("p-1"));
 
     expect(await store.readPendingIds()).toEqual([]);
   });

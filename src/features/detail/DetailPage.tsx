@@ -4,6 +4,7 @@ import type { Copy, Release } from "@/domain/types";
 import { CONDITION_LABELS, CONDITION_SHORT, FORMAT_LABELS } from "@/domain/types";
 import { type DetailChrome, chromeFor } from "@/features/detail/theme";
 import { useDetailLogic } from "@/features/detail/useDetailLogic";
+import { PhotoStrip } from "@/features/photos/PhotoStrip";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft, Star, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -42,6 +43,7 @@ export function DetailPage({ copyId }: { readonly copyId: string }) {
             {t("detail.back")}
           </Link>
           <Cover release={release} />
+          <PhotoStrip copyId={copy.id} chrome={chrome} />
         </div>
 
         <div className="min-w-0 flex-1 pt-11">

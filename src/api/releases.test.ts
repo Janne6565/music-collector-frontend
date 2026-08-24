@@ -1,6 +1,6 @@
-import { describe, expect, it } from "vitest";
 import type { ReleaseDto } from "@/api/generated/musicCollectorAPI.schemas";
 import { releaseDisambiguation, toRelease, toReleases } from "@/api/releases";
+import { describe, expect, it } from "vitest";
 
 const complete: ReleaseDto = {
   mbid: "release-1",

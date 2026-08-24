@@ -1,1 +1,1 @@
-export { Button } from "./Button";
+export { Button, buttonClassName, type ButtonVariant } from "./Button";

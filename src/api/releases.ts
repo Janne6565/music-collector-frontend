@@ -1,5 +1,5 @@
-import type { CoverThemeDto, ReleaseDto } from "@/api/generated/musicCollectorAPI.schemas";
 import { findByBarcode, getRelease, search } from "@/api/generated/metadata/metadata";
+import type { CoverThemeDto, ReleaseDto } from "@/api/generated/musicCollectorAPI.schemas";
 import type { CoverTheme, Format, Release } from "@/domain/types";
 import { FORMATS } from "@/domain/types";
 
@@ -61,7 +61,9 @@ export function toRelease(dto: ReleaseDto, now: number): Release | null {
 }
 
 export function toReleases(dtos: readonly ReleaseDto[], now: number): Release[] {
-  return dtos.map((dto) => toRelease(dto, now)).filter((release): release is Release => release !== null);
+  return dtos
+    .map((dto) => toRelease(dto, now))
+    .filter((release): release is Release => release !== null);
 }
 
 /** The subtitle under each search result on the add screen: "Sire · SRK 6095 · US". */

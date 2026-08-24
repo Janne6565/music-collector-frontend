@@ -18,10 +18,17 @@ describe("translation resources", () => {
 
   it("has no empty translations", () => {
     for (const language of languages) {
-      const values = Object.values(resources[language].common).flatMap((group) =>
-        Object.values(group as Record<string, string>),
+      const values = leafPaths(resources[language].common).map((path) =>
+        path
+          .split(".")
+          .reduce<unknown>(
+            (node, key) => (node as Record<string, unknown>)[key],
+            resources[language].common,
+          ),
       );
-      expect(values.every((v) => v.trim().length > 0)).toBe(true);
+      expect(values.every((value) => typeof value === "string" && value.trim().length > 0)).toBe(
+        true,
+      );
     }
   });
 });

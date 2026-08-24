@@ -5,6 +5,7 @@ import { createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
 import "@/i18n/config";
 import "@/styles.css";
+import { StoreProvider } from "@/local/StoreProvider";
 import { routeTree } from "@/routeTree.gen";
 import { store } from "@/store";
 
@@ -26,7 +27,9 @@ createRoot(rootElement).render(
   <StrictMode>
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
+        <StoreProvider>
+          <RouterProvider router={router} />
+        </StoreProvider>
       </QueryClientProvider>
     </Provider>
   </StrictMode>,

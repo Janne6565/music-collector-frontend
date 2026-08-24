@@ -197,7 +197,11 @@ function FilterChip({ active, onClick, label, count }: FilterChipProps) {
       )}
     >
       {label}
-      {count !== undefined && <span className="ml-1.5 text-ink-subtle">{count}</span>}
+      {count !== undefined && (
+        // The active chip is ink-on-ink, so the count needs the inverse muted tone or it
+        // vanishes into the pill rather than dimming inside it.
+        <span className={cn("ml-1.5", active ? "text-paper/55" : "text-ink-subtle")}>{count}</span>
+      )}
     </button>
   );
 }

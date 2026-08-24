@@ -14,7 +14,6 @@ import { useId, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
 const FILTERS: readonly AddFormatFilter[] = ["ALL", "VINYL", "CD", "CASSETTE", "DIGITAL"];
-/** "Enter manually" is deliberately absent — that form has not been designed yet. */
 const TABS: readonly AddTab[] = ["SEARCH", "BARCODE", "CSV"];
 
 interface AddDialogProps {
@@ -58,6 +57,20 @@ export function AddDialog({ onClose, onEditDetails }: AddDialogProps) {
             {t(`addDialog.tab.${tab}`)}
           </button>
         ))}
+        {/* Manual entry is in the deck but its form has not been designed. Shown here
+            rather than hidden, so the way in is discoverable before it works — disabled
+            and labelled, so it never looks like something that failed to respond. */}
+        <button
+          type="button"
+          disabled
+          title={t("addDialog.manualSoon")}
+          className="flex cursor-default items-center gap-1.5 pb-2.5 text-[12.5px] font-medium whitespace-nowrap text-ink-subtle"
+        >
+          {t("addDialog.tab.MANUAL")}
+          <span className="rounded-full bg-ink/6 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.08em]">
+            {t("addDialog.soon")}
+          </span>
+        </button>
       </div>
 
       {logic.tab === "CSV" ? (

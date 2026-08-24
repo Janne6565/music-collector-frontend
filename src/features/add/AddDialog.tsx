@@ -1,5 +1,5 @@
 import { releaseDisambiguation } from "@/api/releases";
-import { FormatThumb } from "@/components/FormatThumb";
+import { ReleaseArt } from "@/components/ReleaseArt";
 import { Button, Modal, ModalClose } from "@/components/ui";
 import type { Format, Release } from "@/domain/types";
 import { FORMAT_LABELS } from "@/domain/types";
@@ -267,8 +267,12 @@ function ResultRow({ release, logic }: { readonly release: Release; readonly log
         aria-pressed={selected}
         className="flex min-w-0 flex-1 items-center gap-3.5 text-left"
       >
+        {/* The real cover, not just the format silhouette. Picking between four pressings
+            of the same album is largely a visual job, and the sleeve is the thing people
+            recognise. The format is still named in the line below, and ReleaseArt falls
+            back to the silhouette whenever the archive has nothing. */}
         <div className="h-13 w-13 flex-none">
-          <FormatThumb format={release.format} />
+          <ReleaseArt release={release} className="rounded-sm" />
         </div>
         <div className="min-w-0 flex-1">
           <div className="truncate text-[13.5px] font-semibold leading-tight">{release.title}</div>

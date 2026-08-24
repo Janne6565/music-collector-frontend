@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens lifted from the Claude Design deck (project a1b6280a…).
+ * Keep these in sync with the mobile app's token mirror — the two apps are meant to
+ * read as one product.
+ */
+@theme {
+  --color-canvas: #efece6;
+  --color-paper: #faf8f5;
+  --color-surface: #ffffff;
+  --color-ink: #191713;
+  --color-ink-muted: rgba(25, 23, 19, 0.55);
+  --color-ink-subtle: rgba(25, 23, 19, 0.42);
+  --color-line: rgba(25, 23, 19, 0.09);
+  --color-accent: #a2573a;
+  --color-accent-hover: #7d3f27;
+
+  /* Dark chrome — used by the cover-derived theme on item detail screens. */
+  --color-night: #141311;
+  --color-night-raised: #191713;
+  --color-night-ink: #ffffff;
+  --color-night-muted: rgba(255, 255, 255, 0.55);
+  --color-night-line: rgba(255, 255, 255, 0.09);
+  --color-accent-night: #d08a5f;
+
+  --font-sans: "Manrope", system-ui, sans-serif;
+  --font-serif: "Newsreader", Georgia, serif;
+  --font-mono: ui-monospace, Menlo, monospace;
+}
+
+body {
+  margin: 0;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}

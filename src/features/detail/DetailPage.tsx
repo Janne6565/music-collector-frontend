@@ -1,4 +1,4 @@
-import { FormatThumb } from "@/components/FormatThumb";
+import { ReleaseArt } from "@/components/ReleaseArt";
 import { Button } from "@/components/ui";
 import type { Copy, Release } from "@/domain/types";
 import { CONDITION_LABELS, CONDITION_SHORT, FORMAT_LABELS } from "@/domain/types";
@@ -105,11 +105,7 @@ export function DetailPage({ copyId }: { readonly copyId: string }) {
 function Cover({ release }: { readonly release: Release | undefined }) {
   return (
     <div className="h-[340px] w-[340px] overflow-hidden rounded-lg shadow-[0_10px_30px_rgba(0,0,0,.25)]">
-      {release?.coverArtUrl == null ? (
-        <FormatThumb format={release?.format ?? "OTHER"} />
-      ) : (
-        <img src={release.coverArtUrl} alt="" className="h-full w-full object-cover" />
-      )}
+      <ReleaseArt release={release} loading="eager" />
     </div>
   );
 }

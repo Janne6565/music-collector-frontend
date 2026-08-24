@@ -12,6 +12,7 @@ interface PasswordFieldProps {
   /** Registration shows the meter; signing in does not — the password already exists. */
   readonly showStrength?: boolean;
   readonly trailing?: React.ReactNode;
+  readonly placeholder?: string;
 }
 
 export function PasswordField({
@@ -21,6 +22,7 @@ export function PasswordField({
   autoComplete,
   showStrength = false,
   trailing,
+  placeholder,
 }: PasswordFieldProps) {
   const { t } = useTranslation();
   const id = useId();
@@ -47,7 +49,8 @@ export function PasswordField({
           autoComplete={autoComplete}
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          className="min-w-0 flex-1 bg-transparent text-sm outline-none"
+          placeholder={placeholder}
+          className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-ink-subtle"
         />
         <button
           type="button"

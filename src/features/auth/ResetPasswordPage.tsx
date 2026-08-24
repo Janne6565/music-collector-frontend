@@ -66,6 +66,7 @@ export function ResetPasswordPage() {
                 value={password}
                 onChange={setPassword}
                 autoComplete="new-password"
+                placeholder={t("auth.newPasswordPlaceholder")}
                 showStrength
               />
               {tooShort && <p className="text-sm text-accent">{t("auth.passwordHint")}</p>}

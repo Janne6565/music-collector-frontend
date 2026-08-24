@@ -48,6 +48,7 @@ export function ForgotPasswordPage() {
                 onChange={setEmail}
                 type="email"
                 autoComplete="email"
+                placeholder={t("auth.emailPlaceholder")}
               />
               <Button
                 type="submit"

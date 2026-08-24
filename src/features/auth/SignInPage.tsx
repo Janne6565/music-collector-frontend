@@ -47,6 +47,7 @@ export function SignInPage() {
                 value={logic.displayName}
                 onChange={logic.setDisplayName}
                 autoComplete="name"
+                placeholder={t("auth.namePlaceholder")}
               />
             )}
 
@@ -57,6 +58,7 @@ export function SignInPage() {
               onChange={logic.setEmail}
               type="email"
               autoComplete="email"
+              placeholder={t("auth.emailPlaceholder")}
             />
 
             <PasswordField
@@ -64,6 +66,9 @@ export function SignInPage() {
               value={logic.password}
               onChange={logic.setPassword}
               autoComplete={registering ? "new-password" : "current-password"}
+              placeholder={
+                registering ? t("auth.newPasswordPlaceholder") : t("auth.passwordPlaceholder")
+              }
               showStrength={registering}
               trailing={
                 registering ? undefined : (
@@ -159,6 +164,8 @@ interface TextFieldProps {
   readonly onChange: (value: string) => void;
   readonly type?: string;
   readonly autoComplete: string;
+  /** An example of the shape wanted, never a restatement of the label. */
+  readonly placeholder?: string;
 }
 
 export function TextField({
@@ -168,6 +175,7 @@ export function TextField({
   onChange,
   type = "text",
   autoComplete,
+  placeholder,
 }: TextFieldProps) {
   const id = useId();
   return (
@@ -186,7 +194,8 @@ export function TextField({
           autoComplete={autoComplete}
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          className="min-w-0 flex-1 bg-transparent text-sm outline-none"
+          placeholder={placeholder}
+          className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-ink-subtle"
         />
       </div>
     </div>

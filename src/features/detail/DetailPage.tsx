@@ -2,16 +2,19 @@ import { FormatThumb } from "@/components/FormatThumb";
 import { Button } from "@/components/ui";
 import type { Copy, Release } from "@/domain/types";
 import { CONDITION_LABELS, CONDITION_SHORT, FORMAT_LABELS } from "@/domain/types";
+import { CopyEditor } from "@/features/detail/CopyEditor";
 import { type DetailChrome, chromeFor } from "@/features/detail/theme";
 import { useDetailLogic } from "@/features/detail/useDetailLogic";
 import { PhotoStrip } from "@/features/photos/PhotoStrip";
 import { Link } from "@tanstack/react-router";
-import { ArrowLeft, Star, Trash2 } from "lucide-react";
+import { ArrowLeft, Pencil, Star, Trash2 } from "lucide-react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 export function DetailPage({ copyId }: { readonly copyId: string }) {
   const { t } = useTranslation();
   const logic = useDetailLogic(copyId);
+  const [editing, setEditing] = useState(false);
 
   if (logic.loading) {
     return <main className="p-8 text-sm text-ink-muted">…</main>;
@@ -48,7 +51,33 @@ export function DetailPage({ copyId }: { readonly copyId: string }) {
 
         <div className="min-w-0 flex-1 pt-11">
           <Header copy={copy} release={release} chrome={chrome} />
-          <Fields copy={copy} release={release} chrome={chrome} />
+
+          {editing ? (
+            <CopyEditor
+              copy={copy}
+              chrome={chrome}
+              saving={logic.saving}
+              onSave={(patch) => {
+                logic.save(patch);
+                setEditing(false);
+              }}
+              onCancel={() => setEditing(false)}
+            />
+          ) : (
+            <>
+              <div className="mt-6">
+                <Button
+                  onClick={() => setEditing(true)}
+                  className="h-9 rounded-full px-4 text-[13px]"
+                >
+                  <Pencil size={14} strokeWidth={1.75} aria-hidden />
+                  {t("detail.edit")}
+                </Button>
+              </div>
+              <Fields copy={copy} release={release} chrome={chrome} />
+            </>
+          )}
+
           <Notes
             copy={copy}
             chrome={chrome}

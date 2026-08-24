@@ -71,6 +71,7 @@ const enCommon = {
     where: "Where",
     pressing: "Pressing",
     rating: "Rating",
+    edit: "Edit copy",
     notes: "Notes",
     notesEmpty: "No notes yet.",
     conflict: {
@@ -108,6 +109,14 @@ const enCommon = {
     keepLocal: { title: "Keep this device", body: "Discards the {{count}} in your account." },
     keepAccount: { title: "Keep the account", body: "Discards the {{count}} on this device." },
     failed: "That did not work. Nothing was changed — try again.",
+  },
+  editor: {
+    unset: "Not recorded",
+    badPrice: "Not a price",
+    badDate: "Not a date",
+    wherePlaceholder: "Shop, market, website",
+    notesPlaceholder: "Pressing, condition detail, where it came from",
+    rate: "Rate {{count}} out of 5",
   },
   common: {
     unknownYear: "Year unknown",
@@ -195,6 +204,7 @@ const deCommon: CommonSchema = {
     where: "Wo",
     pressing: "Pressung",
     rating: "Bewertung",
+    edit: "Exemplar bearbeiten",
     notes: "Notizen",
     notesEmpty: "Noch keine Notizen.",
     conflict: {
@@ -232,6 +242,14 @@ const deCommon: CommonSchema = {
     keepLocal: { title: "Dieses Gerät behalten", body: "Verwirft die {{count}} im Konto." },
     keepAccount: { title: "Konto behalten", body: "Verwirft die {{count}} auf diesem Gerät." },
     failed: "Das hat nicht geklappt. Es wurde nichts geändert — versuche es erneut.",
+  },
+  editor: {
+    unset: "Nicht erfasst",
+    badPrice: "Kein Preis",
+    badDate: "Kein Datum",
+    wherePlaceholder: "Laden, Markt, Website",
+    notesPlaceholder: "Pressung, Zustand, Herkunft",
+    rate: "{{count}} von 5 bewerten",
   },
   common: {
     unknownYear: "Jahr unbekannt",

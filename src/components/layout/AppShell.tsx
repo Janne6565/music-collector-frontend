@@ -1,7 +1,7 @@
 import type { CollectionStats } from "@/domain/types";
 import { FORMAT_LABELS } from "@/domain/types";
 import { Link } from "@tanstack/react-router";
-import { Heart, LibraryBig, Settings, Users } from "lucide-react";
+import { Heart, LibraryBig } from "lucide-react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -36,12 +36,8 @@ function Sidebar({ stats }: { readonly stats: CollectionStats | undefined }) {
         <SidebarLink to="/wishlist" icon={<Heart size={15} strokeWidth={1.75} aria-hidden />}>
           {t("nav.wishlist")}
         </SidebarLink>
-        <SidebarLink to="/artists" icon={<Users size={15} strokeWidth={1.75} aria-hidden />}>
-          {t("nav.artists")}
-        </SidebarLink>
-        <SidebarLink to="/settings" icon={<Settings size={15} strokeWidth={1.75} aria-hidden />}>
-          {t("nav.settings")}
-        </SidebarLink>
+        {/* Artists and Settings from screen 1f are not built yet. A link to a route that
+            does not exist is worse than no link, so they appear when they work. */}
       </div>
       {stats !== undefined && <FormatCounts stats={stats} />}
     </nav>

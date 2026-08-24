@@ -25,7 +25,9 @@ export function Button({
       type="button"
       disabled={disabled === true || loading}
       className={cn(
-        "inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+        // Tailwind v4's preflight resets buttons to `cursor: default`, so the pointer
+        // has to be asked for explicitly on every interactive control.
+        "inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50",
         variant === "primary" && "bg-ink text-paper hover:bg-black",
         variant === "secondary" && "border border-line bg-surface text-ink hover:bg-canvas",
         className,

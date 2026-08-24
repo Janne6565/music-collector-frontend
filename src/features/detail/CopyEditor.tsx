@@ -33,12 +33,33 @@ export function CopyEditor({ copy, chrome, saving, onSave, onCancel }: CopyEdito
       }}
     >
       <div className="grid grid-cols-2 gap-3.5">
-        <Field label={t("detail.condition")} chrome={chrome}>
+        <Field label={t("detail.mediaCondition")} chrome={chrome}>
           {(id) => (
             <select
               id={id}
               value={editor.fields.condition}
               onChange={(event) => editor.set("condition", event.target.value as Condition | "")}
+              className={inputClass}
+              style={inputStyle}
+            >
+              <option value="">{t("editor.unset")}</option>
+              {CONDITIONS.map((condition) => (
+                <option key={condition} value={condition}>
+                  {CONDITION_LABELS[condition]}
+                </option>
+              ))}
+            </select>
+          )}
+        </Field>
+
+        <Field label={t("detail.sleeveCondition")} chrome={chrome}>
+          {(id) => (
+            <select
+              id={id}
+              value={editor.fields.sleeveCondition}
+              onChange={(event) =>
+                editor.set("sleeveCondition", event.target.value as Condition | "")
+              }
               className={inputClass}
               style={inputStyle}
             >

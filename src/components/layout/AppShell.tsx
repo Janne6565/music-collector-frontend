@@ -41,7 +41,7 @@ function Sidebar({ stats }: { readonly stats: CollectionStats | undefined }) {
             does not exist is worse than no link, so they appear when they work. */}
       </div>
       {stats !== undefined && <FormatCounts stats={stats} />}
-      <SidebarAccount />
+      <SidebarAccount copyCount={stats?.copyCount} />
     </nav>
   );
 }

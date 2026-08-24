@@ -5,7 +5,7 @@ import { PasswordField } from "@/features/auth/PasswordField";
 import type { AuthError } from "@/features/auth/useAuthLogic";
 import { useAuthLogic } from "@/features/auth/useAuthLogic";
 import { Link } from "@tanstack/react-router";
-import { Mail, User } from "lucide-react";
+import { ChevronLeft, HardDrive, Mail, User } from "lucide-react";
 import { useId } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -26,6 +26,16 @@ export function SignInPage() {
 
       <main className="flex flex-1 items-center justify-center p-13 px-6 py-12">
         <div className="w-full max-w-[380px]">
+          {/* Screens 4c and 4d both open with a way back. Sign-in is reachable from a
+              library you were already looking at, and landing in it by accident should
+              cost one click, not a browser gesture. */}
+          <Link
+            to="/"
+            className="mb-5.5 flex items-center gap-1.5 text-[12.5px] font-medium text-ink-muted hover:text-ink"
+          >
+            <ChevronLeft size={15} strokeWidth={1.9} aria-hidden />
+            {t("common.back")}
+          </Link>
           <h1 className="font-serif text-[32px] leading-[1.1]">
             {registering ? t("auth.createTitle") : t("auth.signInTitle")}
           </h1>
@@ -137,9 +147,18 @@ export function SignInPage() {
             </button>
           </p>
 
-          <Link to="/" className="mt-4 block text-[13px] text-ink-subtle">
-            {t("auth.continueWithout")}
-          </Link>
+          {/* The no-account path, given the same weight as the form above it: the app is
+              fully usable without an account, and burying that would be a lie about what
+              signing in is for. */}
+          <div className="mt-5 border-t border-line pt-5">
+            <Link to="/" className="flex items-center gap-2 text-[13px] font-semibold text-ink">
+              <HardDrive size={16} strokeWidth={1.75} className="text-ink-subtle" aria-hidden />
+              {t("auth.continueWithout")}
+            </Link>
+            <p className="mt-1.5 text-[11.5px] leading-relaxed text-ink-subtle">
+              {t("auth.continueWithoutBody")}
+            </p>
+          </div>
         </div>
       </main>
     </div>

@@ -1,0 +1,126 @@
+import { parseIsoDate, parseMoneyToCents } from "@/domain/money";
+import type { Condition, Release } from "@/domain/types";
+import { useStore } from "@/local/StoreProvider";
+import { applyCopyPatch } from "@/local/copyWrites";
+import { useAppSelector } from "@/store/hooks";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useEffect, useState } from "react";
+
+export interface DetailFields {
+  condition: Condition | null;
+  sleeveCondition: Condition | null;
+  price: string;
+  purchasedOn: string;
+  purchasedAt: string;
+  rating: number | null;
+  notes: string;
+}
+
+const BLANK: DetailFields = {
+  condition: null,
+  sleeveCondition: null,
+  price: "",
+  purchasedOn: "",
+  purchasedAt: "",
+  rating: null,
+  notes: "",
+};
+
+/**
+ * The copy details step (screen 8d).
+ *
+ * It edits a copy that already exists, through the same `applyCopyPatch` every other edit
+ * goes through — so a field left blank here is never restamped, and does not start winning
+ * merges against a value another device actually set.
+ */
+export function useCopyDetailsLogic(copyId: string, onSaved: () => void) {
+  const { store, clock } = useStore();
+  const queryClient = useQueryClient();
+  const signedIn = useAppSelector((state) => state.auth.status === "signedIn");
+
+  const [fields, setFields] = useState<DetailFields>(BLANK);
+  const [priceInvalid, setPriceInvalid] = useState(false);
+  const [dateInvalid, setDateInvalid] = useState(false);
+
+  const query = useQuery({
+    queryKey: ["copyDetails", copyId],
+    queryFn: async () => {
+      const copy = await store.getCopy(copyId);
+      if (copy === undefined) return null;
+      const release: Release | undefined = await store.getRelease(copy.releaseMbid);
+      return { copy, release };
+    },
+  });
+
+  const copy = query.data?.copy;
+  useEffect(() => {
+    // A copy reached from "Add and edit details" is blank, but the same step opens on a
+    // copy that already has details when it is reopened; either way the form starts from
+    // what is stored.
+    if (copy === undefined) return;
+    setFields({
+      condition: copy.condition,
+      sleeveCondition: copy.sleeveCondition,
+      price: copy.pricePaidCents === null ? "" : (copy.pricePaidCents / 100).toFixed(2),
+      purchasedOn: copy.purchasedOn ?? "",
+      purchasedAt: copy.purchasedAt ?? "",
+      rating: copy.rating,
+      notes: copy.notes ?? "",
+    });
+  }, [copy]);
+
+  const save = useMutation({
+    mutationFn: async () => {
+      const current = await store.getCopy(copyId);
+      if (current === undefined) return;
+      await store.putCopy(
+        applyCopyPatch(
+          current,
+          {
+            condition: fields.condition,
+            sleeveCondition: fields.sleeveCondition,
+            pricePaidCents: fields.price.trim() === "" ? null : parseMoneyToCents(fields.price),
+            purchasedOn: fields.purchasedOn.trim() === "" ? null : parseIsoDate(fields.purchasedOn),
+            purchasedAt: fields.purchasedAt.trim() === "" ? null : fields.purchasedAt.trim(),
+            rating: fields.rating,
+            notes: fields.notes.trim() === "" ? null : fields.notes,
+          },
+          clock,
+        ),
+      );
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries();
+      onSaved();
+    },
+  });
+
+  const set = useCallback(<K extends keyof DetailFields>(key: K, value: DetailFields[K]) => {
+    setFields((current) => ({ ...current, [key]: value }));
+    if (key === "price") setPriceInvalid(false);
+    if (key === "purchasedOn") setDateInvalid(false);
+  }, []);
+
+  return {
+    release: query.data?.release,
+    fields,
+    set,
+    priceInvalid,
+    dateInvalid,
+    signedIn,
+    save: () => {
+      // A blank price means "not recorded", which is different from an unparseable one —
+      // the second is a mistake worth surfacing rather than silently discarding.
+      if (fields.price.trim() !== "" && parseMoneyToCents(fields.price) === null) {
+        setPriceInvalid(true);
+        return;
+      }
+      if (fields.purchasedOn.trim() !== "" && parseIsoDate(fields.purchasedOn) === null) {
+        setDateInvalid(true);
+        return;
+      }
+      save.mutate();
+    },
+    saving: save.isPending,
+  };
+}

@@ -152,7 +152,20 @@ export const me = (
     },
       );
     }
-  export type ResetPasswordResult = NonNullable<Awaited<ReturnType<typeof resetPassword>>>
+  /**
+ * Removes the server-side copy of the collection and every uploaded photo. The client's local collection is untouched -- it belongs to the device, not the account, and the app goes on working without one.
+ * @summary Delete the account and everything synced to it
+ */
+export const deleteAccount = (
+    
+ ) => {
+      return customInstance<void>(
+      {url: `/api/v1/auth/me`, method: 'DELETE'
+    },
+      );
+    }
+  export type DeleteAccountResult = NonNullable<Awaited<ReturnType<typeof deleteAccount>>>
+export type ResetPasswordResult = NonNullable<Awaited<ReturnType<typeof resetPassword>>>
 export type RegisterResult = NonNullable<Awaited<ReturnType<typeof register>>>
 export type RefreshResult = NonNullable<Awaited<ReturnType<typeof refresh>>>
 export type LogoutResult = NonNullable<Awaited<ReturnType<typeof logout>>>

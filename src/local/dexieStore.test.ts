@@ -26,6 +26,7 @@ function copy(id: string, releaseMbid: string, overrides: Partial<Copy> = {}): C
     id,
     releaseMbid,
     condition: null,
+    sleeveCondition: null,
     pricePaidCents: null,
     currency: "EUR",
     purchasedOn: null,

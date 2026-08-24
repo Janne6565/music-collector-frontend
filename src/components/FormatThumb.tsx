@@ -146,21 +146,10 @@ const WAVEFORM = [10, 18, 28, 20, 34, 24, 14, 22, 12] as const;
 function Digital() {
   return (
     <>
-      {/* Stacked sleeves, suggesting a folder of files rather than one object. */}
-      <div
-        className="absolute left-[8%] top-0 h-[88%] w-[88%] rounded-[3px]"
-        style={{ background: "#f4f2ee", boxShadow: "inset 0 0 0 1px rgba(25,23,19,.14)" }}
-      />
-      <div
-        className="absolute left-[4%] top-[3%] h-[88%] w-[88%] rounded-[3px]"
-        style={{ background: "#efece6", boxShadow: "inset 0 0 0 1px rgba(25,23,19,.14)" }}
-      />
+      {/* One sleeve, like every other format. The waveform is what says "file". */}
       <div
         className="absolute left-0 top-[6%] h-[88%] w-[88%] rounded-[3px]"
-        style={{
-          ...SLEEVE,
-          boxShadow: "inset 0 0 0 1px rgba(25,23,19,.12),0 2px 6px rgba(25,23,19,.12)",
-        }}
+        style={{ ...SLEEVE, boxShadow: "inset 0 0 0 1px rgba(25,23,19,.1)" }}
       />
       {WAVEFORM.map((height, index) => (
         <div

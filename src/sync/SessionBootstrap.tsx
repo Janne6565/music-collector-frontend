@@ -1,6 +1,7 @@
 import { setAccessToken, setRefreshHandler } from "@/api/axios-instance";
 import { refresh } from "@/api/generated/auth/auth";
 import { useStore } from "@/local/StoreProvider";
+import { readSyncEnabled, writeLastSyncedAt } from "@/local/settings";
 import { signedIn, signedOut } from "@/store/authSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { SyncEngine } from "@/sync/syncEngine";
@@ -71,9 +72,14 @@ export function SessionBootstrap({ children }: { readonly children: ReactNode })
     const run = async () => {
       // A slow sync must not stack up behind itself on a flaky connection.
       if (syncing.current) return;
+      // Read every tick rather than once: the account screen can switch this off while the
+      // interval is already running, and it should take effect on the next tick, not the
+      // next reload.
+      if (!(await readSyncEnabled(store))) return;
       syncing.current = true;
       try {
         const result = await engine.sync();
+        await writeLastSyncedAt(store, Date.now());
         if (result.pulled > 0 || result.pushed > 0) {
           await queryClient.invalidateQueries();
         }

@@ -1,0 +1,211 @@
+import { AppShell } from "@/components/layout/AppShell";
+import { Button, Toggle } from "@/components/ui";
+import { formatRelativeTime } from "@/domain/relativeTime";
+import { useAccountLogic } from "@/features/account/useAccountLogic";
+import { Navigate } from "@tanstack/react-router";
+import { FileDown, HardDrive, LogOut, RefreshCw } from "lucide-react";
+import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
+
+/** Screen 7a — reached by clicking your name in the sidebar footer. */
+export function AccountPage() {
+  const { t, i18n } = useTranslation();
+  const logic = useAccountLogic();
+
+  // Nothing on this page means anything without an account, and a signed-out person who
+  // lands here wanted the sign-in screen.
+  if (logic.status === "anonymous") return <Navigate to="/signin" />;
+
+  return (
+    <AppShell stats={logic.stats}>
+      <header className="flex flex-none items-center justify-between border-b border-line px-8 py-4">
+        <span className="text-[12.5px] font-medium text-ink-muted">{t("account.title")}</span>
+        <Button
+          variant="secondary"
+          onClick={logic.signOut}
+          loading={logic.signingOut}
+          className="h-[34px] rounded-lg px-3.5 text-[12.5px]"
+        >
+          {!logic.signingOut && <LogOut size={14} strokeWidth={1.75} aria-hidden />}
+          {t("auth.signOut")}
+        </Button>
+      </header>
+
+      <div className="min-h-0 flex-1 overflow-auto px-8 pt-8 pb-10">
+        <div className="max-w-[720px]">
+          <div className="flex items-center gap-[18px]">
+            <div className="h-[76px] w-[76px] flex-none rounded-full bg-canvas shadow-[inset_0_0_0_1px_rgba(25,23,19,.08)]" />
+            <div className="min-w-0 flex-1">
+              <h1 className="font-serif text-[32px] leading-[1.05]">{logic.name}</h1>
+              <p className="mt-1.5 text-[13.5px] text-ink-muted">
+                {logic.email}
+                {logic.memberSince !== null &&
+                  ` · ${t("account.since", { year: new Date(logic.memberSince).getFullYear() })}`}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-7 grid grid-cols-4 gap-3">
+            <Stat value={logic.stats?.copyCount ?? "—"} label={t("account.stat.copies")} />
+            <Stat
+              value={logic.stats?.releaseGroupCount ?? "—"}
+              label={t("account.stat.releases")}
+            />
+            <Stat
+              value={money(logic.stats?.totalSpentCents, i18n.language)}
+              label={t("account.stat.spent")}
+            />
+            <Stat
+              value={money(logic.stats?.averageSpentCents, i18n.language)}
+              label={t("account.stat.average")}
+            />
+          </div>
+
+          <SectionTitle>{t("account.section.signIn")}</SectionTitle>
+          <Card>
+            <Row title={t("auth.email")} body={logic.email ?? ""} />
+            <Row title={t("auth.password")} body={t("account.passwordBody")} />
+          </Card>
+
+          <SectionTitle>{t("account.section.storage")}</SectionTitle>
+          <Card>
+            <Row
+              icon={<RefreshCw size={16} strokeWidth={1.75} aria-hidden />}
+              title={t("account.sync.title")}
+              body={
+                logic.lastSyncedAt === null
+                  ? t("account.sync.never")
+                  : t("account.sync.last", {
+                      when: formatRelativeTime(logic.lastSyncedAt, i18n.language),
+                    })
+              }
+              trailing={
+                <Toggle
+                  checked={logic.syncEnabled}
+                  onChange={logic.setSyncEnabled}
+                  label={t("account.sync.title")}
+                />
+              }
+            />
+            <Row
+              icon={<HardDrive size={16} strokeWidth={1.75} aria-hidden />}
+              title={t("account.local.title")}
+              body={t("account.local.body")}
+              trailing={
+                // Fixed on, and honest about it. Every screen in the app reads from the
+                // local store, so a switch that turned it off would break reading rather
+                // than change where data lives.
+                <Toggle
+                  checked
+                  label={t("account.local.title")}
+                  disabledReason={t("account.local.always")}
+                />
+              }
+            />
+            <Row
+              icon={<FileDown size={16} strokeWidth={1.75} aria-hidden />}
+              title={t("account.export.title")}
+              body={t("account.export.body")}
+              trailing={
+                <Button
+                  variant="secondary"
+                  onClick={logic.exportCsv}
+                  loading={logic.exporting}
+                  className="h-[30px] rounded-md px-3 text-xs"
+                >
+                  {t("account.export.action")}
+                </Button>
+              }
+            />
+          </Card>
+
+          <div className="mt-7 flex items-center justify-between gap-4 rounded-xl border border-accent/30 bg-accent/5 p-4">
+            <div>
+              <div className="text-[13px] font-semibold text-accent-strong">
+                {t("account.delete.title")}
+              </div>
+              <p className="mt-0.5 text-[11.5px] text-ink-muted">{t("account.delete.body")}</p>
+              {logic.deleteFailed && (
+                <p className="mt-1.5 text-[11.5px] text-accent">{t("account.delete.failed")}</p>
+              )}
+            </div>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                // Irreversible on the server, so it asks — the one confirm in the app.
+                if (window.confirm(t("account.delete.confirm"))) logic.deleteAccount();
+              }}
+              loading={logic.deleting}
+              className="h-[30px] flex-none rounded-md border-accent/40 bg-transparent px-3 text-xs text-accent-strong"
+            >
+              {t("account.delete.action")}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </AppShell>
+  );
+}
+
+function SectionTitle({ children }: { readonly children: ReactNode }) {
+  return (
+    <h2 className="mt-8 font-mono text-[10px] uppercase tracking-[0.1em] text-ink-subtle">
+      {children}
+    </h2>
+  );
+}
+
+function Card({ children }: { readonly children: ReactNode }) {
+  return (
+    <div className="mt-2.5 overflow-hidden rounded-xl border border-line bg-surface">
+      {children}
+    </div>
+  );
+}
+
+interface RowProps {
+  readonly icon?: ReactNode;
+  readonly title: string;
+  readonly body: string;
+  readonly trailing?: ReactNode;
+}
+
+function Row({ icon, title, body, trailing }: RowProps) {
+  return (
+    <div className="flex items-center justify-between gap-4 border-b border-line px-4 py-3.5 last:border-b-0">
+      <div className="flex min-w-0 items-center gap-2.5">
+        {icon !== undefined && <span className="flex-none text-ink-subtle">{icon}</span>}
+        <div className="min-w-0">
+          <div className="text-[13px] font-semibold">{title}</div>
+          <div className="truncate text-[11.5px] text-ink-muted">{body}</div>
+        </div>
+      </div>
+      {trailing}
+    </div>
+  );
+}
+
+function Stat({
+  value,
+  label,
+}: {
+  readonly value: number | string;
+  readonly label: string;
+}) {
+  return (
+    <div className="rounded-lg border border-line bg-surface px-4 py-3.5">
+      <div className="text-xl font-semibold">{value}</div>
+      <div className="mt-0.5 text-[11px] text-ink-muted">{label}</div>
+    </div>
+  );
+}
+
+/** Whole euros: the deck shows "€3,120", and the cents are noise at this size. */
+function money(cents: number | undefined, language: string): string {
+  if (cents === undefined) return "—";
+  return new Intl.NumberFormat(language, {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: 0,
+  }).format(cents / 100);
+}

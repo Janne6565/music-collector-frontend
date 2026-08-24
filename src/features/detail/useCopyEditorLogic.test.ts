@@ -8,6 +8,7 @@ function copy(overrides: Partial<Copy> = {}): Copy {
     id: "copy-1",
     releaseMbid: "rel-1",
     condition: "VG_PLUS",
+    sleeveCondition: "NM",
     pricePaidCents: 2800,
     currency: "EUR",
     purchasedOn: "2026-08-14",
@@ -28,6 +29,7 @@ describe("useCopyEditorLogic", () => {
 
     expect(result.current.fields).toEqual({
       condition: "VG_PLUS",
+      sleeveCondition: "NM",
       price: "28.00",
       purchasedOn: "2026-08-14",
       purchasedAt: "Concerto, Amsterdam",
@@ -129,6 +131,7 @@ describe("useCopyEditorLogic", () => {
       useCopyEditorLogic(
         copy({
           condition: null,
+          sleeveCondition: null,
           pricePaidCents: null,
           purchasedOn: null,
           purchasedAt: null,
@@ -141,6 +144,7 @@ describe("useCopyEditorLogic", () => {
 
     expect(result.current.fields).toEqual({
       condition: "",
+      sleeveCondition: "",
       price: "",
       purchasedOn: "",
       purchasedAt: "",

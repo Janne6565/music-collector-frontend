@@ -1,8 +1,10 @@
 import { FormatThumb } from "@/components/FormatThumb";
 import { AppShell } from "@/components/layout/AppShell";
-import { buttonClassName } from "@/components/ui";
+import { Button } from "@/components/ui";
 import type { Format } from "@/domain/types";
 import { FORMAT_LABELS } from "@/domain/types";
+import { AddDialog } from "@/features/add/AddDialog";
+import { CopyDetailsDialog } from "@/features/add/CopyDetailsDialog";
 import {
   type FormatFilter,
   type LibraryRow,
@@ -11,6 +13,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { ArrowDownNarrowWide, Search } from "lucide-react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 const FILTERS: readonly FormatFilter[] = ["ALL", "VINYL", "CD", "CASSETTE", "DIGITAL"];
@@ -18,6 +21,13 @@ const FILTERS: readonly FormatFilter[] = ["ALL", "VINYL", "CD", "CASSETTE", "DIG
 export function LibraryPage() {
   const { t } = useTranslation();
   const logic = useLibraryLogic();
+  /**
+   * Which sheet is over the library, if any. Local state rather than a route: the library
+   * underneath stays mounted and keeps its scroll position, which is the whole reason
+   * screen 6a is a modal instead of the page it replaced.
+   */
+  const [adding, setAdding] = useState(false);
+  const [detailsFor, setDetailsFor] = useState<string | null>(null);
 
   return (
     <AppShell stats={logic.stats}>
@@ -40,9 +50,9 @@ export function LibraryPage() {
           <ArrowDownNarrowWide size={15} strokeWidth={1.75} aria-hidden />
           {t(`library.sort.${sortKey(logic.sort)}`)}
         </button>
-        <Link to="/add" className={buttonClassName("primary", "h-9 rounded-lg px-4 text-[13px]")}>
+        <Button onClick={() => setAdding(true)} className="h-9 rounded-lg px-4 text-[13px]">
           {t("library.addItem")}
-        </Link>
+        </Button>
       </header>
 
       <div className="flex flex-none items-baseline justify-between px-7 pt-4 pb-1.5">
@@ -70,8 +80,28 @@ export function LibraryPage() {
       </div>
 
       <div className="min-h-0 flex-1 overflow-auto px-7 pb-7">
-        <LibraryBody {...logic} />
+        <LibraryBody {...logic} onAdd={() => setAdding(true)} />
       </div>
+
+      {adding && (
+        <AddDialog
+          onClose={() => setAdding(false)}
+          onEditDetails={(copyId) => {
+            setAdding(false);
+            setDetailsFor(copyId);
+          }}
+        />
+      )}
+      {detailsFor !== null && (
+        <CopyDetailsDialog
+          copyId={detailsFor}
+          onClose={() => setDetailsFor(null)}
+          onBack={() => {
+            setDetailsFor(null);
+            setAdding(true);
+          }}
+        />
+      )}
     </AppShell>
   );
 }
@@ -81,12 +111,15 @@ function LibraryBody({
   failed,
   rows,
   collectionEmpty,
-}: Pick<ReturnType<typeof useLibraryLogic>, "loading" | "failed" | "rows" | "collectionEmpty">) {
+  onAdd,
+}: Pick<ReturnType<typeof useLibraryLogic>, "loading" | "failed" | "rows" | "collectionEmpty"> & {
+  readonly onAdd: () => void;
+}) {
   const { t } = useTranslation();
 
   if (loading) return <p className="pt-8 text-sm text-ink-muted">…</p>;
   if (failed) return <p className="pt-8 text-sm text-ink-muted">{t("add.failed")}</p>;
-  if (collectionEmpty) return <EmptyLibrary />;
+  if (collectionEmpty) return <EmptyLibrary onAdd={onAdd} />;
   if (rows.length === 0)
     return <p className="pt-8 text-sm text-ink-muted">{t("library.noMatches")}</p>;
 
@@ -131,15 +164,15 @@ function GridItem({ row }: { readonly row: LibraryRow }) {
   );
 }
 
-function EmptyLibrary() {
+function EmptyLibrary({ onAdd }: { readonly onAdd: () => void }) {
   const { t } = useTranslation();
   return (
     <div className="flex flex-col items-start gap-3 pt-16">
       <h2 className="font-serif text-2xl">{t("library.empty.title")}</h2>
       <p className="max-w-sm text-sm text-ink-muted">{t("library.empty.body")}</p>
-      <Link to="/add" className={buttonClassName("primary", "mt-2")}>
+      <Button onClick={onAdd} className="mt-2">
         {t("library.empty.action")}
-      </Link>
+      </Button>
     </div>
   );
 }

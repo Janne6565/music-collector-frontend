@@ -41,6 +41,13 @@ export function useCopyDetailsLogic(copyId: string, onSaved: () => void) {
   const signedIn = useAppSelector((state) => state.auth.status === "signedIn");
 
   const [fields, setFields] = useState<DetailFields>(BLANK);
+  /**
+   * What the form looked like when it opened.
+   *
+   * Kept so a backdrop click can tell an accidental one from a deliberate abandonment: a
+   * sheet with nothing typed into it closes, a sheet holding edits nudges instead.
+   */
+  const [baseline, setBaseline] = useState<DetailFields>(BLANK);
   const [priceInvalid, setPriceInvalid] = useState(false);
   const [dateInvalid, setDateInvalid] = useState(false);
 
@@ -60,7 +67,7 @@ export function useCopyDetailsLogic(copyId: string, onSaved: () => void) {
     // copy that already has details when it is reopened; either way the form starts from
     // what is stored.
     if (copy === undefined) return;
-    setFields({
+    const loaded: DetailFields = {
       condition: copy.condition,
       sleeveCondition: copy.sleeveCondition,
       price: copy.pricePaidCents === null ? "" : (copy.pricePaidCents / 100).toFixed(2),
@@ -68,8 +75,15 @@ export function useCopyDetailsLogic(copyId: string, onSaved: () => void) {
       purchasedAt: copy.purchasedAt ?? "",
       rating: copy.rating,
       notes: copy.notes ?? "",
-    });
+    };
+    setFields(loaded);
+    setBaseline(loaded);
   }, [copy]);
+
+  /** Whether anything has been typed since the sheet opened. */
+  const dirty = (Object.keys(fields) as (keyof DetailFields)[]).some(
+    (key) => fields[key] !== baseline[key],
+  );
 
   const save = useMutation({
     mutationFn: async () => {
@@ -111,6 +125,7 @@ export function useCopyDetailsLogic(copyId: string, onSaved: () => void) {
   return {
     release: query.data?.release,
     fields,
+    dirty,
     set,
     priceInvalid,
     dateInvalid,

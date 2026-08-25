@@ -33,7 +33,13 @@ function Sidebar({
 }: { readonly stats: CollectionStats | undefined; readonly rail: ReactNode }) {
   const { t } = useTranslation();
   return (
-    <nav className="flex w-56 flex-none flex-col gap-6 border-r border-line p-4 pt-5">
+    /*
+     * Outside the route transition. It is the same element on both routes, and a sidebar
+     * that blinks when the pane beside it changes is the fastest way to make a cross-fade
+     * look like a page load. Its own view-transition-name is what takes it out of the
+     * root's group.
+     */
+    <nav className="mc-vt-sidebar flex w-56 flex-none flex-col gap-6 border-r border-line p-4 pt-5">
       <div className="font-serif text-xl leading-none">{t("app.name")}</div>
       <div className="flex flex-col gap-0.5">
         <SidebarLink
@@ -87,7 +93,7 @@ function SidebarLink({ to, icon, count, children }: SidebarLinkProps) {
   return (
     <Link
       to={to}
-      className="flex items-center justify-between rounded-md px-2.5 py-2 text-[13px] font-medium text-ink/65 transition-colors hover:bg-surface"
+      className="flex items-center justify-between rounded-md px-2.5 py-2 text-[13px] font-medium text-ink/65 transition-colors duration-(--mc-quick) hover:bg-surface"
       activeProps={{
         className: "bg-surface text-ink font-semibold shadow-[0_1px_2px_rgba(25,23,19,.06)]",
       }}

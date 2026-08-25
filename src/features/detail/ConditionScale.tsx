@@ -141,7 +141,7 @@ export function ConditionScale({
             // "not recorded" is a real answer.
             onClick={() => onChange(value === grade ? null : grade)}
             className={cn(
-              "flex-1 rounded-[7px] py-1.5 text-center text-[11.5px] transition-colors",
+              "flex-1 rounded-[7px] py-1.5 text-center text-[11.5px] transition-colors duration-(--mc-quick)",
               value === grade
                 ? "bg-ink font-semibold text-paper"
                 : "border border-line bg-surface font-medium text-ink-muted hover:bg-canvas",

@@ -210,7 +210,7 @@ function SearchTab({ logic }: { readonly logic: Logic }) {
                 onClick={() => logic.setFormat(filter)}
                 aria-pressed={logic.format === filter}
                 className={cn(
-                  "rounded-full px-2.75 py-1.25 text-[11.5px] transition-colors",
+                  "rounded-full px-2.75 py-1.25 text-[11.5px] transition-colors duration-(--mc-quick)",
                   logic.format === filter
                     ? "bg-ink font-semibold text-paper"
                     : "border border-line bg-surface font-medium text-ink-muted hover:bg-canvas",
@@ -224,7 +224,16 @@ function SearchTab({ logic }: { readonly logic: Logic }) {
       </form>
 
       <div className="min-h-0 flex-1 overflow-auto px-6 pt-2 pb-1">
-        <Results logic={logic} />
+        {/*
+         * A Cross on the list as one block, never per row — and keyed on the term that
+         * was actually searched, so it runs when the results change rather than on every
+         * keystroke. While the debounce is pending the old results stay put at full
+         * opacity; the spinner in the field is the only thing that says anything is
+         * happening.
+         */}
+        <div key={logic.submittedTerm} className="mc-cross">
+          <Results logic={logic} />
+        </div>
       </div>
 
       <SheetFooter logic={logic} hint={t("addDialog.footerHint")} />

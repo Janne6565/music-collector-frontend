@@ -178,7 +178,7 @@ function TypeChip({
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        "rounded-full px-2.75 py-1.25 text-[11.5px] transition-colors",
+        "rounded-full px-2.75 py-1.25 text-[11.5px] transition-colors duration-(--mc-quick)",
         active
           ? "bg-ink font-semibold text-paper"
           : "border border-line bg-surface font-medium text-ink-muted hover:bg-canvas",

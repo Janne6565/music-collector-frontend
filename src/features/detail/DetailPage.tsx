@@ -7,6 +7,7 @@ import { useCollectionStats } from "@/features/library/useLibraryLogic";
 import { PhotoStrip } from "@/features/photos/PhotoStrip";
 import { type ShownImage, resolveShown } from "@/features/photos/shownImage";
 import { usePhotoStripLogic } from "@/features/photos/usePhotoStripLogic";
+import { markBackNavigation } from "@/lib/motion";
 import type { Copy, Release } from "@janne6565/music-collector-shared";
 import { CONDITION_SHORT, FORMAT_LABELS } from "@janne6565/music-collector-shared";
 import { Link } from "@tanstack/react-router";
@@ -52,7 +53,12 @@ export function DetailPage({ copyId }: { readonly copyId: string }) {
       <AppShell stats={stats}>
         <div className="flex flex-col items-start gap-4 p-8">
           <p className="text-sm text-ink-muted">{t("detail.notFound")}</p>
-          <Link to="/" className="text-sm text-accent underline">
+          <Link
+            to="/"
+            viewTransition
+            onClick={markBackNavigation}
+            className="text-sm text-accent underline"
+          >
             {t("detail.back")}
           </Link>
         </div>
@@ -90,6 +96,10 @@ export function DetailPage({ copyId }: { readonly copyId: string }) {
               record, not the route. */}
           <Link
             to="/"
+            // Returning is not an arrival: the grid was never gone, so it fades back in
+            // without the 6px rise the forward swap has.
+            viewTransition
+            onClick={markBackNavigation}
             className={buttonClassName(
               "secondary",
               "h-[34px] flex-none gap-1.5 rounded-lg pr-3.5 pl-2.5 text-[12.5px] shadow-[0_1px_2px_rgba(25,23,19,.06)]",
@@ -352,6 +362,7 @@ function OtherCopies({
             key={copy.id}
             to="/copies/$copyId"
             params={{ copyId: copy.id }}
+            viewTransition
             className="flex-1 rounded-lg bg-surface p-3.5"
           >
             <div className="font-mono text-[10px] uppercase tracking-[0.09em] text-ink-muted">

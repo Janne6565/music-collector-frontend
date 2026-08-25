@@ -1,23 +1,73 @@
 import { cn } from "@/lib/utils";
+import { DURATION } from "@janne6565/music-collector-shared";
 import { X } from "lucide-react";
-import { type ReactNode, useEffect, useRef } from "react";
+import {
+  type ReactNode,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+
+/**
+ * How anything inside a sheet closes it.
+ *
+ * Calling the caller's own `onClose` would unmount the dialog on the spot and there would
+ * be no element left to run the exit on — so every control that dismisses goes through
+ * here instead, and the sheet leaves the same way whichever one was used.
+ */
+interface ModalControls {
+  readonly dismiss: () => void;
+  /** True while a backdrop click has just been refused, so Save can say where to look. */
+  readonly refused: boolean;
+}
+
+const ModalContext = createContext<ModalControls | null>(null);
+
+export function useModalDismiss(fallback?: () => void): () => void {
+  const controls = useContext(ModalContext);
+  return controls?.dismiss ?? fallback ?? (() => undefined);
+}
+
+/** Whether the sheet has just refused to close, for the control that would let it. */
+export function useModalRefused(): boolean {
+  return useContext(ModalContext)?.refused ?? false;
+}
 
 interface ModalProps {
   readonly onClose: () => void;
   readonly labelledBy: string;
   readonly width: string;
+  /**
+   * Whether a backdrop click should be refused.
+   *
+   * A dialog holding unsaved edits does not vanish because the mouse landed beside it; it
+   * nudges instead. Escape and the close button still go through — those are decisions,
+   * where a stray click is an accident.
+   */
+  readonly holdOnBackdrop?: boolean;
   readonly children: ReactNode;
 }
 
 /**
- * The dimmed-library sheet from screens 6a and 8d.
+ * The dimmed-library sheet from screens 6a and 12b, and turn 13's Lift.
  *
  * Built on <dialog> rather than a hand-rolled overlay: the browser supplies the focus
  * trap, the inert background, Escape to close and the top layer, none of which are worth
  * re-implementing badly.
+ *
+ * The entrance is `@starting-style`, so the browser animates from a state that never
+ * renders; the exit has to be run by hand, because the caller unmounts this component and
+ * an element that is gone cannot transition. Every dismissal — the close button, Escape,
+ * the backdrop, saving — takes the same 120ms exit. Nothing is faster: a keypress that
+ * skips the animation reads as a crash.
  */
-export function Modal({ onClose, labelledBy, width, children }: ModalProps) {
+export function Modal({ onClose, labelledBy, width, holdOnBackdrop, children }: ModalProps) {
   const ref = useRef<HTMLDialogElement>(null);
+  const [closing, setClosing] = useState(false);
+  const [nudging, setNudging] = useState(false);
   /**
    * Where the gesture that is about to become a click started.
    *
@@ -33,18 +83,33 @@ export function Modal({ onClose, labelledBy, width, children }: ModalProps) {
     return () => dialog?.close();
   }, []);
 
+  /** Plays the exit, then hands over to the caller, which is what actually unmounts us. */
+  const dismiss = useCallback(() => {
+    setClosing((already) => {
+      if (already) return already;
+      window.setTimeout(onClose, DURATION.quick);
+      return true;
+    });
+  }, [onClose]);
+
+  const refuse = useCallback(() => {
+    setNudging(true);
+    window.setTimeout(() => setNudging(false), DURATION.quick * 2);
+  }, []);
+
   return (
     <dialog
       ref={ref}
       aria-labelledby={labelledBy}
+      data-closing={closing}
       // Escape fires `cancel`, and closing has to go through the caller so its state and
       // the dialog's visibility cannot drift apart.
       onCancel={(event) => {
         event.preventDefault();
-        onClose();
+        dismiss();
       }}
       className={cn(
-        "m-0 max-h-none max-w-none bg-transparent p-0 backdrop:bg-ink/35",
+        "mc-lift-backdrop m-0 max-h-none max-w-none bg-transparent p-0",
         "fixed inset-0 h-full w-full",
       )}
     >
@@ -63,16 +128,26 @@ export function Modal({ onClose, labelledBy, width, children }: ModalProps) {
           pressedBackdrop.current = event.target === event.currentTarget;
         }}
         onClick={(event) => {
-          if (pressedBackdrop.current && event.target === event.currentTarget) onClose();
+          if (pressedBackdrop.current && event.target === event.currentTarget) {
+            if (holdOnBackdrop === true) refuse();
+            else dismiss();
+          }
           pressedBackdrop.current = false;
         }}
       >
-        <div
-          className="flex max-h-full w-full flex-col overflow-hidden rounded-[14px] bg-paper text-ink shadow-[0_24px_60px_rgba(25,23,19,.28)]"
-          style={{ maxWidth: width }}
-        >
-          {children}
-        </div>
+        <ModalContext.Provider value={{ dismiss, refused: nudging }}>
+          <div
+            data-closing={closing}
+            className={cn(
+              "mc-lift flex max-h-full w-full flex-col overflow-hidden rounded-[14px]",
+              "bg-paper text-ink shadow-[0_24px_60px_rgba(25,23,19,.28)]",
+              nudging && "mc-nudge",
+            )}
+            style={{ maxWidth: width }}
+          >
+            {children}
+          </div>
+        </ModalContext.Provider>
       </div>
     </dialog>
   );
@@ -86,12 +161,16 @@ export function ModalClose({
   readonly onClose: () => void;
   readonly label: string;
 }) {
+  const dismiss = useModalDismiss(onClose);
   return (
     <button
       type="button"
-      onClick={onClose}
+      onClick={dismiss}
       aria-label={label}
-      className="flex h-7 w-7 flex-none items-center justify-center rounded-[7px] bg-ink/5 text-ink-muted hover:bg-ink/10"
+      className={cn(
+        "flex h-7 w-7 flex-none items-center justify-center rounded-[7px]",
+        "bg-ink/5 text-ink-muted transition-colors duration-(--mc-quick) hover:bg-ink/10",
+      )}
     >
       <X size={15} strokeWidth={1.9} aria-hidden />
     </button>

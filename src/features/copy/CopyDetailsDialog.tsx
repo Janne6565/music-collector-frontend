@@ -1,5 +1,5 @@
 import { ReleaseArt } from "@/components/ReleaseArt";
-import { Button, Modal, ModalClose } from "@/components/ui";
+import { Button, Modal, ModalClose, useModalDismiss, useModalRefused } from "@/components/ui";
 import { useCopyDetailsLogic } from "@/features/copy/useCopyDetailsLogic";
 import { ConditionScale } from "@/features/detail/ConditionScale";
 import { PhotoManager } from "@/features/photos/PhotoManager";
@@ -62,7 +62,12 @@ export function CopyDetailsDialog({
   const release = logic.release;
 
   return (
-    <Modal onClose={onClose} labelledBy={titleId} width={editing ? "780px" : "720px"}>
+    <Modal
+      onClose={onClose}
+      labelledBy={titleId}
+      width={editing ? "780px" : "720px"}
+      holdOnBackdrop={logic.dirty}
+    >
       <div className="flex flex-none items-start justify-between gap-4 border-b border-line px-6 pt-5.5 pb-4.5">
         <div>
           <div className="flex items-center gap-2.25 font-mono text-[11px] uppercase tracking-[0.1em] text-ink-subtle">
@@ -249,25 +254,60 @@ export function CopyDetailsDialog({
             {logic.signedIn ? t("copyDetails.storageSignedIn") : t("copyDetails.storageGuest")}
           </span>
         )}
-        <div className="flex gap-2.5">
-          <Button
-            variant="secondary"
-            onClick={editing ? onClose : onBack}
-            className="h-[34px] rounded-lg px-3.5 text-[12.5px]"
-          >
-            {editing ? t("common.cancel") : t("common.back")}
-          </Button>
-          <Button
-            type="submit"
-            form={`${titleId}-form`}
-            loading={logic.saving}
-            className="h-[34px] rounded-lg px-3.5 text-[12.5px]"
-          >
-            {editing ? t("copyDetails.saveChanges") : t("copyDetails.save")}
-          </Button>
-        </div>
+        <DialogActions
+          editing={editing}
+          formId={`${titleId}-form`}
+          onBack={onBack}
+          saving={logic.saving}
+        />
       </div>
     </Modal>
+  );
+}
+
+/**
+ * Cancel and Save, as a child so they can reach the sheet's own dismiss.
+ *
+ * Cancel calls the caller's `onClose` nowhere: closing has to run the 120ms exit first,
+ * and only the Modal knows when that is done. Save takes the accent ring while a backdrop
+ * click is being refused — the click said "get me out of here", and this is the way out.
+ */
+function DialogActions({
+  editing,
+  formId,
+  onBack,
+  saving,
+}: {
+  readonly editing: boolean;
+  readonly formId: string;
+  readonly onBack: (() => void) | undefined;
+  readonly saving: boolean;
+}) {
+  const { t } = useTranslation();
+  const dismiss = useModalDismiss();
+  const refused = useModalRefused();
+
+  return (
+    <div className="flex gap-2.5">
+      <Button
+        variant="secondary"
+        onClick={editing || onBack === undefined ? dismiss : onBack}
+        className="h-[34px] rounded-lg px-3.5 text-[12.5px]"
+      >
+        {editing ? t("common.cancel") : t("common.back")}
+      </Button>
+      <Button
+        type="submit"
+        form={formId}
+        loading={saving}
+        className={cn(
+          "h-[34px] rounded-lg px-3.5 text-[12.5px] transition-shadow duration-(--mc-quick)",
+          refused && "ring-2 ring-accent ring-offset-2 ring-offset-paper",
+        )}
+      >
+        {editing ? t("copyDetails.saveChanges") : t("copyDetails.save")}
+      </Button>
+    </div>
   );
 }
 

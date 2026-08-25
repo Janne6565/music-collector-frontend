@@ -159,3 +159,232 @@ body {
     display: none;
   }
 }
+
+/* ------------------------------------------------------------------------------------
+ * Motion — turn 13.
+ *
+ * The values are mirrored from @janne6565/music-collector-shared's `motion.ts`, which is
+ * where the two clients agree on them; they are repeated here because a stylesheet cannot
+ * import TypeScript, and `src/lib/motion.ts` asserts that these match at build time.
+ *
+ * Four transitions cover every surface — Lift for anything over something else, Cross for
+ * content replacing content, Settle for the same items in new places, Wash for the cover
+ * theme (mobile only) — plus the Mark ring for "it went here". Two rules keep the set
+ * small: nothing staggers, and exit is always quick.
+ * ---------------------------------------------------------------------------------- */
+@theme {
+  --mc-quick: 120ms;
+  --mc-base: 220ms;
+  --mc-slow: 400ms;
+
+  --mc-enter: cubic-bezier(0.2, 0.8, 0.25, 1);
+  --mc-exit: cubic-bezier(0.4, 0, 1, 1);
+  --mc-move: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/*
+ * Reduced motion is a contract, not a mode: displacement goes, the fade stays.
+ *
+ * Expressed once, as a variable the transitions multiply their translate and scale by,
+ * rather than as a copy of every rule with the transforms deleted.
+ */
+:root {
+  --mc-shift: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --mc-shift: 0;
+  }
+}
+
+/* --- Lift: anything over something else ------------------------------------------- */
+
+.mc-lift {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition: opacity var(--mc-base) var(--mc-enter), transform var(--mc-base) var(--mc-enter);
+}
+
+@starting-style {
+  .mc-lift {
+    opacity: 0;
+    transform: translateY(calc(8px * var(--mc-shift))) scale(calc(1 - 0.02 * var(--mc-shift)));
+  }
+}
+
+/* The user has already decided, so leaving is quick whatever the entrance was. */
+.mc-lift[data-closing="true"] {
+  opacity: 0;
+  transform: translateY(calc(4px * var(--mc-shift))) scale(calc(1 - 0.01 * var(--mc-shift)));
+  transition: opacity var(--mc-quick) var(--mc-exit), transform var(--mc-quick) var(--mc-exit);
+}
+
+/*
+ * The backdrop shares the dialog's timeline. A backdrop that fades a beat behind is the
+ * single most common way this looks cheap.
+ */
+.mc-lift-backdrop::backdrop {
+  background: rgba(25, 23, 19, 0.35);
+  transition: opacity var(--mc-base) var(--mc-enter);
+  opacity: 1;
+}
+
+@starting-style {
+  .mc-lift-backdrop::backdrop {
+    opacity: 0;
+  }
+}
+
+.mc-lift-backdrop[data-closing="true"]::backdrop {
+  opacity: 0;
+  transition: opacity var(--mc-quick) var(--mc-exit);
+}
+
+/*
+ * A backdrop click on a dialog holding unsaved edits does not dismiss it. Two 2px nudges
+ * say so without a word of copy, and without stealing the decision.
+ */
+@keyframes mcnudge {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-2px);
+  }
+  75% {
+    transform: translateX(2px);
+  }
+}
+
+.mc-nudge {
+  animation: mcnudge 120ms var(--mc-move) 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-nudge {
+    animation: none;
+  }
+}
+
+/* --- Cross: one set of content replacing another in place -------------------------- */
+
+/*
+ * The route swap. The sidebar is the same element on both routes and must not blink, so
+ * it is given its own transition name and sits outside the root's cross-fade.
+ */
+::view-transition-old(root) {
+  animation: mcfadeout var(--mc-quick) var(--mc-exit) forwards;
+}
+
+::view-transition-new(root) {
+  animation: mcrise var(--mc-base) var(--mc-enter) 60ms backwards;
+}
+
+@keyframes mcfadeout {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes mcrise {
+  from {
+    opacity: 0;
+    transform: translateY(calc(6px * var(--mc-shift)));
+  }
+}
+
+/* Returning is not an arrival: the grid was never gone, so it does not rise. */
+:root[data-nav="back"]::view-transition-new(root) {
+  animation-name: mcfadein;
+}
+
+@keyframes mcfadein {
+  from {
+    opacity: 0;
+  }
+}
+
+.mc-vt-sidebar {
+  view-transition-name: mc-sidebar;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-new(root) {
+    animation-name: mcfadein;
+  }
+}
+
+/*
+ * The fallback for browsers without view transitions, and the in-page Crosses: search
+ * results replacing search results, results becoming no-results.
+ */
+.mc-cross {
+  animation: mcrise var(--mc-base) var(--mc-enter) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-cross {
+    animation: mcfadein var(--mc-quick) var(--mc-exit) both;
+  }
+}
+
+/* --- Settle: the same items in new places ------------------------------------------ */
+
+/*
+ * Applied for one frame by the FLIP measure in `useSettle`, which is where the
+ * old-box-to-new-box translate is set. Leaving items fade at quick and come out of flow
+ * immediately, so survivors move once rather than twice.
+ */
+.mc-settling {
+  transition: transform var(--mc-base) var(--mc-move);
+}
+
+/* --- Mark: the ring that says "this is the one you just added" --------------------- */
+
+.mc-mark {
+  animation: mcmark calc(var(--mc-quick) + 1400ms + var(--mc-slow)) linear forwards;
+  border-radius: 12px;
+}
+
+@keyframes mcmark {
+  0% {
+    box-shadow: 0 0 0 2px rgba(162, 87, 58, 0);
+  }
+  /* quick in */
+  6% {
+    box-shadow: 0 0 0 2px rgba(162, 87, 58, 1);
+  }
+  /* hold 1400ms */
+  78% {
+    box-shadow: 0 0 0 2px rgba(162, 87, 58, 1);
+  }
+  /* slow out */
+  100% {
+    box-shadow: 0 0 0 2px rgba(162, 87, 58, 0);
+  }
+}
+
+/*
+ * Unchanged under reduced motion. It is opacity, and it is the only thing telling you
+ * where the record went.
+ */
+
+/* --- The one slow entrance --------------------------------------------------------- */
+
+/*
+ * Empty and first-run states, as one piece — never headline, then body, then button. The
+ * only place in the app that spends 400ms, and it is there because an empty screen has no
+ * content to carry the eye.
+ */
+.mc-entrance {
+  animation: mcentrance var(--mc-slow) var(--mc-enter) both;
+}
+
+@keyframes mcentrance {
+  from {
+    opacity: 0;
+    transform: translateY(calc(4px * var(--mc-shift)));
+  }
+}

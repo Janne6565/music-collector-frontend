@@ -1,4 +1,4 @@
-import { Button, Modal } from "@/components/ui";
+import { Button, Modal, useModalDismiss } from "@/components/ui";
 import { useId } from "react";
 
 interface ConfirmDialogProps {
@@ -38,18 +38,47 @@ export function ConfirmDialog({
         </h2>
         <p className="mt-2 text-[13px] leading-relaxed text-ink-muted text-pretty">{body}</p>
       </div>
-      <div className="flex flex-none justify-end gap-2.5 border-t border-line bg-surface px-6 py-3.5">
-        <Button
-          variant="secondary"
-          onClick={onCancel}
-          className="h-[34px] rounded-lg px-3.5 text-[12.5px]"
-        >
-          {cancelLabel}
-        </Button>
-        <Button onClick={onConfirm} className="h-[34px] rounded-lg px-3.5 text-[12.5px]">
-          {confirmLabel}
-        </Button>
-      </div>
+      <ConfirmActions cancelLabel={cancelLabel} confirmLabel={confirmLabel} onConfirm={onConfirm} />
     </Modal>
+  );
+}
+
+/**
+ * The two buttons, as a child so both leave through the sheet's own exit.
+ *
+ * Confirming is a dismissal like any other: the action it triggers is local and instant,
+ * so there is nothing to wait for and no reason for this one to vanish faster than the
+ * cancel beside it.
+ */
+function ConfirmActions({
+  cancelLabel,
+  confirmLabel,
+  onConfirm,
+}: {
+  readonly cancelLabel: string;
+  readonly confirmLabel: string;
+  readonly onConfirm: () => void;
+}) {
+  const dismiss = useModalDismiss();
+
+  return (
+    <div className="flex flex-none justify-end gap-2.5 border-t border-line bg-surface px-6 py-3.5">
+      <Button
+        variant="secondary"
+        onClick={dismiss}
+        className="h-[34px] rounded-lg px-3.5 text-[12.5px]"
+      >
+        {cancelLabel}
+      </Button>
+      <Button
+        onClick={() => {
+          onConfirm();
+          dismiss();
+        }}
+        className="h-[34px] rounded-lg px-3.5 text-[12.5px]"
+      >
+        {confirmLabel}
+      </Button>
+    </div>
   );
 }

@@ -86,6 +86,15 @@ export function ReleaseArt({
 
   const gone = url === null;
   const shown = !gone && loadedUrl === url;
+  /**
+   * Whether the thing being waited for is a fetch.
+   *
+   * The shimmer belongs to catalogue art and nothing else (turn 13): a photo the reader
+   * took is already on this device, so it paints on the frame it is asked for. Sweeping
+   * over a local file invents a wait, and fading it in says "this arrived" about something
+   * that was never away.
+   */
+  const fetched = !gone && url !== previewSrc;
 
   const art = gone ? null : (
     <img
@@ -102,7 +111,9 @@ export function ReleaseArt({
       onLoad={() => setLoadedUrl(url)}
       onError={() => setFailed((seen) => new Set(seen).add(url))}
       className={cn(
-        "absolute inset-0 h-full w-full object-cover transition-opacity duration-300",
+        "absolute inset-0 h-full w-full object-cover",
+        // 120ms, no scale and no blur-up — and only for art that was actually fetched.
+        fetched && "transition-opacity duration-(--mc-quick)",
         shown ? "opacity-100" : "opacity-0",
       )}
     />
@@ -113,7 +124,7 @@ export function ReleaseArt({
       <div className={cn("relative h-full w-full overflow-hidden", className)}>
         {/* Kept mounted underneath rather than swapped out: an image that decodes with a
             transparent edge would otherwise flash whatever is behind the frame. */}
-        {!shown && <FormatThumb format={release?.format ?? "OTHER"} sweep={!gone} />}
+        {!shown && <FormatThumb format={release?.format ?? "OTHER"} sweep={fetched} />}
         {art}
       </div>
     );
@@ -121,7 +132,7 @@ export function ReleaseArt({
 
   return (
     <div className={cn("relative h-full w-full", className)}>
-      <FormatThumb format={release?.format ?? "OTHER"} cover={art} sweep={!gone && !shown} />
+      <FormatThumb format={release?.format ?? "OTHER"} cover={art} sweep={fetched && !shown} />
     </div>
   );
 }

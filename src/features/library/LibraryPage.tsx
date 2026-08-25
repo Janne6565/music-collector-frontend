@@ -3,12 +3,14 @@ import { AppShell } from "@/components/layout/AppShell";
 import { Button, Skeleton } from "@/components/ui";
 import { AddDialog } from "@/features/add/AddDialog";
 import { CopyDetailsDialog } from "@/features/copy/CopyDetailsDialog";
+import { useUndo } from "@/features/detail/UndoDelete";
 import {
   type FormatFilter,
   type LibraryRow,
   useLibraryLogic,
 } from "@/features/library/useLibraryLogic";
 import { useCoverPhotos } from "@/features/photos/useCoverPhotos";
+import { useMark, useSettle } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import type { Condition, Format } from "@janne6565/music-collector-shared";
 import { catalogArtShown, copyPreviewSrc } from "@janne6565/music-collector-shared";
@@ -19,7 +21,7 @@ import {
 } from "@janne6565/music-collector-shared";
 import { Link } from "@tanstack/react-router";
 import { ArrowDownNarrowWide, Search } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 const FILTERS: readonly FormatFilter[] = ["ALL", "VINYL", "CD", "CASSETTE", "DIGITAL"];
@@ -74,6 +76,23 @@ export function LibraryPage() {
   const [adding, setAdding] = useState(false);
   /** The copy whose details step is open over the sheet, if any (screen 8d). */
   const [detailsFor, setDetailsFor] = useState<string | null>(null);
+  /**
+   * The record that was just added, and the ring saying where it went.
+   *
+   * No toast and no "added" banner: the grid is already re-sorted with the record in its
+   * rightful place, and the ring answers the only question the reader has — which one is
+   * it — in the place where the answer lives.
+   */
+  const mark = useMark();
+  /**
+   * A record taken back out of the bin rings the same way a new one does. From the grid's
+   * point of view they are the same event: something is here now that was not a moment
+   * ago, and the only question is which one.
+   */
+  const { restored } = useUndo();
+  useEffect(() => {
+    if (restored !== null) mark.mark(restored);
+  }, [restored, mark.mark]);
 
   return (
     <AppShell
@@ -133,7 +152,7 @@ export function LibraryPage() {
       </div>
 
       <div className="min-h-0 flex-1 overflow-auto px-7 pb-7">
-        <LibraryBody {...logic} onAdd={() => setAdding(true)} />
+        <LibraryBody {...logic} onAdd={() => setAdding(true)} marked={mark.marked} />
       </div>
 
       {adding && <AddDialog onClose={() => setAdding(false)} onAdded={setDetailsFor} />}
@@ -147,7 +166,13 @@ export function LibraryPage() {
       {detailsFor !== null && (
         <CopyDetailsDialog
           copyId={detailsFor}
-          onClose={() => setDetailsFor(null)}
+          onClose={() => {
+            // The sheet is gone and the grid holds the answer, so this is the moment the
+            // ring means something.
+            const added = detailsFor;
+            setDetailsFor(null);
+            mark.mark(added);
+          }}
           onBack={() => setDetailsFor(null)}
         />
       )}
@@ -174,7 +199,7 @@ function ConditionRail({
             onClick={() => onPick(condition)}
             aria-pressed={active === condition}
             className={cn(
-              "rounded-full px-2 py-1 text-[11px] font-medium transition-colors",
+              "rounded-full px-2 py-1 text-[11px] font-medium transition-colors duration-(--mc-quick)",
               active === condition
                 ? "bg-ink text-paper"
                 : "border border-line text-ink-muted hover:bg-surface",
@@ -194,35 +219,59 @@ function LibraryBody({
   rows,
   collectionEmpty,
   onAdd,
+  marked,
 }: Pick<ReturnType<typeof useLibraryLogic>, "loading" | "failed" | "rows" | "collectionEmpty"> & {
   readonly onAdd: () => void;
+  readonly marked: string | null;
 }) {
   const { t } = useTranslation();
 
   if (loading) return <LibrarySkeleton />;
   if (failed) return <p className="pt-8 text-sm text-ink-muted">{t("add.failed")}</p>;
-  if (collectionEmpty) return <EmptyLibrary onAdd={onAdd} />;
+  // The only slow entrance in the app, and the only place that earns one: an empty screen
+  // has no content to carry the eye. As one piece — never headline, then body, then button.
+  if (collectionEmpty)
+    return (
+      <div className="mc-entrance">
+        <EmptyLibrary onAdd={onAdd} />
+      </div>
+    );
+  // The reader typed, so they are watching: a Cross, not an entrance.
   if (rows.length === 0)
-    return <p className="pt-8 text-sm text-ink-muted">{t("library.noMatches")}</p>;
+    return <p className="mc-cross pt-8 text-sm text-ink-muted">{t("library.noMatches")}</p>;
 
-  return <LibraryGrid rows={rows} />;
+  return <LibraryGrid rows={rows} marked={marked} />;
 }
 
 /**
  * Split out because the photo lookup is a hook, and the body above returns early for
  * loading, failure and both kinds of empty before there are ever any rows to look up.
  */
-function LibraryGrid({ rows }: { readonly rows: readonly LibraryRow[] }) {
+function LibraryGrid({
+  rows,
+  marked,
+}: { readonly rows: readonly LibraryRow[]; readonly marked: string | null }) {
   const covers = useCoverPhotos(useMemo(() => rows.map((row) => row.copy.id), [rows]));
+  const grid = useRef<HTMLDivElement>(null);
+
+  /**
+   * Settle. The order of the ids is what changes when a filter, a sort or the search term
+   * does, so it is what the measure keys off — a tile whose neighbours moved has moved.
+   */
+  useSettle(
+    grid,
+    useMemo(() => rows.map((row) => row.copy.id).join(), [rows]),
+  );
 
   return (
-    <div className={GRID_CLASS}>
+    <div ref={grid} className={GRID_CLASS}>
       {rows.map((row) => (
         <GridItem
           key={row.copy.id}
           row={row}
           previewSrc={copyPreviewSrc(row.copy, covers.get(row.copy.id) ?? null)}
           allowCatalogArt={catalogArtShown(row.copy, true)}
+          marked={marked === row.copy.id}
         />
       ))}
     </div>
@@ -254,14 +303,38 @@ function GridItem({
   row,
   previewSrc,
   allowCatalogArt,
+  marked,
 }: {
   readonly row: LibraryRow;
   readonly previewSrc: string | null;
   readonly allowCatalogArt: boolean;
+  readonly marked: boolean;
 }) {
   const { t } = useTranslation();
+  const marker = useRef<HTMLElement | null>(null);
+
+  /**
+   * A record that landed below the fold is not findable by a ring nobody can see, so the
+   * grid goes to it first and the ring starts on arrival.
+   */
+  useEffect(() => {
+    if (!marked) return;
+    marker.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [marked]);
+
   return (
-    <Link to="/copies/$copyId" params={{ copyId: row.copy.id }} className="group block">
+    <Link
+      ref={(element) => {
+        marker.current = element;
+      }}
+      to="/copies/$copyId"
+      params={{ copyId: row.copy.id }}
+      // The route swap is a Cross. Where the browser has no view transitions this is
+      // simply ignored and the swap is what it is today.
+      viewTransition
+      data-settle-key={row.copy.id}
+      className={cn("group block", marked && "mc-mark")}
+    >
       <div className="relative aspect-square">
         <ReleaseArt
           release={row.release}
@@ -307,7 +380,7 @@ function FilterChip({ active, onClick, label, count }: FilterChipProps) {
       type="button"
       onClick={onClick}
       className={cn(
-        "flex-none rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
+        "flex-none rounded-full px-3 py-1.5 text-xs font-medium transition-colors duration-(--mc-quick)",
         active
           ? "bg-ink font-semibold text-paper"
           : "border border-line bg-surface hover:bg-canvas",

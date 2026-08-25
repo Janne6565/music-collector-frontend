@@ -12,7 +12,7 @@ export function buttonClassName(variant: ButtonVariant = "primary", className?: 
   return cn(
     // Tailwind v4's preflight resets buttons to cursor:default; the base layer in
     // styles.css restores the pointer, and this keeps anchors consistent with it.
-    "inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+    "inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold transition-colors duration-(--mc-quick) disabled:cursor-not-allowed disabled:opacity-50",
     variant === "primary" && "bg-ink text-paper hover:bg-black",
     variant === "secondary" && "border border-line bg-surface text-ink hover:bg-canvas",
     className,

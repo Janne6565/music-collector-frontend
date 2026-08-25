@@ -1,7 +1,9 @@
 import { lookupRelease } from "@/api/releases";
+import { useUndo } from "@/features/detail/UndoDelete";
+import { markBackNavigation } from "@/lib/motion";
 import { useStore } from "@/local/StoreProvider";
 import type { Copy, CopyDraft, Release } from "@janne6565/music-collector-shared";
-import { applyCopyPatch, tombstoneCopy } from "@janne6565/music-collector-shared";
+import { DURATION, applyCopyPatch, tombstoneCopy } from "@janne6565/music-collector-shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 
@@ -12,6 +14,7 @@ export interface DetailData {
 }
 
 export function useDetailLogic(copyId: string) {
+  const { offer: offerUndo } = useUndo();
   const { store, clock } = useStore();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -70,7 +73,17 @@ export function useDetailLogic(copyId: string) {
     },
     onSuccess: async () => {
       await invalidate();
-      void navigate({ to: "/" });
+      /*
+       * One gesture, sequenced (turn 13h). The dialog takes its 120ms exit and the route
+       * starts crossing 30ms before it is gone, so the two read as one movement rather
+       * than as two things that happened to fire together. The write itself is already
+       * done — none of this is a wait.
+       */
+      window.setTimeout(() => {
+        markBackNavigation();
+        void navigate({ to: "/", viewTransition: true });
+        offerUndo(copyId);
+      }, DURATION.quick - 30);
     },
   });
 

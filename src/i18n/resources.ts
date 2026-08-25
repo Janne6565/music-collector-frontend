@@ -354,6 +354,10 @@ const enCommon = {
     notesPlaceholder: "Pressing, condition detail, where it came from",
     rate: "Rate {{count}} out of 5",
   },
+  undo: {
+    removed: "Copy removed",
+    action: "Undo",
+  },
   common: {
     unknownYear: "Year unknown",
     save: "Save",
@@ -730,6 +734,10 @@ const deCommon: CommonSchema = {
     wherePlaceholder: "Laden, Markt, Website",
     notesPlaceholder: "Pressung, Zustand, Herkunft",
     rate: "{{count}} von 5 bewerten",
+  },
+  undo: {
+    removed: "Exemplar entfernt",
+    action: "Rückgängig",
   },
   common: {
     unknownYear: "Jahr unbekannt",

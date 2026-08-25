@@ -19,7 +19,7 @@ export function Toggle({ checked, onChange, label, disabledReason }: ToggleProps
   return (
     <label
       className={cn(
-        "relative inline-flex h-[22px] w-[38px] flex-none items-center rounded-full p-0.5 transition-colors",
+        "relative inline-flex h-[22px] w-[38px] flex-none items-center rounded-full p-0.5 transition-colors duration-(--mc-quick)",
         checked ? "bg-ink" : "bg-line",
         disabled ? "cursor-default opacity-60" : "cursor-pointer",
       )}

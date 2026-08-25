@@ -13,12 +13,12 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as HandleRouteImport } from './routes/$handle'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as ForgotRouteImport } from './routes/forgot'
-import { Route as FriendsRouteImport } from './routes/friends'
 import { Route as ResetRouteImport } from './routes/reset'
 import { Route as SigninRouteImport } from './routes/signin'
 import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as HandleWishlistRouteImport } from './routes/$handle.wishlist'
 import { Route as CopiesCopyIdRouteImport } from './routes/copies.$copyId'
+import { Route as FriendsIndexRouteImport } from './routes/friends.index'
 import { Route as FriendsHandleRouteImport } from './routes/friends.$handle'
 import { Route as LegalDocRouteImport } from './routes/legal.$doc'
 import { Route as LegalDataRouteImport } from './routes/legal.data'
@@ -41,11 +41,6 @@ const AccountRoute = AccountRouteImport.update({
 const ForgotRoute = ForgotRouteImport.update({
   id: '/forgot',
   path: '/forgot',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FriendsRoute = FriendsRouteImport.update({
-  id: '/friends',
-  path: '/friends',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetRoute = ResetRouteImport.update({
@@ -73,10 +68,15 @@ const CopiesCopyIdRoute = CopiesCopyIdRouteImport.update({
   path: '/copies/$copyId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FriendsIndexRoute = FriendsIndexRouteImport.update({
+  id: '/friends/',
+  path: '/friends/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FriendsHandleRoute = FriendsHandleRouteImport.update({
-  id: '/$handle',
-  path: '/$handle',
-  getParentRoute: () => FriendsRoute,
+  id: '/friends/$handle',
+  path: '/friends/$handle',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const LegalDocRoute = LegalDocRouteImport.update({
   id: '/legal/$doc',
@@ -94,7 +94,6 @@ export interface FileRoutesByFullPath {
   '/$handle': typeof HandleRouteWithChildren
   '/account': typeof AccountRoute
   '/forgot': typeof ForgotRoute
-  '/friends': typeof FriendsRouteWithChildren
   '/reset': typeof ResetRoute
   '/signin': typeof SigninRoute
   '/wishlist': typeof WishlistRoute
@@ -103,13 +102,13 @@ export interface FileRoutesByFullPath {
   '/friends/$handle': typeof FriendsHandleRoute
   '/legal/$doc': typeof LegalDocRoute
   '/legal/data': typeof LegalDataRoute
+  '/friends/': typeof FriendsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$handle': typeof HandleRouteWithChildren
   '/account': typeof AccountRoute
   '/forgot': typeof ForgotRoute
-  '/friends': typeof FriendsRouteWithChildren
   '/reset': typeof ResetRoute
   '/signin': typeof SigninRoute
   '/wishlist': typeof WishlistRoute
@@ -118,6 +117,7 @@ export interface FileRoutesByTo {
   '/friends/$handle': typeof FriendsHandleRoute
   '/legal/$doc': typeof LegalDocRoute
   '/legal/data': typeof LegalDataRoute
+  '/friends': typeof FriendsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -125,7 +125,6 @@ export interface FileRoutesById {
   '/$handle': typeof HandleRouteWithChildren
   '/account': typeof AccountRoute
   '/forgot': typeof ForgotRoute
-  '/friends': typeof FriendsRouteWithChildren
   '/reset': typeof ResetRoute
   '/signin': typeof SigninRoute
   '/wishlist': typeof WishlistRoute
@@ -134,6 +133,7 @@ export interface FileRoutesById {
   '/friends/$handle': typeof FriendsHandleRoute
   '/legal/$doc': typeof LegalDocRoute
   '/legal/data': typeof LegalDataRoute
+  '/friends/': typeof FriendsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -142,7 +142,6 @@ export interface FileRouteTypes {
     | '/$handle'
     | '/account'
     | '/forgot'
-    | '/friends'
     | '/reset'
     | '/signin'
     | '/wishlist'
@@ -151,13 +150,13 @@ export interface FileRouteTypes {
     | '/friends/$handle'
     | '/legal/$doc'
     | '/legal/data'
+    | '/friends/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/$handle'
     | '/account'
     | '/forgot'
-    | '/friends'
     | '/reset'
     | '/signin'
     | '/wishlist'
@@ -166,13 +165,13 @@ export interface FileRouteTypes {
     | '/friends/$handle'
     | '/legal/$doc'
     | '/legal/data'
+    | '/friends'
   id:
     | '__root__'
     | '/'
     | '/$handle'
     | '/account'
     | '/forgot'
-    | '/friends'
     | '/reset'
     | '/signin'
     | '/wishlist'
@@ -181,6 +180,7 @@ export interface FileRouteTypes {
     | '/friends/$handle'
     | '/legal/$doc'
     | '/legal/data'
+    | '/friends/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -188,13 +188,14 @@ export interface RootRouteChildren {
   HandleRoute: typeof HandleRouteWithChildren
   AccountRoute: typeof AccountRoute
   ForgotRoute: typeof ForgotRoute
-  FriendsRoute: typeof FriendsRouteWithChildren
   ResetRoute: typeof ResetRoute
   SigninRoute: typeof SigninRoute
   WishlistRoute: typeof WishlistRoute
   CopiesCopyIdRoute: typeof CopiesCopyIdRoute
+  FriendsHandleRoute: typeof FriendsHandleRoute
   LegalDocRoute: typeof LegalDocRoute
   LegalDataRoute: typeof LegalDataRoute
+  FriendsIndexRoute: typeof FriendsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -225,13 +226,6 @@ declare module '@tanstack/react-router' {
       path: '/forgot'
       fullPath: '/forgot'
       preLoaderRoute: typeof ForgotRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/friends': {
-      id: '/friends'
-      path: '/friends'
-      fullPath: '/friends'
-      preLoaderRoute: typeof FriendsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset': {
@@ -269,12 +263,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CopiesCopyIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/friends/': {
+      id: '/friends/'
+      path: '/friends'
+      fullPath: '/friends/'
+      preLoaderRoute: typeof FriendsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/friends/$handle': {
       id: '/friends/$handle'
-      path: '/$handle'
+      path: '/friends/$handle'
       fullPath: '/friends/$handle'
       preLoaderRoute: typeof FriendsHandleRouteImport
-      parentRoute: typeof FriendsRoute
+      parentRoute: typeof rootRouteImport
     }
     '/legal/$doc': {
       id: '/legal/$doc'
@@ -304,29 +305,19 @@ const HandleRouteChildren: HandleRouteChildren = {
 const HandleRouteWithChildren =
   HandleRoute._addFileChildren(HandleRouteChildren)
 
-interface FriendsRouteChildren {
-  FriendsHandleRoute: typeof FriendsHandleRoute
-}
-
-const FriendsRouteChildren: FriendsRouteChildren = {
-  FriendsHandleRoute: FriendsHandleRoute,
-}
-
-const FriendsRouteWithChildren =
-  FriendsRoute._addFileChildren(FriendsRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   HandleRoute: HandleRouteWithChildren,
   AccountRoute: AccountRoute,
   ForgotRoute: ForgotRoute,
-  FriendsRoute: FriendsRouteWithChildren,
   ResetRoute: ResetRoute,
   SigninRoute: SigninRoute,
   WishlistRoute: WishlistRoute,
   CopiesCopyIdRoute: CopiesCopyIdRoute,
+  FriendsHandleRoute: FriendsHandleRoute,
   LegalDocRoute: LegalDocRoute,
   LegalDataRoute: LegalDataRoute,
+  FriendsIndexRoute: FriendsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

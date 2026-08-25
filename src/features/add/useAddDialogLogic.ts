@@ -81,7 +81,7 @@ export function useAddDialogLogic(onClose: () => void) {
    */
   const owned = useQuery({
     queryKey: ["ownedMbids"],
-    queryFn: async () => new Set((await store.listCopies()).map((copy) => copy.releaseMbid)),
+    queryFn: async () => new Set((await store.listCopies()).map((copy) => copy.releaseId)),
   });
 
   /** The empty state of the search tab, and the mobile search screen (5a). */
@@ -127,7 +127,7 @@ export function useAddDialogLogic(onClose: () => void) {
       let skipped = malformed;
       for (const row of rows) {
         const release =
-          (await store.getRelease(row.releaseMbid)) ?? (await lookupRelease(row.releaseMbid));
+          (await store.getRelease(row.releaseId)) ?? (await lookupRelease(row.releaseId));
         if (release === null || release === undefined) {
           skipped += 1;
           continue;
@@ -162,7 +162,7 @@ export function useAddDialogLogic(onClose: () => void) {
 
   const all = resultsQuery.data ?? [];
   const results = format === "ALL" ? all : all.filter((release) => release.format === format);
-  const selected = results.find((release) => release.mbid === selectedMbid) ?? null;
+  const selected = results.find((release) => release.id === selectedMbid) ?? null;
 
   const search = useCallback((next: string) => {
     setSubmitted(next);
@@ -249,7 +249,7 @@ export function useAddDialogLogic(onClose: () => void) {
     failed: resultsQuery.isError && !waiting,
     hasSearched: submitted !== "" || waiting,
     submittedTerm: submitted,
-    isOwned: (release: Release) => owned.data?.has(release.mbid) === true,
+    isOwned: (release: Release) => owned.data?.has(release.id) === true,
     selected,
     select: setSelectedMbid,
     /** Adds the copy and stays put, so several can be added in one sitting. */
@@ -258,7 +258,7 @@ export function useAddDialogLogic(onClose: () => void) {
       if (submitted !== "" && !BARCODE.test(submitted)) remember(submitted);
       add.mutate(release);
     },
-    addingMbid: add.isPending ? add.variables?.mbid : undefined,
+    addingMbid: add.isPending ? add.variables?.id : undefined,
     /** Adds the copy and hands it to the details step (screen 8d). */
     addAndEdit: async (release: Release) => {
       if (submitted !== "" && !BARCODE.test(submitted)) remember(submitted);

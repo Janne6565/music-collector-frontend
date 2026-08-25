@@ -116,9 +116,9 @@ export function ArtistPane({
         ) : (
           logic.albums.map((album) => (
             <AlbumRow
-              key={album.releaseGroupMbid}
+              key={album.albumId}
               album={album}
-              expanded={logic.expandedAlbum === album.releaseGroupMbid}
+              expanded={logic.expandedAlbum === album.albumId}
               onToggle={() => logic.toggleAlbum(album)}
               pressings={logic.pressings}
               pressingsLoading={logic.pressingsLoading}
@@ -298,10 +298,10 @@ function PressingTable({
       <div className="border-t border-line">
         {pressings.map((pressing) => (
           <PressingRow
-            key={pressing.mbid}
+            key={pressing.id}
             pressing={pressing}
             owned={isOwned(pressing)}
-            adding={addingMbid === pressing.mbid}
+            adding={addingMbid === pressing.id}
             onAdd={() => onAdd(pressing)}
           />
         ))}

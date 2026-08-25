@@ -6,7 +6,7 @@ import { describe, expect, it, vi } from "vitest";
 function copy(overrides: Partial<Copy> = {}): Copy {
   return {
     id: "copy-1",
-    releaseMbid: "rel-1",
+    releaseId: "rel-1",
     condition: "VG_PLUS",
     sleeveCondition: "NM",
     pricePaidCents: 2800,

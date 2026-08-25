@@ -27,8 +27,8 @@ function clockSource(node: string): ClockSource {
 }
 
 const release: Release = {
-  mbid: "rel-1",
-  releaseGroupMbid: "group-1",
+  id: "rel-1",
+  albumId: "group-1",
   title: "Bitches Brew",
   artistName: "Miles Davis",
   year: 1970,

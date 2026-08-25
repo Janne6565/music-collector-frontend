@@ -2,12 +2,12 @@ import type { Copy, Release } from "@/domain/types";
 import { computeStats, sortCopies } from "@/local/dexieStore";
 import { describe, expect, it } from "vitest";
 
-function release(mbid: string, overrides: Partial<Release> = {}): Release {
+function release(id: string, overrides: Partial<Release> = {}): Release {
   return {
-    mbid,
-    releaseGroupMbid: `group-${mbid}`,
-    title: `Title ${mbid}`,
-    artistName: `Artist ${mbid}`,
+    id,
+    albumId: `group-${id}`,
+    title: `Title ${id}`,
+    artistName: `Artist ${id}`,
     year: 1980,
     format: "VINYL",
     label: null,
@@ -24,10 +24,10 @@ function release(mbid: string, overrides: Partial<Release> = {}): Release {
   };
 }
 
-function copy(id: string, releaseMbid: string, overrides: Partial<Copy> = {}): Copy {
+function copy(id: string, releaseId: string, overrides: Partial<Copy> = {}): Copy {
   return {
     id,
-    releaseMbid,
+    releaseId,
     condition: null,
     sleeveCondition: null,
     pricePaidCents: null,
@@ -49,9 +49,9 @@ describe("computeStats", () => {
     // Owning the same album on vinyl and CD is two copies but one release group —
     // which is exactly what "240 copies · 197 releases" on screen 1f means.
     const releases = new Map([
-      ["v", release("v", { releaseGroupMbid: "brew", format: "VINYL" })],
-      ["c", release("c", { releaseGroupMbid: "brew", format: "CD" })],
-      ["k", release("k", { releaseGroupMbid: "light", format: "CASSETTE" })],
+      ["v", release("v", { albumId: "brew", format: "VINYL" })],
+      ["c", release("c", { albumId: "brew", format: "CD" })],
+      ["k", release("k", { albumId: "light", format: "CASSETTE" })],
     ]);
 
     const stats = computeStats([copy("1", "v"), copy("2", "c"), copy("3", "k")], releases);

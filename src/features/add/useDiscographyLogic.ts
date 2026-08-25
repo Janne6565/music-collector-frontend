@@ -82,9 +82,7 @@ export function useDiscographyLogic(artist: Artist) {
 
     expandedAlbum,
     toggleAlbum: (album: Album) =>
-      setExpandedAlbum((current) =>
-        current === album.releaseGroupMbid ? null : album.releaseGroupMbid,
-      ),
+      setExpandedAlbum((current) => (current === album.albumId ? null : album.albumId)),
     pressings: (pressings.data ?? []) as Release[],
     pressingsLoading: pressings.isFetching,
     pressingsFailed: pressings.isError,

@@ -53,11 +53,11 @@ export const getRelease = (
  * @summary Every pressing of one album
  */
 export const releasesInGroup = (
-    mbid: string,
+    albumId: string,
     params?: ReleasesInGroupParams,
  ) => {
       return customInstance<ReleaseDto[]>(
-      {url: `/api/v1/metadata/release-groups/${mbid}/releases`, method: 'GET',
+      {url: `/api/v1/metadata/albums/${albumId}/releases`, method: 'GET',
         params
     },
       );

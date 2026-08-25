@@ -55,7 +55,7 @@ export function useFirstSyncLogic() {
   const exportCsv = useMutation({
     mutationFn: async () => {
       const copies = await store.listCopies();
-      const releases = await store.getReleases(copies.map((copy) => copy.releaseMbid));
+      const releases = await store.getReleases(copies.map((copy) => copy.releaseId));
       const blob = new Blob([toCsv(copies, releases)], { type: "text/csv;charset=utf-8" });
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a");

@@ -20,10 +20,10 @@ function clockSource(node = "test-device"): ClockSource {
   };
 }
 
-function release(mbid: string, overrides: Partial<Release> = {}): Release {
+function release(id: string, overrides: Partial<Release> = {}): Release {
   return {
-    mbid,
-    releaseGroupMbid: "group-brew",
+    id,
+    albumId: "group-brew",
     title: "Bitches Brew",
     artistName: "Miles Davis",
     year: 1970,
@@ -122,7 +122,7 @@ describe("DexieLocalStore", () => {
     // This is what the detail screen's "other copies of this release" reads.
     const vinyl = release("r-vinyl", { format: "VINYL" });
     const cd = release("r-cd", { format: "CD" });
-    const unrelated = release("r-other", { releaseGroupMbid: "group-light", format: "CASSETTE" });
+    const unrelated = release("r-other", { albumId: "group-light", format: "CASSETTE" });
     await store.cacheReleases([vinyl, cd, unrelated]);
     await store.putCopy(createCopy(vinyl, draft, clock, 1, "c-vinyl"));
     await store.putCopy(createCopy(cd, draft, clock, 2, "c-cd"));
@@ -183,7 +183,7 @@ describe("wishlist", () => {
   function wish(id: string, group = "group-brew") {
     return createWishlistItem(
       {
-        releaseGroupMbid: group,
+        albumId: group,
         title: "Ege Bamyasi",
         artistName: "Can",
         year: 1972,

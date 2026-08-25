@@ -33,7 +33,7 @@ export interface SyncResult {
 function wishToDto(item: WishlistItem): SyncWishDto {
   return {
     id: item.id,
-    releaseGroupMbid: item.releaseGroupMbid,
+    albumId: item.albumId,
     title: item.title,
     artistName: item.artistName,
     year: item.year ?? undefined,
@@ -84,7 +84,7 @@ export function photoFromDto(dto: SyncPhotoDto): Photo | null {
 export function wishFromDto(dto: SyncWishDto): WishlistItem | null {
   if (
     dto.id === undefined ||
-    dto.releaseGroupMbid === undefined ||
+    dto.albumId === undefined ||
     dto.title === undefined ||
     dto.artistName === undefined ||
     dto.createdAt === undefined ||
@@ -94,7 +94,7 @@ export function wishFromDto(dto: SyncWishDto): WishlistItem | null {
   }
   return {
     id: dto.id,
-    releaseGroupMbid: dto.releaseGroupMbid,
+    albumId: dto.albumId,
     title: dto.title,
     artistName: dto.artistName,
     year: dto.year ?? null,
@@ -109,7 +109,7 @@ export function wishFromDto(dto: SyncWishDto): WishlistItem | null {
 function toDto(copy: Copy): SyncCopyDto {
   return {
     id: copy.id,
-    releaseMbid: copy.releaseMbid,
+    releaseId: copy.releaseId,
     condition: copy.condition ?? undefined,
     sleeveCondition: copy.sleeveCondition ?? undefined,
     pricePaidCents: copy.pricePaidCents ?? undefined,
@@ -132,7 +132,7 @@ function toDto(copy: Copy): SyncCopyDto {
 export function fromDto(dto: SyncCopyDto): Copy | null {
   if (
     dto.id === undefined ||
-    dto.releaseMbid === undefined ||
+    dto.releaseId === undefined ||
     dto.currency === undefined ||
     dto.createdAt === undefined ||
     dto.fieldClocks === undefined
@@ -141,7 +141,7 @@ export function fromDto(dto: SyncCopyDto): Copy | null {
   }
   return {
     id: dto.id,
-    releaseMbid: dto.releaseMbid,
+    releaseId: dto.releaseId,
     condition: (dto.condition ?? null) as Copy["condition"],
     sleeveCondition: (dto.sleeveCondition ?? null) as Copy["sleeveCondition"],
     pricePaidCents: dto.pricePaidCents ?? null,

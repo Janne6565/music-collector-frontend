@@ -97,7 +97,7 @@ const enCommon = {
     },
     csv: {
       title: "Import from a CSV",
-      body: "One row per copy, with a releaseMbid column — the format this app exports. Rows without a release it can find are reported and skipped.",
+      body: "One row per copy, with a releaseId column — the format this app exports. Rows without a release it can find are reported and skipped.",
       choose: "Choose a file",
       done: "{{added}} copies imported, {{skipped}} rows skipped.",
       failed: "That file could not be read as a CSV.",
@@ -430,7 +430,7 @@ const deCommon: CommonSchema = {
     },
     csv: {
       title: "Aus einer CSV importieren",
-      body: "Eine Zeile pro Exemplar, mit einer Spalte releaseMbid — genau das Format, das diese App exportiert. Zeilen ohne auffindbare Veröffentlichung werden gemeldet und übersprungen.",
+      body: "Eine Zeile pro Exemplar, mit einer Spalte releaseId — genau das Format, das diese App exportiert. Zeilen ohne auffindbare Veröffentlichung werden gemeldet und übersprungen.",
       choose: "Datei wählen",
       done: "{{added}} Exemplare importiert, {{skipped}} Zeilen übersprungen.",
       failed: "Diese Datei konnte nicht als CSV gelesen werden.",

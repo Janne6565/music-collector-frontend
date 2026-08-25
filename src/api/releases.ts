@@ -48,16 +48,16 @@ function isFormat(value: string | undefined): value is Format {
 export function toRelease(dto: ReleaseDto, now: number): Release | null {
   // Without these four there is nothing to show and nothing to key a copy on.
   if (
-    dto.mbid === undefined ||
-    dto.releaseGroupMbid === undefined ||
+    dto.id === undefined ||
+    dto.albumId === undefined ||
     dto.title === undefined ||
     dto.artistName === undefined
   ) {
     return null;
   }
   return {
-    mbid: dto.mbid,
-    releaseGroupMbid: dto.releaseGroupMbid,
+    id: dto.id,
+    albumId: dto.albumId,
     title: dto.title,
     artistName: dto.artistName,
     year: dto.year ?? null,
@@ -101,8 +101,8 @@ export async function lookupRelease(mbid: string): Promise<Release | null> {
 }
 
 /** Every pressing of one album. Bitches Brew has 47, so this is paged, not exhaustive. */
-export async function lookupPressings(releaseGroupMbid: string, limit = 25): Promise<Release[]> {
-  return toReleases(await releasesInGroup(releaseGroupMbid, { limit }), Date.now());
+export async function lookupPressings(albumId: string, limit = 25): Promise<Release[]> {
+  return toReleases(await releasesInGroup(albumId, { limit }), Date.now());
 }
 
 function toArtist(dto: ArtistDto): Artist | null {
@@ -127,9 +127,9 @@ export async function findArtists(query: string, limit = 5): Promise<Artist[]> {
 }
 
 function toAlbum(dto: AlbumDto): Album | null {
-  if (dto.releaseGroupMbid === undefined || dto.title === undefined) return null;
+  if (dto.albumId === undefined || dto.title === undefined) return null;
   return {
-    releaseGroupMbid: dto.releaseGroupMbid,
+    albumId: dto.albumId,
     title: dto.title,
     artistName: dto.artistName ?? "",
     year: dto.year ?? null,

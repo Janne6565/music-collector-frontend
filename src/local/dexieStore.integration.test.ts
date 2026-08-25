@@ -2,7 +2,9 @@ import "fake-indexeddb/auto";
 import { DexieLocalStore } from "@/local/dexieStore";
 import type { ClockSource, Release } from "@janne6565/music-collector-shared";
 import {
+  applyCopyPatch,
   createCopy,
+  createManualCopy,
   createPhoto,
   createWishlistItem,
   hlcInitial,
@@ -139,6 +141,53 @@ describe("DexieLocalStore", () => {
     const siblings = await store.listCopiesInReleaseGroup("group-brew");
 
     expect(siblings.map((c) => c.id).sort()).toEqual(["c-cd", "c-vinyl"]);
+  });
+
+  describe("a copy nobody has a record of", () => {
+    const tape = {
+      manualTitle: "Untitled live tape",
+      manualArtist: "Sun Ra Arkestra",
+      manualYear: 1978,
+      manualLabel: "Saturn",
+      manualCatalogNumber: "ES 9956",
+      manualFormat: "CASSETTE" as const,
+    };
+
+    it("resolves its release from itself, with nothing in the mirror", async () => {
+      // The mirror is deliberately empty: a device that pulled this copy from the server
+      // has no cache row for it and must still be able to draw it.
+      await store.putCopy(createManualCopy(tape, draft, clock, 1, "c-tape"));
+
+      expect(await store.getRelease("local:c-tape")).toMatchObject({
+        title: "Untitled live tape",
+        artistName: "Sun Ra Arkestra",
+        format: "CASSETTE",
+      });
+    });
+
+    it("stands on the shelf beside catalogued copies, and filters with them", async () => {
+      const vinyl = release("r-vinyl", { format: "VINYL" });
+      await store.cacheReleases([vinyl]);
+      await store.putCopy(createCopy(vinyl, draft, clock, 1, "c-vinyl"));
+      await store.putCopy(createManualCopy(tape, draft, clock, 2, "c-tape"));
+
+      expect(await store.listCopies()).toHaveLength(2);
+      expect((await store.listCopies({ format: "CASSETTE" })).map((c) => c.id)).toEqual(["c-tape"]);
+      expect((await store.listCopies({ search: "sun ra" })).map((c) => c.id)).toEqual(["c-tape"]);
+      expect(await store.stats()).toMatchObject({
+        copyCount: 2,
+        releaseGroupCount: 2,
+      });
+    });
+
+    it("follows a corrected title rather than a row written at creation", async () => {
+      const copy = createManualCopy(tape, draft, clock, 1, "c-tape");
+      await store.putCopy(applyCopyPatch(copy, { manualTitle: "Live at the Bandbox" }, clock));
+
+      expect(await store.getRelease("local:c-tape")).toMatchObject({
+        title: "Live at the Bandbox",
+      });
+    });
   });
 
   it("counts copies and albums separately in stats", async () => {

@@ -106,6 +106,12 @@ function toDto(copy: Copy): SyncCopyDto {
   return {
     id: copy.id,
     releaseId: copy.releaseId,
+    manualTitle: copy.manualTitle ?? undefined,
+    manualArtist: copy.manualArtist ?? undefined,
+    manualYear: copy.manualYear ?? undefined,
+    manualLabel: copy.manualLabel ?? undefined,
+    manualCatalogNumber: copy.manualCatalogNumber ?? undefined,
+    manualFormat: copy.manualFormat ?? undefined,
     condition: copy.condition ?? undefined,
     sleeveCondition: copy.sleeveCondition ?? undefined,
     // Always sent, unlike the nullable fields: false is a real answer here, and dropping
@@ -141,6 +147,12 @@ export function fromDto(dto: SyncCopyDto): Copy | null {
   return {
     id: dto.id,
     releaseId: dto.releaseId,
+    manualTitle: dto.manualTitle ?? null,
+    manualArtist: dto.manualArtist ?? null,
+    manualYear: dto.manualYear ?? null,
+    manualLabel: dto.manualLabel ?? null,
+    manualCatalogNumber: dto.manualCatalogNumber ?? null,
+    manualFormat: (dto.manualFormat ?? null) as Copy["manualFormat"],
     condition: (dto.condition ?? null) as Copy["condition"],
     sleeveCondition: (dto.sleeveCondition ?? null) as Copy["sleeveCondition"],
     // Absent means a server older than the field, which is the same as not preferring it.

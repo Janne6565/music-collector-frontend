@@ -14,6 +14,12 @@ export type SyncCopyDtoFieldClocks = {[key: string]: string};
 export interface SyncCopyDto {
   id?: string;
   releaseId?: string;
+  manualTitle?: string;
+  manualArtist?: string;
+  manualYear?: number;
+  manualLabel?: string;
+  manualCatalogNumber?: string;
+  manualFormat?: string;
   condition?: string;
   sleeveCondition?: string;
   catalogArt?: string;

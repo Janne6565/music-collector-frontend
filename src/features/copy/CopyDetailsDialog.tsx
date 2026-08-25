@@ -1,5 +1,12 @@
 import { ReleaseArt } from "@/components/ReleaseArt";
-import { Button, Modal, ModalClose, useModalDismiss, useModalRefused } from "@/components/ui";
+import {
+  Button,
+  Field,
+  Modal,
+  ModalClose,
+  useModalDismiss,
+  useModalRefused,
+} from "@/components/ui";
 import { useCopyDetailsLogic } from "@/features/copy/useCopyDetailsLogic";
 import { ConditionScale } from "@/features/detail/ConditionScale";
 import { PhotoManager } from "@/features/photos/PhotoManager";
@@ -8,7 +15,7 @@ import { cn } from "@/lib/utils";
 import type { Format } from "@janne6565/music-collector-shared";
 import { FORMAT_LABELS } from "@janne6565/music-collector-shared";
 import { Calendar, HardDrive, Star } from "lucide-react";
-import { type ReactNode, useId } from "react";
+import { useId } from "react";
 import { useTranslation } from "react-i18next";
 
 /**
@@ -21,6 +28,9 @@ import { useTranslation } from "react-i18next";
  * flow and the edit flow start disagreeing about what a copy can say.
  */
 export type CopyDialogMode = "ADD" | "EDIT";
+
+const MANUAL_INPUT =
+  "h-9.5 w-full rounded-lg border border-line bg-surface px-3 text-[13.5px] outline-none focus:border-ink placeholder:text-ink-subtle";
 
 interface CopyDetailsDialogProps {
   readonly copyId: string;
@@ -124,10 +134,83 @@ export function CopyDetailsDialog({
           <div className="mt-4.5 font-mono text-[10px] uppercase tracking-[0.08em] text-ink-subtle">
             {t("copyDetails.format")}
           </div>
-          <FormatChips format={release?.format ?? "OTHER"} />
+          {/* A catalogued pressing's format is the archive's answer, not yours; a
+              hand-entered one has nobody else to ask. */}
+          <FormatChips
+            format={logic.fields.format === "" ? (release?.format ?? "OTHER") : logic.fields.format}
+            onSelect={logic.manual ? (format) => logic.set("format", format) : undefined}
+          />
         </div>
 
         <div className="min-w-0 flex-1">
+          {/* Only a hand-entered copy carries its pressing's facts, and only it can
+              correct them — no archive is ever going to fix a typo in a bootleg. */}
+          {logic.manual && (
+            <div className="mb-5 border-b border-line pb-5">
+              <div className="font-mono text-[10px] uppercase tracking-[0.1em] text-ink-subtle">
+                {t("manual.pressing")}
+              </div>
+              <div className="mt-2.5 grid grid-cols-2 gap-3">
+                <Field label={t("manual.artist")} required>
+                  {(id) => (
+                    <input
+                      id={id}
+                      value={logic.fields.artist}
+                      onChange={(event) => logic.set("artist", event.target.value)}
+                      className={MANUAL_INPUT}
+                    />
+                  )}
+                </Field>
+                <Field label={t("manual.title")} required>
+                  {(id) => (
+                    <input
+                      id={id}
+                      value={logic.fields.title}
+                      onChange={(event) => logic.set("title", event.target.value)}
+                      className={MANUAL_INPUT}
+                    />
+                  )}
+                </Field>
+              </div>
+              <div className="mt-3 flex gap-3">
+                <Field label={t("manual.year")} className="w-20 flex-none">
+                  {(id) => (
+                    <input
+                      id={id}
+                      inputMode="numeric"
+                      maxLength={4}
+                      value={logic.fields.year}
+                      onChange={(event) => logic.set("year", event.target.value)}
+                      className={cn(MANUAL_INPUT, "font-mono")}
+                    />
+                  )}
+                </Field>
+                <Field label={t("manual.label")} className="min-w-0 flex-1">
+                  {(id) => (
+                    <input
+                      id={id}
+                      value={logic.fields.label}
+                      onChange={(event) => logic.set("label", event.target.value)}
+                      placeholder={t("manual.optional")}
+                      className={MANUAL_INPUT}
+                    />
+                  )}
+                </Field>
+                <Field label={t("manual.catalogNumber")} className="min-w-0 flex-1">
+                  {(id) => (
+                    <input
+                      id={id}
+                      value={logic.fields.catalogNumber}
+                      onChange={(event) => logic.set("catalogNumber", event.target.value)}
+                      placeholder={t("manual.optional")}
+                      className={MANUAL_INPUT}
+                    />
+                  )}
+                </Field>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-4">
             <ConditionScale
               scope="MEDIA"
@@ -257,6 +340,7 @@ export function CopyDetailsDialog({
         <DialogActions
           editing={editing}
           formId={`${titleId}-form`}
+          canSave={logic.canSave}
           onBack={onBack}
           saving={logic.saving}
         />
@@ -275,11 +359,13 @@ export function CopyDetailsDialog({
 function DialogActions({
   editing,
   formId,
+  canSave,
   onBack,
   saving,
 }: {
   readonly editing: boolean;
   readonly formId: string;
+  readonly canSave: boolean;
   readonly onBack: (() => void) | undefined;
   readonly saving: boolean;
 }) {
@@ -299,6 +385,8 @@ function DialogActions({
       <Button
         type="submit"
         form={formId}
+        // A hand-entered copy with its artist or title cleared has nothing left to name it.
+        disabled={!canSave}
         loading={saving}
         className={cn(
           "h-[34px] rounded-lg px-3.5 text-[12.5px] transition-shadow duration-(--mc-quick)",
@@ -322,49 +410,53 @@ const FORMAT_CHIPS: readonly Format[] = ["VINYL", "CD", "CASSETTE", "DIGITAL"];
  * inert all the same: a copy's format is the format of the pressing it is a copy of, and
  * changing it would mean pointing the copy at a different release entirely.
  */
-function FormatChips({ format }: { readonly format: Format }) {
+/**
+ * The format, as a rail of chips.
+ *
+ * Read-only for a copy of a catalogued release — the pressing's format is a fact about the
+ * pressing, and changing it here would only make this copy disagree with the archive. A
+ * hand-entered copy (14b) owns the answer, so there it is a picker.
+ */
+function FormatChips({
+  format,
+  onSelect,
+}: {
+  readonly format: Format;
+  readonly onSelect?: (format: Format) => void;
+}) {
   const { t } = useTranslation();
   const chips = FORMAT_CHIPS.includes(format) ? FORMAT_CHIPS : [...FORMAT_CHIPS, format];
 
   return (
     <div className="mt-1.5 flex flex-wrap gap-1.5">
-      {chips.map((chip) => (
-        <span
-          key={chip}
-          aria-current={chip === format}
-          title={t("copyDetails.formatFixed")}
-          className={cn(
-            "rounded-full px-2.5 py-1.25 text-[11.5px]",
-            chip === format
-              ? "bg-ink font-semibold text-paper"
-              : "border border-line bg-surface font-medium text-ink-subtle",
-          )}
-        >
-          {FORMAT_LABELS[chip]}
-        </span>
-      ))}
-    </div>
-  );
-}
-
-interface FieldProps {
-  readonly label: string;
-  readonly error?: string | null;
-  readonly className?: string;
-  readonly children: (id: string) => ReactNode;
-}
-
-function Field({ label, error = null, className, children }: FieldProps) {
-  const id = useId();
-  return (
-    <div className={className}>
-      <label
-        htmlFor={id}
-        className={`font-mono text-[10px] uppercase tracking-[0.1em] ${error === null ? "text-ink-subtle" : "text-accent"}`}
-      >
-        {error ?? label}
-      </label>
-      <div className="mt-1.5">{children(id)}</div>
+      {chips.map((chip) => {
+        const className = cn(
+          "rounded-full px-2.5 py-1.25 text-[11.5px]",
+          chip === format
+            ? "bg-ink font-semibold text-paper"
+            : "border border-line bg-surface font-medium text-ink-subtle",
+        );
+        return onSelect === undefined ? (
+          <span
+            key={chip}
+            aria-current={chip === format}
+            title={t("copyDetails.formatFixed")}
+            className={className}
+          >
+            {FORMAT_LABELS[chip]}
+          </span>
+        ) : (
+          <button
+            key={chip}
+            type="button"
+            onClick={() => onSelect(chip)}
+            aria-pressed={chip === format}
+            className={cn(className, chip !== format && "hover:text-ink")}
+          >
+            {FORMAT_LABELS[chip]}
+          </button>
+        );
+      })}
     </div>
   );
 }

@@ -1,7 +1,12 @@
 import { useStore } from "@/local/StoreProvider";
 import { useAppSelector } from "@/store/hooks";
-import type { Condition, Release } from "@janne6565/music-collector-shared";
-import { applyCopyPatch, parseIsoDate, parseMoneyToCents } from "@janne6565/music-collector-shared";
+import type { Condition, Format, ManualRelease, Release } from "@janne6565/music-collector-shared";
+import {
+  applyCopyPatch,
+  isManualCopy,
+  parseIsoDate,
+  parseMoneyToCents,
+} from "@janne6565/music-collector-shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 
@@ -13,6 +18,19 @@ export interface DetailFields {
   purchasedAt: string;
   rating: number | null;
   notes: string;
+  /**
+   * The pressing's own facts, editable only on a copy that was typed in by hand (14b).
+   *
+   * A hand-entered record is the one kind whose title can be wrong in a way nothing else
+   * will ever correct — no archive is going to fix a typo in a bootleg nobody has listed —
+   * so the edit step is where it gets fixed. Blank and unread on a matched copy.
+   */
+  title: string;
+  artist: string;
+  year: string;
+  label: string;
+  catalogNumber: string;
+  format: Format | "";
 }
 
 /** The queries that read a copy out of the local store, and so change when one is saved. */
@@ -26,7 +44,40 @@ const BLANK: DetailFields = {
   purchasedAt: "",
   rating: null,
   notes: "",
+  title: "",
+  artist: "",
+  year: "",
+  label: "",
+  catalogNumber: "",
+  format: "",
 };
+
+/**
+ * The pressing half of the patch — empty unless this copy owns its own release facts.
+ *
+ * Omitted rather than sent as nulls on a matched copy: `applyCopyPatch` restamps every key
+ * it is given a value for, and stamping six fields nobody edited would let a save here
+ * start winning conflicts against another device's real edits.
+ */
+function manualPatch(
+  copy: { readonly releaseId: string },
+  fields: DetailFields,
+): Partial<ManualRelease> {
+  if (!isManualCopy(copy)) return {};
+  const year = Number.parseInt(fields.year.trim(), 10);
+  return {
+    manualTitle: blank(fields.title),
+    manualArtist: blank(fields.artist),
+    manualYear: Number.isNaN(year) ? null : year,
+    manualLabel: blank(fields.label),
+    manualCatalogNumber: blank(fields.catalogNumber),
+    manualFormat: fields.format === "" ? null : fields.format,
+  };
+}
+
+function blank(value: string): string | null {
+  return value.trim() === "" ? null : value.trim();
+}
 
 /**
  * The copy details step (screen 8d).
@@ -75,6 +126,13 @@ export function useCopyDetailsLogic(copyId: string, onSaved: () => void) {
       purchasedAt: copy.purchasedAt ?? "",
       rating: copy.rating,
       notes: copy.notes ?? "",
+      title: copy.manualTitle ?? "",
+      artist: copy.manualArtist ?? "",
+      // Nullish: a copy stored before these fields existed has no key at all.
+      year: copy.manualYear == null ? "" : String(copy.manualYear),
+      label: copy.manualLabel ?? "",
+      catalogNumber: copy.manualCatalogNumber ?? "",
+      format: copy.manualFormat ?? "",
     };
     setFields(loaded);
     setBaseline(loaded);
@@ -100,6 +158,7 @@ export function useCopyDetailsLogic(copyId: string, onSaved: () => void) {
             purchasedAt: fields.purchasedAt.trim() === "" ? null : fields.purchasedAt.trim(),
             rating: fields.rating,
             notes: fields.notes.trim() === "" ? null : fields.notes,
+            ...manualPatch(current, fields),
           },
           clock,
         ),
@@ -122,8 +181,12 @@ export function useCopyDetailsLogic(copyId: string, onSaved: () => void) {
     if (key === "purchasedOn") setDateInvalid(false);
   }, []);
 
+  const manual = copy !== undefined && isManualCopy(copy);
+
   return {
     release: query.data?.release,
+    /** Whether this copy's pressing is its own to describe. */
+    manual,
     fields,
     dirty,
     set,
@@ -141,8 +204,12 @@ export function useCopyDetailsLogic(copyId: string, onSaved: () => void) {
         setDateInvalid(true);
         return;
       }
+      // A hand-entered copy cleared of its artist or title has nothing left to call it on
+      // the shelf. The Save button is disabled for the same reason.
+      if (manual && (fields.artist.trim() === "" || fields.title.trim() === "")) return;
       save.mutate();
     },
+    canSave: !manual || (fields.artist.trim() !== "" && fields.title.trim() !== ""),
     saving: save.isPending,
   };
 }

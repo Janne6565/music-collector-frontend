@@ -3,6 +3,7 @@ import { ReleaseArt } from "@/components/ReleaseArt";
 import { Button, FieldSpinner, Modal, ModalClose, PulsingDots, Skeleton } from "@/components/ui";
 import { ArtistPane } from "@/features/add/ArtistPane";
 import { ArtistResults } from "@/features/add/ArtistResults";
+import { ManualTab } from "@/features/add/ManualTab";
 import {
   type AddFormatFilter,
   type AddTab,
@@ -27,7 +28,8 @@ import { useId, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
 const FILTERS: readonly AddFormatFilter[] = ["ALL", "VINYL", "CD", "CASSETTE", "DIGITAL"];
-const TABS: readonly AddTab[] = ["SEARCH", "BARCODE", "CSV"];
+// In the deck's order (14b): the two lookups, then the way in for what they cannot find.
+const TABS: readonly AddTab[] = ["SEARCH", "BARCODE", "MANUAL", "CSV"];
 
 /**
  * Four placeholder rows, in the widths the deck draws them.
@@ -70,7 +72,9 @@ export function AddDialog({ onClose, onAdded }: AddDialogProps) {
             <h2 id={titleId} className="font-serif text-2xl leading-[1.1]">
               {t("addDialog.title")}
             </h2>
-            <p className="mt-1 text-[12.5px] text-ink-muted">{t("addDialog.lede")}</p>
+            <p className="mt-1 text-[12.5px] text-ink-muted">
+              {t(logic.tab === "MANUAL" ? "manual.lede" : "addDialog.lede")}
+            </p>
           </div>
           <ModalClose onClose={onClose} label={t("common.close")} />
         </div>
@@ -100,23 +104,11 @@ export function AddDialog({ onClose, onAdded }: AddDialogProps) {
             {t(`addDialog.tab.${tab}`)}
           </button>
         ))}
-        {/* Manual entry is in the deck but its form has not been designed. Shown here
-            rather than hidden, so the way in is discoverable before it works — disabled
-            and labelled, so it never looks like something that failed to respond. */}
-        <button
-          type="button"
-          disabled
-          title={t("addDialog.manualSoon")}
-          className="flex cursor-default items-center gap-1.5 pb-2.5 text-[12.5px] font-medium whitespace-nowrap text-ink-subtle"
-        >
-          {t("addDialog.tab.MANUAL")}
-          <span className="rounded-full bg-ink/6 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.08em]">
-            {t("addDialog.soon")}
-          </span>
-        </button>
       </div>
 
-      {logic.tab === "CSV" ? (
+      {logic.tab === "MANUAL" ? (
+        <ManualTab onClose={onClose} onAdded={onAdded} />
+      ) : logic.tab === "CSV" ? (
         <CsvTab logic={logic} />
       ) : logic.openArtist !== null ? (
         <>
@@ -399,10 +391,8 @@ function SearchingRows() {
  * Screen 9b — the search ran and matched nothing.
  *
  * The point of the screen is the two ways out: a barcode is the one identifier that is
- * printed on the sleeve and cannot be misspelled, and manual entry is the way in for a
- * pressing the archive has never heard of. Manual entry has not been designed yet, so it
- * is shown plainly disabled rather than omitted — the same treatment it gets in the tab
- * strip, for the same reason.
+ * printed on the sleeve and cannot be misspelled, and manual entry (14b) is the way in for
+ * a pressing the archive has never heard of.
  */
 function NoMatches({ logic }: { readonly logic: Logic }) {
   const { t } = useTranslation();
@@ -434,15 +424,11 @@ function NoMatches({ logic }: { readonly logic: Logic }) {
         </Button>
         <Button
           variant="secondary"
-          disabled
-          title={t("addDialog.manualSoon")}
+          onClick={() => logic.setTab("MANUAL")}
           className="h-[34px] rounded-lg px-3.5 text-[12.5px]"
         >
           <Pencil size={15} strokeWidth={1.75} aria-hidden />
           {t("addDialog.tab.MANUAL")}
-          <span className="rounded-full bg-ink/6 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.08em]">
-            {t("addDialog.soon")}
-          </span>
         </Button>
       </div>
     </div>

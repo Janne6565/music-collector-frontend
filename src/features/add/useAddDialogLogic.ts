@@ -9,11 +9,11 @@ import type {
   LocalStore,
   Release,
 } from "@janne6565/music-collector-shared";
-import { createCopy } from "@janne6565/music-collector-shared";
+import { createCopy, createManualCopy, isManualReleaseId } from "@janne6565/music-collector-shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 
-export type AddTab = "SEARCH" | "BARCODE" | "CSV";
+export type AddTab = "SEARCH" | "BARCODE" | "MANUAL" | "CSV";
 export type AddFormatFilter = Format | "ALL";
 
 /** A bare run of 8–14 digits is a scanned or pasted barcode, not a title. */
@@ -164,6 +164,46 @@ export function useAddDialogLogic(onClose: () => void, onAdded: (copyId: string)
       let added = 0;
       let skipped = malformed;
       for (const row of rows) {
+        const draft = {
+          condition: row.mediaCondition,
+          sleeveCondition: row.sleeveCondition,
+          catalogArt: "AUTO" as const,
+          pricePaidCents: row.pricePaidCents,
+          currency: row.currency,
+          purchasedOn: row.purchasedOn,
+          purchasedAt: row.purchasedAt,
+          notes: row.notes,
+          rating: row.rating,
+        };
+
+        // A hand-entered copy has no archive entry to fetch. Its pressing is described by
+        // the row's own columns, and it comes back in as a new manual copy — under a new
+        // id, since a `local:` release id is the copy's own and cannot be carried across.
+        if (isManualReleaseId(row.releaseId)) {
+          if (row.artist === "" && row.title === "") {
+            skipped += 1;
+            continue;
+          }
+          await store.putCopy(
+            createManualCopy(
+              {
+                manualTitle: row.title === "" ? null : row.title,
+                manualArtist: row.artist === "" ? null : row.artist,
+                manualYear: row.year,
+                manualLabel: row.label,
+                manualCatalogNumber: row.catalogNumber,
+                manualFormat: row.format,
+              },
+              draft,
+              clock,
+              Date.now(),
+              crypto.randomUUID(),
+            ),
+          );
+          added += 1;
+          continue;
+        }
+
         const release =
           (await store.getRelease(row.releaseId)) ?? (await lookupRelease(row.releaseId));
         if (release === null || release === undefined) {

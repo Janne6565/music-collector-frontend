@@ -8,7 +8,13 @@ import type {
   Release,
   WishlistItem,
 } from "@janne6565/music-collector-shared";
-import { FORMATS } from "@janne6565/music-collector-shared";
+import {
+  FORMATS,
+  isManualReleaseId,
+  manualRelease,
+  manualReleaseCopyId,
+  manualReleaseId,
+} from "@janne6565/music-collector-shared";
 import Dexie, { type EntityTable } from "dexie";
 
 const DEVICE_ID_KEY = "deviceId";
@@ -193,9 +199,15 @@ export class DexieLocalStore implements LocalStore {
   }
 
   async listCopiesInReleaseGroup(albumId: string): Promise<Copy[]> {
+    const copies = await this.db.copies.filter((copy) => copy.deletedAt === null).toArray();
+    // A hand-entered pressing is its own album, so it is found by its own id rather than
+    // in the mirror — which never holds a row for it.
+    const manualCopyId = manualReleaseCopyId(albumId);
+    if (manualCopyId !== null) {
+      return copies.filter((copy) => copy.id === manualCopyId);
+    }
     const releases = await this.db.releaseCache.where("albumId").equals(albumId).toArray();
     const releaseIds = new Set(releases.map((release) => release.id));
-    const copies = await this.db.copies.filter((copy) => copy.deletedAt === null).toArray();
     return copies.filter((copy) => releaseIds.has(copy.releaseId));
   }
 
@@ -221,15 +233,39 @@ export class DexieLocalStore implements LocalStore {
   }
 
   async getRelease(releaseId: string): Promise<Release | undefined> {
+    const copyId = manualReleaseCopyId(releaseId);
+    if (copyId !== null) {
+      const copy = await this.db.copies.get(copyId);
+      return copy === undefined ? undefined : manualRelease(copy);
+    }
     return this.db.releaseCache.get(releaseId);
   }
 
+  /**
+   * The releases these ids stand for — cached ones from the mirror, hand-entered ones
+   * derived from the copies that describe them.
+   *
+   * A manual release is never cached: its facts are mergeable fields on the copy, so a row
+   * written once would go stale the moment another device corrected the title. Deriving on
+   * read also means a device that pulled the copy and has an empty mirror still resolves it.
+   */
   async getReleases(releaseIds: readonly string[]): Promise<Map<string, Release>> {
     if (releaseIds.length === 0) return new Map();
-    const rows = await this.db.releaseCache.bulkGet([...new Set(releaseIds)]);
-    return new Map(
+    const ids = [...new Set(releaseIds)];
+    const manualCopyIds = ids.map(manualReleaseCopyId).filter((id): id is string => id !== null);
+
+    const [rows, manualCopies] = await Promise.all([
+      this.db.releaseCache.bulkGet(ids.filter((id) => !isManualReleaseId(id))),
+      manualCopyIds.length === 0 ? Promise.resolve([]) : this.db.copies.bulkGet(manualCopyIds),
+    ]);
+
+    const found = new Map<string, Release>(
       rows.filter((row): row is Release => row !== undefined).map((row) => [row.id, row]),
     );
+    for (const copy of manualCopies) {
+      if (copy !== undefined) found.set(manualReleaseId(copy.id), manualRelease(copy));
+    }
+    return found;
   }
 
   async listPhotos(copyId: string): Promise<Photo[]> {

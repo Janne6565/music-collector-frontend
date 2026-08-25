@@ -28,6 +28,12 @@ function copy(id: string, releaseId: string, overrides: Partial<Copy> = {}): Cop
   return {
     id,
     releaseId,
+    manualTitle: null,
+    manualArtist: null,
+    manualYear: null,
+    manualLabel: null,
+    manualCatalogNumber: null,
+    manualFormat: null,
     condition: null,
     sleeveCondition: null,
     catalogArt: "AUTO",

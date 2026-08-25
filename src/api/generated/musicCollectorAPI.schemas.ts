@@ -97,6 +97,7 @@ export type SyncPhotoDtoFieldClocks = {[key: string]: string};
 export interface SyncPhotoDto {
   id?: string;
   copyId?: string;
+  wishId?: string;
   storageKey?: string;
   contentType?: string;
   byteSize?: number;
@@ -552,7 +553,8 @@ since?: number;
 
 export type UploadParams = {
 photoId: string;
-copyId: string;
+copyId?: string;
+wishId?: string;
 };
 
 export type UploadBody = {

@@ -20,6 +20,7 @@ import { customInstance } from '../../axios-instance';
 
 
   /**
+ * A photo pictures either a copy or a wishlist entry, so exactly one of `copyId` and `wishId` is given. Naming both, or neither, is a 400.
  * @summary Upload the bytes for a photo the client has already created
  */
 export const upload = (

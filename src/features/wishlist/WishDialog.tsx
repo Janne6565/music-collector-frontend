@@ -5,8 +5,8 @@ import { useWishDialogLogic } from "@/features/wishlist/useWishDialogLogic";
 import { cn } from "@/lib/utils";
 import type { Release, WishFormat, WishlistItem } from "@janne6565/music-collector-shared";
 import { FORMAT_LABELS } from "@janne6565/music-collector-shared";
-import { ArrowLeft, Heart, Pencil, Search, X } from "lucide-react";
-import { useId } from "react";
+import { ArrowLeft, Heart, ImagePlus, Pencil, Search, X } from "lucide-react";
+import { useId, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
 /** The four chips of screen 16c, in the deck's order: the three you hunt for, then "any". */
@@ -207,6 +207,59 @@ function ManualStep({ logic }: { readonly logic: Logic }) {
   );
 }
 
+/**
+ * The one picture a wish can own (design turn 18).
+ *
+ * Only for a record no catalogue has: every other entry resolves its album's cover from
+ * the mirror, and nothing will ever resolve one for an album nobody has heard of. The
+ * chosen file is not written until the sheet is saved — an image attached to an entry
+ * somebody then abandoned would be bytes nothing ever references.
+ */
+function CoverImageField({ logic }: { readonly logic: Logic }) {
+  const { t } = useTranslation();
+  const input = useRef<HTMLInputElement>(null);
+  const describedBy = useId();
+  const chosen = logic.subjectCoverArtUrl !== null;
+
+  return (
+    <div className="pt-4">
+      <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-ink-subtle">
+        {t("wishlist.coverImage")}
+      </span>
+      <div className="mt-2 flex items-center gap-3">
+        <Button
+          variant="secondary"
+          onClick={() => input.current?.click()}
+          aria-describedby={describedBy}
+          className="h-[34px] flex-none rounded-lg px-3.5 text-[12.5px]"
+        >
+          <ImagePlus size={14} strokeWidth={1.75} aria-hidden />
+          {t(chosen ? "wishlist.coverImageReplace" : "wishlist.coverImageAction")}
+        </Button>
+        <p id={describedBy} className="min-w-0 flex-1 text-[11.5px] leading-snug text-ink-muted">
+          {logic.imageRejected === "size"
+            ? t("wishlist.coverImageTooBig")
+            : logic.imageRejected === "type"
+              ? t("wishlist.coverImageWrongType")
+              : t("wishlist.coverImageHint")}
+        </p>
+      </div>
+      <input
+        ref={input}
+        type="file"
+        accept={logic.acceptedImages}
+        className="hidden"
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          if (file !== undefined) logic.chooseImage(file);
+          // Cleared so picking the same file twice still fires a change.
+          event.target.value = "";
+        }}
+      />
+    </div>
+  );
+}
+
 function DetailsStep({ logic }: { readonly logic: Logic }) {
   const { t } = useTranslation();
   const subject = logic.subject;
@@ -247,6 +300,8 @@ function DetailsStep({ logic }: { readonly logic: Logic }) {
             </button>
           )}
         </div>
+
+        {logic.canUploadImage && <CoverImageField logic={logic} />}
 
         <div className="pt-4">
           <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-ink-subtle">

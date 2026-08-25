@@ -47,7 +47,8 @@ function wishToDto(item: WishlistItem): SyncWishDto {
 function photoToDto(photo: Photo): SyncPhotoDto {
   return {
     id: photo.id,
-    copyId: photo.copyId,
+    copyId: photo.copyId ?? undefined,
+    wishId: photo.wishId ?? undefined,
     storageKey: photo.storageKey ?? undefined,
     contentType: photo.contentType,
     byteSize: photo.byteSize,
@@ -59,9 +60,11 @@ function photoToDto(photo: Photo): SyncPhotoDto {
 }
 
 export function photoFromDto(dto: SyncPhotoDto): Photo | null {
+  // An owner is required, but which one is not: a photo pictures a copy or a wishlist
+  // entry. A row naming neither is unreachable and is dropped rather than stored.
   if (
     dto.id === undefined ||
-    dto.copyId === undefined ||
+    (dto.copyId === undefined && dto.wishId === undefined) ||
     dto.createdAt === undefined ||
     dto.fieldClocks === undefined
   ) {
@@ -69,7 +72,8 @@ export function photoFromDto(dto: SyncPhotoDto): Photo | null {
   }
   return {
     id: dto.id,
-    copyId: dto.copyId,
+    copyId: dto.copyId ?? null,
+    wishId: dto.wishId ?? null,
     storageKey: dto.storageKey ?? null,
     contentType: dto.contentType ?? "image/jpeg",
     byteSize: dto.byteSize ?? 0,
@@ -256,7 +260,12 @@ export function createSyncTransport(store: SyncStore): SyncTransport {
     async uploadPhoto(photo) {
       const bytes = await store.getPhotoBytes(photo.id);
       if (bytes === undefined) return null;
-      return uploadPhotoBytes(photo.id, photo.copyId, bytes);
+      // Whichever owner the photo carries: the server takes one and refuses both.
+      return uploadPhotoBytes(
+        photo.id,
+        photo.copyId === null ? { wishId: photo.wishId as string } : { copyId: photo.copyId },
+        bytes,
+      );
     },
 
     /**

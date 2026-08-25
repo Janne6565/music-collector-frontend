@@ -91,7 +91,7 @@ export function WishlistPage() {
               <Row
                 key={item.id}
                 item={item}
-                coverArtUrl={logic.coverOf(item.albumId)}
+                coverArtUrl={logic.coverOf(item)}
                 draggable={drag.isDraggable(index)}
                 lifted={drag.isLifted(index)}
                 onArm={() => drag.arm(index)}

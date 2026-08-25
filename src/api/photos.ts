@@ -13,14 +13,20 @@ export interface UploadedPhoto {
   readonly byteSize: number;
 }
 
+/** A photo pictures a copy or a wishlist entry, never both — the server rejects the pair. */
+export type PhotoOwner = { readonly copyId: string } | { readonly wishId: string };
+
 export async function uploadPhotoBytes(
   photoId: string,
-  copyId: string,
+  owner: PhotoOwner,
   bytes: Blob,
 ): Promise<UploadedPhoto | null> {
   const form = new FormData();
   form.append("photoId", photoId);
-  form.append("copyId", copyId);
+  form.append(
+    "copyId" in owner ? "copyId" : "wishId",
+    "copyId" in owner ? owner.copyId : owner.wishId,
+  );
   form.append("file", bytes, `${photoId}`);
 
   const { data } = await axiosInstance.post("/api/v1/photos", form, {

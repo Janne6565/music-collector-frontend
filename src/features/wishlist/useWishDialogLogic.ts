@@ -4,15 +4,22 @@ import type { Release, WishFormat, WishlistItem } from "@janne6565/music-collect
 import {
   applyWishPatch,
   asWishFormat,
+  createPhoto,
   createWishlistItem,
   isManualReleaseId,
   manualReleaseId,
+  tombstonePhoto,
 } from "@janne6565/music-collector-shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 
 /** Kept in step with the add sheet: one field standing still means one request, not eleven. */
 const DEBOUNCE_MS = 350;
+
+/** What a file picker produces, matching the server's allowlist. */
+const ACCEPTED_IMAGES = ["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"];
+/** The server's own cap. Refusing here makes it a sentence rather than a 413 later. */
+const MAX_IMAGE_BYTES = 15 * 1024 * 1024;
 const MIN_TERM_LENGTH = 2;
 
 /**
@@ -90,6 +97,14 @@ export function useWishDialogLogic(
   );
   const [note, setNote] = useState(existing?.note ?? "");
 
+  /**
+   * A picture chosen for a record no catalogue has, held until there is a wish to hang it
+   * on. It is written when the sheet is saved, not when the file is picked: an image
+   * attached to an entry somebody then abandoned is bytes nothing will ever reference.
+   */
+  const [image, setImage] = useState<{ readonly file: File; readonly url: string } | null>(null);
+  const [imageRejected, setImageRejected] = useState<"type" | "size" | null>(null);
+
   const [term, setTerm] = useState("");
   const [submitted, setSubmitted] = useState("");
 
@@ -104,6 +119,18 @@ export function useWishDialogLogic(
    * never finishes. Skipped entirely when the picked release already brought one, and for
    * a hand-typed album, which no catalogue can answer for.
    */
+  /** The picture already on a hand-entered entry the sheet was reopened on. */
+  const ownPhoto = useQuery({
+    queryKey: ["wish-photos", existing?.id ?? ""],
+    enabled: existing !== null,
+    queryFn: async () => {
+      const photo = (await store.listWishPhotos([existing?.id ?? ""])).get(existing?.id ?? "");
+      if (photo === undefined) return null;
+      const bytes = await store.getPhotoBytes(photo.id);
+      return bytes === undefined ? null : URL.createObjectURL(bytes);
+    },
+  });
+
   const albumCover = useQuery({
     queryKey: ["albumCovers", subject === null ? [] : [subject.albumId]],
     enabled:
@@ -111,6 +138,14 @@ export function useWishDialogLogic(
     staleTime: 60 * 60 * 1000,
     queryFn: () => lookupAlbumCovers([subject?.albumId ?? ""]),
   });
+
+  // The preview pins its blob until revoked, and the sheet outlives several choices.
+  useEffect(
+    () => () => {
+      if (image !== null) URL.revokeObjectURL(image.url);
+    },
+    [image],
+  );
 
   const results = useQuery({
     queryKey: ["releaseSearch", submitted],
@@ -136,6 +171,32 @@ export function useWishDialogLogic(
   const wishlist = useQuery({ queryKey: ["wishlist"], queryFn: () => store.listWishlist() });
   const wishedAlbums = new Set((wishlist.data ?? []).map((item) => item.albumId));
 
+  /**
+   * Writes the chosen picture against a wish that now exists.
+   *
+   * Bytes first, like every other photo: a record whose image is missing renders as a
+   * permanent placeholder, whereas bytes with no record are merely unreferenced. The
+   * previous picture is tombstoned rather than overwritten — a photo id points at one
+   * image forever, and the upload of the new one has not happened yet.
+   */
+  const attachImage = async (wishId: string) => {
+    if (image === null) return;
+    const previous = (await store.listWishPhotos([wishId])).get(wishId);
+    const id = crypto.randomUUID();
+    await store.putPhotoBytes(id, await image.file.arrayBuffer(), image.file.type);
+    await store.putPhoto(
+      createPhoto(
+        { wishId, contentType: image.file.type, byteSize: image.file.size, sortIndex: 0 },
+        clock,
+        Date.now(),
+        id,
+      ),
+    );
+    if (previous !== undefined) {
+      await store.putPhoto(tombstonePhoto(previous, clock, Date.now()));
+    }
+  };
+
   const save = useMutation({
     mutationFn: async () => {
       const trimmed = note.trim();
@@ -145,6 +206,7 @@ export function useWishDialogLogic(
         await store.putWishlistItem(
           applyWishPatch(existing, { desiredFormat: format, note: cleaned }, clock),
         );
+        await attachImage(existing.id);
         return;
       }
       if (subject === null) return;
@@ -157,9 +219,11 @@ export function useWishDialogLogic(
         await store.putWishlistItem(
           applyWishPatch(already, { desiredFormat: format, note: cleaned }, clock),
         );
+        await attachImage(already.id);
         return;
       }
 
+      const wishId = crypto.randomUUID();
       await store.putWishlistItem(
         createWishlistItem(
           {
@@ -172,12 +236,14 @@ export function useWishDialogLogic(
           },
           clock,
           Date.now(),
-          crypto.randomUUID(),
+          wishId,
         ),
       );
+      await attachImage(wishId);
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["wishlist"] });
+      await queryClient.invalidateQueries({ queryKey: ["wish-photos"] });
       onDone();
     },
   });
@@ -187,11 +253,40 @@ export function useWishDialogLogic(
   return {
     step,
     subject,
-    /** The picked pressing's cover, the album's as a fallback, null while neither is known. */
+    /**
+     * What the tile shows: the picture being chosen right now, then the one already saved,
+     * then the picked pressing's cover, then the album's — null while none is known.
+     *
+     * The unsaved choice outranks everything on purpose. Picking a file and watching the
+     * tile keep the old picture is the app telling you it did not hear you.
+     */
     subjectCoverArtUrl:
-      subject === null
+      image?.url ??
+      ownPhoto.data ??
+      (subject === null
         ? null
-        : (subject.coverArtUrl ?? albumCover.data?.get(subject.albumId) ?? null),
+        : (subject.coverArtUrl ?? albumCover.data?.get(subject.albumId) ?? null)),
+    /**
+     * Whether this entry can carry a picture of its own.
+     *
+     * Only a record no catalogue has: everything else resolves its album's cover from the
+     * mirror, and two sources for one tile would need a precedence rule nobody asked for.
+     */
+    canUploadImage: subject !== null && isManualReleaseId(subject.albumId),
+    imageRejected,
+    chooseImage: (file: File) => {
+      setImageRejected(null);
+      if (!ACCEPTED_IMAGES.includes(file.type)) {
+        setImageRejected("type");
+        return;
+      }
+      if (file.size > MAX_IMAGE_BYTES) {
+        setImageRejected("size");
+        return;
+      }
+      setImage({ file, url: URL.createObjectURL(file) });
+    },
+    acceptedImages: ACCEPTED_IMAGES.join(","),
     editing: existing !== null,
     term,
     setTerm,

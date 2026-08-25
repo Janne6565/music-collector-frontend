@@ -1,11 +1,13 @@
-import type { LocalStore, Release, WishlistItem } from "@janne6565/music-collector-shared";
+import type { LocalStore, Photo, Release, WishlistItem } from "@janne6565/music-collector-shared";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { createElement } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const lookupAlbumCovers = vi.hoisted(() =>
-  vi.fn(async () => new Map<string, string | null>([["musicbrainz:a1", "https://covers/album.jpg"]])),
+  vi.fn(
+    async () => new Map<string, string | null>([["musicbrainz:a1", "https://covers/album.jpg"]]),
+  ),
 );
 
 vi.mock("@/api/releases", async (original) => ({
@@ -14,9 +16,31 @@ vi.mock("@/api/releases", async (original) => ({
   lookupAlbumCovers,
 }));
 
+const wishes: WishlistItem[] = [];
+const photos: Photo[] = [];
+const bytes = new Map<string, string>();
+
 const store = {
-  listWishlist: async () => [],
-  putWishlistItem: async () => {},
+  listWishlist: async () => wishes,
+  putWishlistItem: async (item: WishlistItem) => {
+    wishes.push(item);
+  },
+  listWishPhotos: async (wishIds: readonly string[]) => {
+    const found = new Map<string, Photo>();
+    for (const photo of photos) {
+      if (photo.wishId !== null && wishIds.includes(photo.wishId) && photo.deletedAt === null) {
+        found.set(photo.wishId, photo);
+      }
+    }
+    return found;
+  },
+  putPhoto: async (photo: Photo) => {
+    photos.push(photo);
+  },
+  putPhotoBytes: async (id: string, _buffer: ArrayBuffer, contentType: string) => {
+    bytes.set(id, contentType);
+  },
+  getPhotoBytes: async () => undefined,
   readSetting: async () => undefined,
   writeSetting: async () => {},
 } as unknown as LocalStore;
@@ -99,5 +123,94 @@ describe("useWishDialogLogic cover art", () => {
     expect(result.current.subject?.albumId.startsWith("local:")).toBe(true);
     expect(result.current.subjectCoverArtUrl).toBeNull();
     expect(lookupAlbumCovers).not.toHaveBeenCalled();
+  });
+});
+
+describe("a picture for a record no catalogue has", () => {
+  beforeEach(() => {
+    wishes.length = 0;
+    photos.length = 0;
+    bytes.clear();
+    URL.createObjectURL = vi.fn(() => "blob:chosen");
+    URL.revokeObjectURL = vi.fn();
+  });
+
+  function image(type = "image/png", size = 1024): File {
+    const file = new File([new Uint8Array(8)], "cover.png", { type });
+    Object.defineProperty(file, "size", { value: size });
+    // jsdom's File implements neither, and both are how the bytes reach the store.
+    Object.defineProperty(file, "arrayBuffer", { value: async () => new ArrayBuffer(8) });
+    return file;
+  }
+
+  function typedIn() {
+    const harnessed = harness(null);
+    act(() => harnessed.result.current.setTyped({ title: "Chapters Left Unread" }));
+    act(() => harnessed.result.current.confirmManual());
+    return harnessed;
+  }
+
+  it("offers the upload only where nothing else can ever supply a cover", () => {
+    const matched = harness(null);
+    act(() => matched.result.current.pick(RELEASE));
+    expect(matched.result.current.canUploadImage).toBe(false);
+
+    expect(typedIn().result.current.canUploadImage).toBe(true);
+  });
+
+  it("shows the chosen picture straight away, ahead of anything resolved", () => {
+    const { result } = typedIn();
+
+    act(() => result.current.chooseImage(image()));
+
+    expect(result.current.subjectCoverArtUrl).toBe("blob:chosen");
+    expect(result.current.imageRejected).toBeNull();
+  });
+
+  it("refuses what the server would refuse, before anything is written", () => {
+    const { result } = typedIn();
+
+    act(() => result.current.chooseImage(image("application/pdf")));
+    expect(result.current.imageRejected).toBe("type");
+
+    act(() => result.current.chooseImage(image("image/png", 16 * 1024 * 1024)));
+    expect(result.current.imageRejected).toBe("size");
+
+    expect(result.current.subjectCoverArtUrl).toBeNull();
+  });
+
+  it("writes the picture against the wish, and only once the entry is saved", async () => {
+    const { result } = typedIn();
+    act(() => result.current.chooseImage(image()));
+
+    // Nothing yet: an image on an entry somebody abandons is bytes nothing references.
+    expect(photos).toHaveLength(0);
+
+    act(() => result.current.save());
+    await waitFor(() => expect(photos).toHaveLength(1));
+
+    expect(photos[0].wishId).toBe(wishes[0].id);
+    expect(photos[0].copyId).toBeNull();
+    // Bytes first, so the record never points at an image that is not there.
+    expect(bytes.get(photos[0].id)).toBe("image/png");
+  });
+
+  it("replaces a picture by tombstoning the old one, never by overwriting it", async () => {
+    const entry = { ...ENTRY, albumId: "local:abc" } as WishlistItem;
+    const first = harness(entry);
+    act(() => first.result.current.chooseImage(image()));
+    act(() => first.result.current.save());
+    await waitFor(() => expect(photos).toHaveLength(1));
+
+    const second = harness(entry);
+    act(() => second.result.current.chooseImage(image("image/jpeg")));
+    act(() => second.result.current.save());
+    await waitFor(() => expect(photos).toHaveLength(3));
+
+    // A photo id points at one image forever, so the new one is a new row and the old one
+    // is put down rather than edited.
+    expect(photos[1].wishId).toBe(entry.id);
+    expect(photos[2].id).toBe(photos[0].id);
+    expect(photos[2].deletedAt).not.toBeNull();
   });
 });

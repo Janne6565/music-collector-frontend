@@ -1,4 +1,5 @@
 import { lookupAlbumCovers } from "@/api/releases";
+import { useWishPhotos } from "@/features/wishlist/useWishPhotos";
 import { useStore } from "@/local/StoreProvider";
 import { readWishlistSort, writeWishlistSort } from "@/local/settings";
 import type { WishPatch, WishSort, WishlistItem } from "@janne6565/music-collector-shared";
@@ -60,6 +61,17 @@ export function useWishlistLogic() {
    * it is a fact about a catalogue that any client may re-ask for, not part of the
    * collection, and a device offline simply draws the format silhouette instead.
    */
+  /**
+   * The pictures people uploaded for records no catalogue has. Only those entries can
+   * carry one, so this is the whole of the hand-entered half of the list.
+   */
+  const ownPhotos = useWishPhotos(
+    useMemo(
+      () => items.filter((item) => isManualReleaseId(item.albumId)).map((item) => item.id),
+      [items],
+    ),
+  );
+
   const covers = useQuery({
     queryKey: ["albumCovers", albumIds],
     enabled: albumIds.length > 0,
@@ -118,8 +130,14 @@ export function useWishlistLogic() {
   return {
     items: ordered,
     count: items.length,
-    /** Null both while the answer is on its way and when there is none to have. */
-    coverOf: (albumId: string): string | null => covers.data?.get(albumId) ?? null,
+    /**
+     * The picture for one entry: its own, if somebody uploaded one, else the album's.
+     *
+     * They cannot both exist — only a hand-entered album can carry a picture, and only a
+     * matched one resolves a cover — so the order is documentation rather than precedence.
+     */
+    coverOf: (item: WishlistItem): string | null =>
+      ownPhotos.get(item.id) ?? covers.data?.get(item.albumId) ?? null,
     loading: wishlist.isLoading,
     sort,
     /** "Your order" is only a thing the menu names once a drag has produced one. */

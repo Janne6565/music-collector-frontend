@@ -150,6 +150,18 @@ class MusicCollectorDb extends Dexie {
      * two devices can never disagree about a question only one of them was asked.
      */
     this.version(5).stores({ copyOrigins: "id" });
+
+    /**
+     * A photo can now picture a wishlist entry as well as a copy, so `wishId` is indexed
+     * the way `copyId` always was.
+     *
+     * The rows already here need no rewriting: an existing photo has no `wishId` at all,
+     * and Dexie leaves a record out of an index whose key path it lacks — which is
+     * exactly right, since a copy's photo must never be found by a wish lookup.
+     */
+    this.version(6).stores({
+      photos: "id, copyId, wishId, storageKey, deletedAt",
+    });
   }
 }
 
@@ -363,11 +375,30 @@ export class DexieLocalStore implements LocalStore {
 
     const first = new Map<string, Photo>();
     for (const photo of photos) {
-      if (photo.deletedAt !== null) continue;
+      if (photo.deletedAt !== null || photo.copyId === null) continue;
       const held = first.get(photo.copyId);
       if (held === undefined || photo.sortIndex < held.sortIndex) first.set(photo.copyId, photo);
     }
     return first;
+  }
+
+  async listWishPhotos(wishIds: readonly string[]): Promise<Map<string, Photo>> {
+    // anyOf on an empty list is legal but pointless, and the callers hit it on first paint.
+    if (wishIds.length === 0) return new Map();
+    const photos = await this.db.photos
+      .where("wishId")
+      .anyOf(wishIds as string[])
+      .toArray();
+
+    const covers = new Map<string, Photo>();
+    for (const photo of photos) {
+      if (photo.deletedAt !== null || photo.wishId === null) continue;
+      const held = covers.get(photo.wishId);
+      // Newest wins: replacing a picture writes a second one, and the tombstone of the
+      // first may not have been written yet on the device that pulled the replacement.
+      if (held === undefined || photo.createdAt > held.createdAt) covers.set(photo.wishId, photo);
+    }
+    return covers;
   }
 
   async getPhotoIncludingDeleted(id: string): Promise<Photo | undefined> {

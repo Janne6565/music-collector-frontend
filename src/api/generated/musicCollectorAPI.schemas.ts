@@ -9,6 +9,62 @@ and read their library from a local store, so there are no CRUD endpoints
 for copies. The server participates only as a sync peer.
  * OpenAPI spec version: v1
  */
+export type UpdateSharingRequestCollectionVisibility = typeof UpdateSharingRequestCollectionVisibility[keyof typeof UpdateSharingRequestCollectionVisibility];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const UpdateSharingRequestCollectionVisibility = {
+  ONLY_ME: 'ONLY_ME',
+  FRIENDS: 'FRIENDS',
+  PUBLIC: 'PUBLIC',
+} as const;
+
+export type UpdateSharingRequestWishlistVisibility = typeof UpdateSharingRequestWishlistVisibility[keyof typeof UpdateSharingRequestWishlistVisibility];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const UpdateSharingRequestWishlistVisibility = {
+  ONLY_ME: 'ONLY_ME',
+  FRIENDS: 'FRIENDS',
+  PUBLIC: 'PUBLIC',
+} as const;
+
+export interface UpdateSharingRequest {
+  collectionVisibility: UpdateSharingRequestCollectionVisibility;
+  wishlistVisibility: UpdateSharingRequestWishlistVisibility;
+  pricesPublic: boolean;
+  findable: boolean;
+}
+
+export type SharingSettingsDtoCollectionVisibility = typeof SharingSettingsDtoCollectionVisibility[keyof typeof SharingSettingsDtoCollectionVisibility];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const SharingSettingsDtoCollectionVisibility = {
+  ONLY_ME: 'ONLY_ME',
+  FRIENDS: 'FRIENDS',
+  PUBLIC: 'PUBLIC',
+} as const;
+
+export type SharingSettingsDtoWishlistVisibility = typeof SharingSettingsDtoWishlistVisibility[keyof typeof SharingSettingsDtoWishlistVisibility];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const SharingSettingsDtoWishlistVisibility = {
+  ONLY_ME: 'ONLY_ME',
+  FRIENDS: 'FRIENDS',
+  PUBLIC: 'PUBLIC',
+} as const;
+
+export interface SharingSettingsDto {
+  handle?: string;
+  findable?: boolean;
+  collectionVisibility?: SharingSettingsDtoCollectionVisibility;
+  wishlistVisibility?: SharingSettingsDtoWishlistVisibility;
+  pricesPublic?: boolean;
+  handleChangesRemaining?: number;
+}
+
 export type SyncCopyDtoFieldClocks = {[key: string]: string};
 
 export interface SyncCopyDto {
@@ -50,6 +106,8 @@ export interface SyncPhotoDto {
   fieldClocks?: SyncPhotoDtoFieldClocks;
 }
 
+export type SyncPushRequestOrigins = {[key: string]: string};
+
 export interface SyncPushRequest {
   /**
    * @minItems 0
@@ -66,6 +124,7 @@ export interface SyncPushRequest {
    * @maxItems 500
    */
   photos?: SyncPhotoDto[];
+  origins?: SyncPushRequestOrigins;
 }
 
 export type SyncWishDtoFieldClocks = {[key: string]: string};
@@ -97,6 +156,19 @@ export interface PhotoUploadDto {
   storageKey?: string;
   contentType?: string;
   byteSize?: number;
+}
+
+export interface ClaimHandleRequest {
+  /**
+   * @minLength 3
+   * @maxLength 30
+   */
+  handle: string;
+}
+
+export interface SendFriendRequest {
+  /** @minLength 1 */
+  handle: string;
 }
 
 export interface ResetPasswordRequest {
@@ -140,12 +212,9 @@ export interface RegisterRequest {
   displayName?: string;
 }
 
-export interface UpdateProfileRequest {
-  /**
-   * @minLength 0
-   * @maxLength 120
-   */
-  displayName?: string;
+export interface OAuthExchangeRequest {
+  /** @minLength 1 */
+  code: string;
 }
 
 export interface LoginRequest {
@@ -161,11 +230,117 @@ export interface ForgotPasswordRequest {
   email: string;
 }
 
+export interface UpdateProfileRequest {
+  /**
+   * @minLength 0
+   * @maxLength 120
+   */
+  displayName?: string;
+}
+
+export type ProfileSummaryDtoRelationship = typeof ProfileSummaryDtoRelationship[keyof typeof ProfileSummaryDtoRelationship];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ProfileSummaryDtoRelationship = {
+  ANONYMOUS: 'ANONYMOUS',
+  SELF: 'SELF',
+  NONE: 'NONE',
+  REQUEST_SENT: 'REQUEST_SENT',
+  REQUEST_RECEIVED: 'REQUEST_RECEIVED',
+  FRIENDS: 'FRIENDS',
+} as const;
+
+export interface ProfileSummaryDto {
+  id?: string;
+  handle?: string;
+  displayName?: string;
+  copyCount?: number;
+  relationship?: ProfileSummaryDtoRelationship;
+  collectionPrivate?: boolean;
+}
+
+export type ProfileDtoRelationship = typeof ProfileDtoRelationship[keyof typeof ProfileDtoRelationship];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ProfileDtoRelationship = {
+  ANONYMOUS: 'ANONYMOUS',
+  SELF: 'SELF',
+  NONE: 'NONE',
+  REQUEST_SENT: 'REQUEST_SENT',
+  REQUEST_RECEIVED: 'REQUEST_RECEIVED',
+  FRIENDS: 'FRIENDS',
+} as const;
+
+export interface ProfileDto {
+  id?: string;
+  handle?: string;
+  displayName?: string;
+  relationship?: ProfileDtoRelationship;
+  canSeeCollection?: boolean;
+  canSeeWishlist?: boolean;
+  pricesVisible?: boolean;
+  copyCount?: number;
+  wishlistCount?: number;
+  collectingSince?: string;
+}
+
+export interface SharedWishDto {
+  id?: string;
+  albumId?: string;
+  title?: string;
+  artistName?: string;
+  year?: number;
+  desiredFormat?: string;
+  createdAt?: number;
+}
+
+export interface SharedWishlistDto {
+  wishes?: SharedWishDto[];
+  total?: number;
+  truncated?: boolean;
+}
+
 export interface CoverThemeDto {
   dominantColor?: string;
   accentColor?: string;
   lightness?: number;
   dark?: boolean;
+}
+
+export interface SharedCollectionDto {
+  copies?: SharedCopyDto[];
+  total?: number;
+  truncated?: boolean;
+}
+
+export type SharedCopyDtoFormat = typeof SharedCopyDtoFormat[keyof typeof SharedCopyDtoFormat];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const SharedCopyDtoFormat = {
+  VINYL: 'VINYL',
+  CD: 'CD',
+  CASSETTE: 'CASSETTE',
+  DIGITAL: 'DIGITAL',
+  OTHER: 'OTHER',
+} as const;
+
+export interface SharedCopyDto {
+  id?: string;
+  releaseId?: string;
+  title?: string;
+  artistName?: string;
+  year?: number;
+  format?: SharedCopyDtoFormat;
+  coverArtUrl?: string;
+  coverTheme?: CoverThemeDto;
+  condition?: string;
+  sleeveCondition?: string;
+  pricePaidCents?: number;
+  currency?: string;
+  createdAt?: number;
 }
 
 export type ReleaseDtoFormat = typeof ReleaseDtoFormat[keyof typeof ReleaseDtoFormat];
@@ -234,6 +409,84 @@ export interface HealthDto {
   time?: string;
 }
 
+export type HandleAvailabilityDtoReason = typeof HandleAvailabilityDtoReason[keyof typeof HandleAvailabilityDtoReason];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const HandleAvailabilityDtoReason = {
+  OK: 'OK',
+  MALFORMED: 'MALFORMED',
+  TAKEN: 'TAKEN',
+  RESERVED: 'RESERVED',
+} as const;
+
+export interface HandleAvailabilityDto {
+  handle?: string;
+  available?: boolean;
+  reason?: HandleAvailabilityDtoReason;
+}
+
+export interface FriendRequestDto {
+  id?: string;
+  from?: ProfileSummaryDto;
+  createdAt?: string;
+  mutualFriends?: number;
+}
+
+export interface FriendsOverviewDto {
+  friends?: ProfileSummaryDto[];
+  incoming?: FriendRequestDto[];
+  outgoing?: ProfileSummaryDto[];
+}
+
+export interface ActivityActorDto {
+  id?: string;
+  handle?: string;
+  displayName?: string;
+}
+
+export type ActivityEntryDtoType = typeof ActivityEntryDtoType[keyof typeof ActivityEntryDtoType];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ActivityEntryDtoType = {
+  COPY_ADDED: 'COPY_ADDED',
+  WISH_ADDED: 'WISH_ADDED',
+  WISH_FULFILLED: 'WISH_FULFILLED',
+  FRIENDSHIP_ACCEPTED: 'FRIENDSHIP_ACCEPTED',
+} as const;
+
+export type ActivityEntryDtoFormat = typeof ActivityEntryDtoFormat[keyof typeof ActivityEntryDtoFormat];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ActivityEntryDtoFormat = {
+  VINYL: 'VINYL',
+  CD: 'CD',
+  CASSETTE: 'CASSETTE',
+  DIGITAL: 'DIGITAL',
+  OTHER: 'OTHER',
+} as const;
+
+export interface ActivityEntryDto {
+  id?: string;
+  type?: ActivityEntryDtoType;
+  actor?: ActivityActorDto;
+  title?: string;
+  artistName?: string;
+  releaseId?: string;
+  format?: ActivityEntryDtoFormat;
+  year?: number;
+  coverArtUrl?: string;
+  occurredAt?: string;
+  copyCount?: number;
+  collapsedCovers?: string[];
+}
+
+export interface ActivityFeedDto {
+  entries?: ActivityEntryDto[];
+}
+
 export interface AuthProviderDto {
   id?: string;
   displayName?: string;
@@ -266,6 +519,10 @@ code?: string;
 state?: string;
 error?: string;
 user?: string;
+};
+
+export type SearchProfilesParams = {
+q: string;
 };
 
 export type SearchParams = {
@@ -313,5 +570,13 @@ export type ReleasesInGroupParams = {
  * @maximum 100
  */
 limit?: number;
+};
+
+export type AvailabilityParams = {
+handle: string;
+};
+
+export type AuthorizeParams = {
+client?: string;
 };
 

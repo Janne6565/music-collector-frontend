@@ -87,7 +87,7 @@ const enCommon = {
     clearRecent: "Clear",
     add: "Add",
     addAndEdit: "Add and edit details",
-    footerHint: "Pick a release to add it, or add one and fill in your copy's details.",
+    footerHint: "Adding saves the copy and opens its details — the search stays behind it.",
     noBarcodeMatch:
       "No release with the barcode {{barcode}}. Common with promos, club editions and anything pressed before the mid-eighties.",
     noMatches: {
@@ -432,7 +432,7 @@ const deCommon: CommonSchema = {
     add: "Hinzufügen",
     addAndEdit: "Hinzufügen und Details bearbeiten",
     footerHint:
-      "Wähle eine Veröffentlichung aus oder trage direkt die Details deines Exemplars ein.",
+      "Hinzufügen speichert das Exemplar und öffnet seine Details — die Suche bleibt dahinter.",
     noBarcodeMatch:
       "Keine Veröffentlichung mit dem Barcode {{barcode}}. Typisch für Promos, Clubauflagen und alles vor Mitte der Achtziger.",
     noMatches: {

@@ -67,6 +67,7 @@ export function LibraryPage() {
    * screen 6a is a modal instead of the page it replaced.
    */
   const [adding, setAdding] = useState(false);
+  /** The copy whose details step is open over the sheet, if any (screen 8d). */
   const [detailsFor, setDetailsFor] = useState<string | null>(null);
 
   return (
@@ -130,23 +131,19 @@ export function LibraryPage() {
         <LibraryBody {...logic} onAdd={() => setAdding(true)} />
       </div>
 
-      {adding && (
-        <AddDialog
-          onClose={() => setAdding(false)}
-          onEditDetails={(copyId) => {
-            setAdding(false);
-            setDetailsFor(copyId);
-          }}
-        />
-      )}
+      {adding && <AddDialog onClose={() => setAdding(false)} onAdded={setDetailsFor} />}
+      {/*
+       * Stacked over the add sheet rather than replacing it (screen 8d): both are native
+       * modal dialogs, so the browser puts the details step on top, makes the sheet inert
+       * and sends Escape to the right one. Leaving the sheet mounted is what makes the
+       * step safe to open after *every* add — dismissing it lands you back on the results
+       * you added from, with the query and the scroll position still there.
+       */}
       {detailsFor !== null && (
         <CopyDetailsDialog
           copyId={detailsFor}
           onClose={() => setDetailsFor(null)}
-          onBack={() => {
-            setDetailsFor(null);
-            setAdding(true);
-          }}
+          onBack={() => setDetailsFor(null)}
         />
       )}
     </AppShell>

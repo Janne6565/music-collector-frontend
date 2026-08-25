@@ -1,4 +1,5 @@
 import { searchReleases } from "@/api/releases";
+import type { Release } from "@/domain/types";
 import type { LocalStore } from "@/local/LocalStore";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook } from "@testing-library/react";
@@ -13,8 +14,14 @@ vi.mock("@/api/releases", async (original) => ({
 
 const settings = new Map<string, string>();
 
+const copies: unknown[] = [];
+
 const store = {
   listCopies: async () => [],
+  cacheReleases: async () => {},
+  putCopy: async (copy: unknown) => {
+    copies.push(copy);
+  },
   readSetting: async (key: string) => settings.get(key),
   writeSetting: async (key: string, value: string) => {
     settings.set(key, value);
@@ -22,20 +29,39 @@ const store = {
 } as unknown as LocalStore;
 
 vi.mock("@/local/StoreProvider", () => ({
-  useStore: () => ({ store, clock: { next: () => "" } }),
+  useStore: () => ({ store, clock: { next: () => ({ wall: 1, counter: 0, node: "test" }) } }),
 }));
 
 // Imported after the mocks above are registered, so the hook picks them up.
 const { useAddDialogLogic } = await import("@/features/add/useAddDialogLogic");
 
-function harness() {
+function harness(onAdded: (copyId: string) => void = vi.fn()) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: 0 } },
   });
-  return renderHook(() => useAddDialogLogic(vi.fn()), {
+  return renderHook(() => useAddDialogLogic(vi.fn(), onAdded), {
     wrapper: ({ children }) => createElement(QueryClientProvider, { client }, children),
   });
 }
+
+const RELEASE: Release = {
+  id: "musicbrainz:1",
+  albumId: "musicbrainz:a1",
+  title: "Bitches Brew",
+  artistName: "Miles Davis",
+  year: 1970,
+  format: "VINYL",
+  label: "Columbia",
+  catalogNumber: "GP 26",
+  country: "US",
+  barcode: null,
+  releaseDate: "1970-03-30",
+  trackCount: 6,
+  discCount: 2,
+  coverArtUrl: null,
+  coverTheme: null,
+  cachedAt: 0,
+};
 
 /**
  * Lets the debounce fire and the query that follows it settle.
@@ -65,6 +91,7 @@ async function type(result: { current: ReturnType<typeof useAddDialogLogic> }, t
 describe("useAddDialogLogic", () => {
   beforeEach(() => {
     settings.clear();
+    copies.length = 0;
     vi.mocked(searchReleases).mockClear();
     vi.useFakeTimers();
   });
@@ -141,6 +168,35 @@ describe("useAddDialogLogic", () => {
     // Back to the recent searches, rather than the last results left stranded under a box
     // that no longer says what produced them.
     expect(result.current.hasSearched).toBe(false);
+  });
+
+  it("hands every add to the details step, however it was added", async () => {
+    // Screen 8d is step two of adding, not a branch of it: a copy written and then left
+    // blank is the failure this exists to prevent, so the row's Add has to reach the step
+    // just as the footer's primary does.
+    const onAdded = vi.fn();
+    const { result } = harness(onAdded);
+
+    await act(async () => result.current.addRelease(RELEASE));
+    await settle();
+
+    expect(copies).toHaveLength(1);
+    expect(onAdded).toHaveBeenCalledTimes(1);
+    expect(onAdded).toHaveBeenCalledWith((copies[0] as { id: string }).id);
+  });
+
+  it("drops the picked row once it has been added", async () => {
+    // Otherwise the footer stays armed on a release that is already in the library, and
+    // the next press meant for the sheet files a second copy of it.
+    const { result } = harness();
+
+    await act(async () => result.current.select(RELEASE));
+    expect(result.current.selected).not.toBeNull();
+
+    await act(async () => result.current.addRelease(RELEASE));
+    await settle();
+
+    expect(result.current.selected).toBeNull();
   });
 
   it("remembers a search somebody pressed for, not every prefix on the way", async () => {

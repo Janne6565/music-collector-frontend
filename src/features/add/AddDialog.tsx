@@ -44,14 +44,14 @@ const SKELETON_ROWS: readonly (readonly [string, string, string])[] = [
 
 interface AddDialogProps {
   readonly onClose: () => void;
-  /** Opens the details step (screen 8d) for the copy that was just created. */
-  readonly onEditDetails: (copyId: string) => void;
+  /** Opens the details step (screen 8d) over the sheet for the copy just created. */
+  readonly onAdded: (copyId: string) => void;
 }
 
 /** Screen 6a — the add sheet over a dimmed library. */
-export function AddDialog({ onClose, onEditDetails }: AddDialogProps) {
+export function AddDialog({ onClose, onAdded }: AddDialogProps) {
   const { t } = useTranslation();
-  const logic = useAddDialogLogic(onClose);
+  const logic = useAddDialogLogic(onClose, onAdded);
   const titleId = useId();
 
   return (
@@ -133,10 +133,10 @@ export function AddDialog({ onClose, onEditDetails }: AddDialogProps) {
           />
           {/* The sheet keeps its footer inside the discography (10d): the way out of the
               modal should not depend on which pane of it you happen to be looking at. */}
-          <SheetFooter logic={logic} onEditDetails={onEditDetails} hint={t("artists.footerHint")} />
+          <SheetFooter logic={logic} hint={t("artists.footerHint")} />
         </>
       ) : (
-        <SearchTab logic={logic} onEditDetails={onEditDetails} />
+        <SearchTab logic={logic} />
       )}
     </Modal>
   );
@@ -144,13 +144,7 @@ export function AddDialog({ onClose, onEditDetails }: AddDialogProps) {
 
 type Logic = ReturnType<typeof useAddDialogLogic>;
 
-function SearchTab({
-  logic,
-  onEditDetails,
-}: {
-  readonly logic: Logic;
-  readonly onEditDetails: (copyId: string) => void;
-}) {
+function SearchTab({ logic }: { readonly logic: Logic }) {
   const { t } = useTranslation();
   const barcode = logic.tab === "BARCODE";
 
@@ -233,7 +227,7 @@ function SearchTab({
         <Results logic={logic} />
       </div>
 
-      <SheetFooter logic={logic} onEditDetails={onEditDetails} hint={t("addDialog.footerHint")} />
+      <SheetFooter logic={logic} hint={t("addDialog.footerHint")} />
     </>
   );
 }
@@ -245,15 +239,7 @@ function SearchTab({
  * three levels into an artist's discography is as much "the one you meant" as a row in the
  * search list, and 10d draws the button live for exactly that reason.
  */
-function SheetFooter({
-  logic,
-  onEditDetails,
-  hint,
-}: {
-  readonly logic: Logic;
-  readonly onEditDetails: (copyId: string) => void;
-  readonly hint: string;
-}) {
+function SheetFooter({ logic, hint }: { readonly logic: Logic; readonly hint: string }) {
   const { t } = useTranslation();
 
   return (
@@ -268,11 +254,12 @@ function SheetFooter({
           {t("common.cancel")}
         </Button>
         <Button
-          onClick={async () => {
+          onClick={() => {
             if (logic.selected === null) return;
-            onEditDetails(await logic.addAndEdit(logic.selected));
+            logic.addRelease(logic.selected);
           }}
           disabled={logic.selected === null}
+          loading={logic.selected !== null && logic.addingMbid === logic.selected.id}
           className="h-[34px] rounded-lg px-3.5 text-[12.5px]"
         >
           {t("addDialog.addAndEdit")}
@@ -466,7 +453,7 @@ function ResultRow({ release, logic }: { readonly release: Release; readonly log
         selected && "bg-canvas/60",
       )}
     >
-      {/* Selecting a row is what the footer's "Add and edit details" acts on. */}
+      {/* Selecting a row is what the footer's primary acts on. */}
       <button
         type="button"
         onClick={() => logic.select(selected ? null : release)}

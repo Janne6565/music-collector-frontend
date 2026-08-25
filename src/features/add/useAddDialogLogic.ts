@@ -1,6 +1,7 @@
 import { lookupByBarcode, lookupRelease, searchReleases } from "@/api/releases";
 import { fromCsv } from "@/domain/csv";
 import type { Artist, Format, Release } from "@/domain/types";
+import type { LocalStore } from "@/local/LocalStore";
 import { useStore } from "@/local/StoreProvider";
 import { type CopyDraft, createCopy } from "@/local/copyWrites";
 import { clearRecentSearches, readRecentSearches, rememberSearch } from "@/local/settings";
@@ -35,6 +36,20 @@ const EMPTY_DRAFT: CopyDraft = {
   rating: null,
 };
 
+/**
+ * Fetches and stores one release's cover theme without anyone waiting for it.
+ *
+ * Failures are swallowed on purpose: the theme is decoration, the copy is already saved,
+ * and the detail page asks again for itself if this never lands.
+ */
+async function warmCoverTheme(release: Release, store: LocalStore): Promise<void> {
+  if (release.coverTheme !== null) return;
+  const enriched = await lookupRelease(release.id).catch(() => null);
+  if (enriched !== null && enriched.coverTheme !== null) {
+    await store.cacheReleases([enriched]).catch(() => undefined);
+  }
+}
+
 export interface CsvImportResult {
   readonly added: number;
   readonly skipped: number;
@@ -47,7 +62,7 @@ export interface CsvImportResult {
  * the library you are looking at, and coming back to a scroll position you had lost is a
  * small tax paid on every single addition.
  */
-export function useAddDialogLogic(onClose: () => void) {
+export function useAddDialogLogic(onClose: () => void, onAdded: (copyId: string) => void) {
   const { store, clock } = useStore();
   const queryClient = useQueryClient();
 
@@ -56,7 +71,7 @@ export function useAddDialogLogic(onClose: () => void) {
   const [submitted, setSubmitted] = useState("");
   const [format, setFormat] = useState<AddFormatFilter>("ALL");
   /**
-   * The row the footer's "Add and edit details" acts on.
+   * The row the footer's primary acts on.
    *
    * The release itself rather than its id: a pressing picked inside an artist's
    * discography (screen 10d) is not in `results`, so there is nothing to look an id up in.
@@ -112,10 +127,21 @@ export function useAddDialogLogic(onClose: () => void) {
       await store.putCopy(copy);
       return copy;
     },
-    onSuccess: async () => {
+    onSuccess: async (copy, release) => {
       await queryClient.invalidateQueries({ queryKey: ["copies"] });
       await queryClient.invalidateQueries({ queryKey: ["stats"] });
       await queryClient.invalidateQueries({ queryKey: ["ownedMbids"] });
+      // A search result carries no cover theme — only the detail lookup samples one, and on
+      // a cover the server has never seen that takes seconds. Warm it while the user is
+      // still in the sheet, so the record they just added opens already themed.
+      void warmCoverTheme(release, store);
+      // The row that was acted on has been acted on; leaving it lit invites a second copy
+      // of the same pressing from a footer press meant for the sheet as a whole.
+      setSelected(null);
+      // Every add hands the copy straight to the details step (screen 8d). Here rather
+      // than at each call site so the row's Add, the footer and a pressing picked inside a
+      // discography cannot end up being three different amounts of "added".
+      onAdded(copy.id);
     },
   });
 
@@ -262,19 +288,21 @@ export function useAddDialogLogic(onClose: () => void) {
     isOwned: (release: Release) => owned.data?.has(release.id) === true,
     selected,
     select: setSelected,
-    /** Adds the copy and stays put, so several can be added in one sitting. */
+    /**
+     * Adds the copy and opens its details step over the sheet (screen 8d).
+     *
+     * The sheet is left mounted underneath rather than closed: the copy is saved the
+     * moment this runs, so the step is an offer to say what your copy is like, not a form
+     * standing between you and owning the record. Dismissing it puts you back on the same
+     * results with the same query, which is what keeps several additions in one sitting
+     * possible now that each of them has a second step.
+     */
     addRelease: (release: Release) => {
       // The search that found something you kept is one worth offering again.
       if (submitted !== "" && !BARCODE.test(submitted)) remember(submitted);
       add.mutate(release);
     },
     addingMbid: add.isPending ? add.variables?.id : undefined,
-    /** Adds the copy and hands it to the details step (screen 8d). */
-    addAndEdit: async (release: Release) => {
-      if (submitted !== "" && !BARCODE.test(submitted)) remember(submitted);
-      const copy = await add.mutateAsync(release);
-      return copy.id;
-    },
     /** Artists are only worth asking about for a title search — no artist is named 602537. */
     artistQuery: tab === "BARCODE" ? "" : submitted,
     openArtist,

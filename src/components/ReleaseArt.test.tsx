@@ -5,8 +5,8 @@ import { describe, expect, it } from "vitest";
 
 function release(overrides: Partial<Release> = {}): Release {
   return {
-    mbid: "rel-1",
-    releaseGroupMbid: "rg-1",
+    id: "rel-1",
+    albumId: "rg-1",
     title: "Ambient 1: Music for Airports",
     artistName: "Brian Eno",
     year: 1978,
@@ -82,7 +82,7 @@ describe("ReleaseArt", () => {
 
     rerender(
       <ReleaseArt
-        release={release({ mbid: "rel-2", coverArtUrl: "https://covers.example/2.jpg" })}
+        release={release({ id: "rel-2", coverArtUrl: "https://covers.example/2.jpg" })}
       />,
     );
 

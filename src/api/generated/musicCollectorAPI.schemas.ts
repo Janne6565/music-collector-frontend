@@ -13,7 +13,7 @@ export type SyncCopyDtoFieldClocks = {[key: string]: string};
 
 export interface SyncCopyDto {
   id?: string;
-  releaseMbid?: string;
+  releaseId?: string;
   condition?: string;
   sleeveCondition?: string;
   pricePaidCents?: number;
@@ -64,7 +64,7 @@ export type SyncWishDtoFieldClocks = {[key: string]: string};
 
 export interface SyncWishDto {
   id?: string;
-  releaseGroupMbid?: string;
+  albumId?: string;
   title?: string;
   artistName?: string;
   year?: number;
@@ -165,8 +165,7 @@ export const ReleaseDtoFormat = {
 
 export interface ReleaseDto {
   id?: string;
-  mbid?: string;
-  releaseGroupMbid?: string;
+  albumId?: string;
   title?: string;
   artistName?: string;
   year?: number;
@@ -194,7 +193,7 @@ export interface ArtistDto {
 }
 
 export interface AlbumDto {
-  releaseGroupMbid?: string;
+  albumId?: string;
   title?: string;
   artistName?: string;
   year?: number;

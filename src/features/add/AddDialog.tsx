@@ -283,7 +283,7 @@ function Results({ logic }: { readonly logic: Logic }) {
             </p>
           ) : (
             logic.results.map((release) => (
-              <ResultRow key={release.mbid} release={release} logic={logic} />
+              <ResultRow key={release.id} release={release} logic={logic} />
             ))
           )}
         </section>
@@ -415,7 +415,7 @@ function NoMatches({ logic }: { readonly logic: Logic }) {
 function ResultRow({ release, logic }: { readonly release: Release; readonly logic: Logic }) {
   const { t } = useTranslation();
   const owned = logic.isOwned(release);
-  const selected = logic.selected?.mbid === release.mbid;
+  const selected = logic.selected?.id === release.id;
   const subtitle = releaseDisambiguation(release);
 
   return (
@@ -428,7 +428,7 @@ function ResultRow({ release, logic }: { readonly release: Release; readonly log
       {/* Selecting a row is what the footer's "Add and edit details" acts on. */}
       <button
         type="button"
-        onClick={() => logic.select(release.mbid)}
+        onClick={() => logic.select(release.id)}
         aria-pressed={selected}
         className="flex min-w-0 flex-1 items-center gap-3.5 text-left"
       >
@@ -463,10 +463,10 @@ function ResultRow({ release, logic }: { readonly release: Release; readonly log
       ) : null}
       <Button
         onClick={() => logic.addRelease(release)}
-        loading={logic.addingMbid === release.mbid}
+        loading={logic.addingMbid === release.id}
         className="h-8 flex-none rounded-lg px-3 text-xs"
       >
-        {logic.addingMbid !== release.mbid && <Plus size={14} strokeWidth={2} aria-hidden />}
+        {logic.addingMbid !== release.id && <Plus size={14} strokeWidth={2} aria-hidden />}
         {t("addDialog.add")}
       </Button>
     </div>

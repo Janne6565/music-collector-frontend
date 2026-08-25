@@ -23,8 +23,8 @@ function testClock(node = "device-a"): ClockSource {
 }
 
 const release: Release = {
-  mbid: "release-1",
-  releaseGroupMbid: "group-1",
+  id: "release-1",
+  albumId: "group-1",
   title: "Remain in Light",
   artistName: "Talking Heads",
   year: 1980,
@@ -67,7 +67,7 @@ describe("createCopy", () => {
         "purchasedAt",
         "purchasedOn",
         "rating",
-        "releaseMbid",
+        "releaseId",
         "sleeveCondition",
       ].sort(),
     );
@@ -79,7 +79,7 @@ describe("createCopy", () => {
 
     expect(copy).toMatchObject({
       id: "copy-1",
-      releaseMbid: "release-1",
+      releaseId: "release-1",
       condition: "VG_PLUS",
       sleeveCondition: "NM",
       pricePaidCents: 400,

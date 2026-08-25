@@ -27,8 +27,8 @@ export function useLibraryLogic() {
     queryKey: ["copies", format, search, sort],
     queryFn: async () => {
       const copies = await store.listCopies({ format, search, sort });
-      const releases = await store.getReleases(copies.map((copy) => copy.releaseMbid));
-      return copies.map((copy) => ({ copy, release: releases.get(copy.releaseMbid) }));
+      const releases = await store.getReleases(copies.map((copy) => copy.releaseId));
+      return copies.map((copy) => ({ copy, release: releases.get(copy.releaseId) }));
     },
   });
 

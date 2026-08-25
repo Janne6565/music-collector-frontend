@@ -27,9 +27,25 @@ interface PhotoBytesRow {
   contentType: string;
 }
 
+/**
+ * Every id written before the app read two catalogues came from MusicBrainz, so prefixing
+ * is exactly right. Guarded against running twice, which an interrupted upgrade can do.
+ */
+function qualify(id: string | undefined): string {
+  if (id === undefined || id === null) return id as unknown as string;
+  return id.includes(":") ? id : `musicbrainz:${id}`;
+}
+
+function renameClock(row: Record<string, unknown>, from: string, to: string): void {
+  const clocks = row.fieldClocks as Record<string, string> | undefined;
+  if (clocks === undefined || clocks[from] === undefined) return;
+  clocks[to] = clocks[from];
+  delete clocks[from];
+}
+
 class MusicCollectorDb extends Dexie {
   copies!: EntityTable<Copy, "id">;
-  releases!: EntityTable<Release, "mbid">;
+  releaseCache!: EntityTable<Release, "id">;
   wishlist!: EntityTable<WishlistItem, "id">;
   photos!: EntityTable<Photo, "id">;
   photoBytes!: EntityTable<PhotoBytesRow, "id">;
@@ -38,6 +54,8 @@ class MusicCollectorDb extends Dexie {
   constructor() {
     super("music-collector");
     // Only fields that are queried or sorted need indexing; the rest ride along in the row.
+    // Versions 1 and 2 are history: they describe databases that exist on people's
+    // machines, and editing them would make Dexie disagree with what is actually on disk.
     this.version(1).stores({
       copies: "id, releaseMbid, createdAt, deletedAt",
       releases: "mbid, releaseGroupMbid",
@@ -52,6 +70,60 @@ class MusicCollectorDb extends Dexie {
       photoBytes: "id",
       meta: "key",
     });
+
+    /**
+     * Ids become source-qualified, because the app now reads two catalogues.
+     *
+     * The cached releases move to a new table rather than being altered in place: their
+     * primary key was `mbid` and is now `id`, and IndexedDB cannot change a key path on an
+     * existing store. `releaseCache` is also the more honest name — these rows are a copy
+     * of what upstream said, discardable in a way that copies and wishes are not.
+     *
+     * The rows are carried across rather than dropped. Without them a library that is
+     * offline would show a grid of dashes: nothing re-fetches release metadata on its own.
+     */
+    this.version(3)
+      .stores({
+        copies: "id, releaseId, createdAt, deletedAt",
+        releaseCache: "id, albumId",
+        wishlist: "id, albumId, deletedAt",
+        photos: "id, copyId, storageKey, deletedAt",
+        photoBytes: "id",
+        meta: "key",
+      })
+      .upgrade(async (tx) => {
+        const cached = await tx.table("releases").toArray();
+        await tx.table("releaseCache").bulkAdd(
+          cached.map(({ mbid, releaseGroupMbid, ...rest }) => ({
+            ...rest,
+            id: qualify(mbid),
+            albumId: qualify(releaseGroupMbid),
+          })),
+        );
+
+        // The field clocks are keyed by field name, so a clock left under the old key
+        // reads as never-set — losing every edit that field has ever won in a merge.
+        await tx
+          .table("copies")
+          .toCollection()
+          .modify((copy: Record<string, unknown>) => {
+            copy.releaseId = qualify(copy.releaseMbid as string);
+            copy.releaseMbid = undefined;
+            renameClock(copy, "releaseMbid", "releaseId");
+          });
+
+        await tx
+          .table("wishlist")
+          .toCollection()
+          .modify((wish: Record<string, unknown>) => {
+            wish.albumId = qualify(wish.releaseGroupMbid as string);
+            wish.releaseGroupMbid = undefined;
+            renameClock(wish, "releaseGroupMbid", "albumId");
+          });
+      });
+
+    // Dropped in its own version: a store cannot be read in the upgrade that deletes it.
+    this.version(4).stores({ releases: null });
   }
 }
 
@@ -71,10 +143,10 @@ export class DexieLocalStore implements LocalStore {
 
   async listCopies(filter: LibraryFilter = {}): Promise<Copy[]> {
     const copies = await this.db.copies.filter((copy) => copy.deletedAt === null).toArray();
-    const releases = await this.getReleases(copies.map((copy) => copy.releaseMbid));
+    const releases = await this.getReleases(copies.map((copy) => copy.releaseId));
 
     const matching = copies.filter((copy) => {
-      const release = releases.get(copy.releaseMbid);
+      const release = releases.get(copy.releaseId);
       if (
         filter.format !== undefined &&
         filter.format !== "ALL" &&
@@ -103,14 +175,11 @@ export class DexieLocalStore implements LocalStore {
     return this.db.copies.get(id);
   }
 
-  async listCopiesInReleaseGroup(releaseGroupMbid: string): Promise<Copy[]> {
-    const releases = await this.db.releases
-      .where("releaseGroupMbid")
-      .equals(releaseGroupMbid)
-      .toArray();
-    const mbids = new Set(releases.map((release) => release.mbid));
+  async listCopiesInReleaseGroup(albumId: string): Promise<Copy[]> {
+    const releases = await this.db.releaseCache.where("albumId").equals(albumId).toArray();
+    const releaseIds = new Set(releases.map((release) => release.id));
     const copies = await this.db.copies.filter((copy) => copy.deletedAt === null).toArray();
-    return copies.filter((copy) => mbids.has(copy.releaseMbid));
+    return copies.filter((copy) => releaseIds.has(copy.releaseId));
   }
 
   async putCopy(copy: Copy): Promise<void> {
@@ -131,18 +200,18 @@ export class DexieLocalStore implements LocalStore {
   }
 
   async cacheReleases(releases: readonly Release[]): Promise<void> {
-    await this.db.releases.bulkPut([...releases]);
+    await this.db.releaseCache.bulkPut([...releases]);
   }
 
-  async getRelease(mbid: string): Promise<Release | undefined> {
-    return this.db.releases.get(mbid);
+  async getRelease(releaseId: string): Promise<Release | undefined> {
+    return this.db.releaseCache.get(releaseId);
   }
 
-  async getReleases(mbids: readonly string[]): Promise<Map<string, Release>> {
-    if (mbids.length === 0) return new Map();
-    const rows = await this.db.releases.bulkGet([...new Set(mbids)]);
+  async getReleases(releaseIds: readonly string[]): Promise<Map<string, Release>> {
+    if (releaseIds.length === 0) return new Map();
+    const rows = await this.db.releaseCache.bulkGet([...new Set(releaseIds)]);
     return new Map(
-      rows.filter((row): row is Release => row !== undefined).map((row) => [row.mbid, row]),
+      rows.filter((row): row is Release => row !== undefined).map((row) => [row.id, row]),
     );
   }
 
@@ -210,17 +279,14 @@ export class DexieLocalStore implements LocalStore {
     await this.db.wishlist.put(item);
   }
 
-  async wishlistHas(releaseGroupMbid: string): Promise<boolean> {
-    const matches = await this.db.wishlist
-      .where("releaseGroupMbid")
-      .equals(releaseGroupMbid)
-      .toArray();
+  async wishlistHas(albumId: string): Promise<boolean> {
+    const matches = await this.db.wishlist.where("albumId").equals(albumId).toArray();
     return matches.some((item) => item.deletedAt === null);
   }
 
   async stats(): Promise<CollectionStats> {
     const copies = await this.db.copies.filter((copy) => copy.deletedAt === null).toArray();
-    const releases = await this.getReleases(copies.map((copy) => copy.releaseMbid));
+    const releases = await this.getReleases(copies.map((copy) => copy.releaseId));
     return computeStats(copies, releases);
   }
 
@@ -280,10 +346,10 @@ export function computeStats(
   let totalSpentCents = 0;
 
   for (const copy of copies) {
-    const release = releases.get(copy.releaseMbid);
+    const release = releases.get(copy.releaseId);
     if (release !== undefined) {
       byFormat[release.format] += 1;
-      releaseGroups.add(release.releaseGroupMbid);
+      releaseGroups.add(release.albumId);
     }
     totalSpentCents += copy.pricePaidCents ?? 0;
   }
@@ -308,14 +374,13 @@ export function sortCopies(
   switch (sort) {
     case "ARTIST_ASC":
       return sorted.sort((a, b) =>
-        (releases.get(a.releaseMbid)?.artistName ?? "").localeCompare(
-          releases.get(b.releaseMbid)?.artistName ?? "",
+        (releases.get(a.releaseId)?.artistName ?? "").localeCompare(
+          releases.get(b.releaseId)?.artistName ?? "",
         ),
       );
     case "YEAR_DESC":
       return sorted.sort(
-        (a, b) =>
-          (releases.get(b.releaseMbid)?.year ?? 0) - (releases.get(a.releaseMbid)?.year ?? 0),
+        (a, b) => (releases.get(b.releaseId)?.year ?? 0) - (releases.get(a.releaseId)?.year ?? 0),
       );
     case "ADDED_DESC":
       return sorted.sort((a, b) => b.createdAt - a.createdAt);

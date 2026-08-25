@@ -47,7 +47,7 @@ export function useCopyDetailsLogic(copyId: string, onSaved: () => void) {
     queryFn: async () => {
       const copy = await store.getCopy(copyId);
       if (copy === undefined) return null;
-      const release: Release | undefined = await store.getRelease(copy.releaseMbid);
+      const release: Release | undefined = await store.getRelease(copy.releaseId);
       return { copy, release };
     },
   });

@@ -3,8 +3,8 @@ import { releaseDisambiguation, toRelease, toReleases } from "@/api/releases";
 import { describe, expect, it } from "vitest";
 
 const complete: ReleaseDto = {
-  mbid: "release-1",
-  releaseGroupMbid: "group-1",
+  id: "musicbrainz:release-1",
+  albumId: "musicbrainz:group-1",
   title: "Remain in Light",
   artistName: "Talking Heads",
   year: 1980,
@@ -22,7 +22,7 @@ describe("toRelease", () => {
     const release = toRelease(complete, 1000);
 
     expect(release).toMatchObject({
-      mbid: "release-1",
+      id: "musicbrainz:release-1",
       title: "Remain in Light",
       format: "VINYL",
       year: 1980,
@@ -33,7 +33,7 @@ describe("toRelease", () => {
 
   it("turns absent optional fields into explicit nulls", () => {
     const release = toRelease(
-      { mbid: "r", releaseGroupMbid: "g", title: "T", artistName: "A" },
+      { id: "musicbrainz:r", albumId: "musicbrainz:g", title: "T", artistName: "A" },
       1000,
     );
 
@@ -51,7 +51,7 @@ describe("toRelease", () => {
     });
   });
 
-  it.each(["mbid", "releaseGroupMbid", "title", "artistName"] as const)(
+  it.each(["id", "albumId", "title", "artistName"] as const)(
     "rejects a payload missing %s",
     (field) => {
       const broken = { ...complete };

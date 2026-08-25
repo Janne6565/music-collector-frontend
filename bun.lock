@@ -5,6 +5,7 @@
     "": {
       "name": "music-collector-frontend",
       "dependencies": {
+        "@janne6565/music-collector-shared": "^0.1.0",
         "@reduxjs/toolkit": "^2.5.0",
         "@tanstack/react-query": "^5.62.0",
         "@tanstack/react-router": "^1.95.0",
@@ -180,6 +181,8 @@
     "@ibm-cloud/openapi-ruleset": ["@ibm-cloud/openapi-ruleset@1.33.13", "", { "dependencies": { "@ibm-cloud/openapi-ruleset-utilities": "1.9.2", "@stoplight/spectral-formats": "1.8.2", "@stoplight/spectral-functions": "1.10.1", "@stoplight/spectral-rulesets": "1.22.1", "chalk": "4.1.2", "inflected": "2.1.0", "jsonschema": "1.5.0", "lodash": "4.18.1", "loglevel": "1.9.2", "loglevel-plugin-prefix": "0.8.4", "minimatch": "10.2.3", "validator": "13.15.23" } }, "sha512-dvLm5WIMJ5nj2PcIUh/Zr3uVFz3hc5aVI9HgmBzIPznpZo2Xb2OvYzrjlrE40pmbrMKotW5LHwR6dRbvKt2Qpg=="],
 
     "@ibm-cloud/openapi-ruleset-utilities": ["@ibm-cloud/openapi-ruleset-utilities@1.9.2", "", {}, "sha512-q9ZFdbtfxhaSeN6AykhVYk/EgkgV99dIW7ua15Wzy3s5BTH6tH1MZJA743QE9BQ+Iul/u1+XYNSaJm2/jiMQig=="],
+
+    "@janne6565/music-collector-shared": ["@janne6565/music-collector-shared@0.1.0", "https://npm.pkg.github.com/download/@janne6565/music-collector-shared/0.1.0/184d725987dcc86f52cf897c95071b2e2d65e434", { "peerDependencies": { "react": ">=18" } }, "sha512-mTcUdDADVBm5pLDQC5nvcBZjTGOBpdaDjWJ0sDky0obRfQBTD9Pes7C7lbvBdZzojlje2iusyRIN4eENyoLIVw=="],
 
     "@jridgewell/gen-mapping": ["@jridgewell/gen-mapping@0.3.13", "", { "dependencies": { "@jridgewell/sourcemap-codec": "^1.5.0", "@jridgewell/trace-mapping": "^0.3.24" } }, "sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA=="],
 

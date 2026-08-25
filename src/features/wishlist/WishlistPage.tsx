@@ -13,7 +13,17 @@ import { cn } from "@/lib/utils";
 import type { WishSort, WishlistItem } from "@janne6565/music-collector-shared";
 import { CHOOSABLE_WISH_SORTS, FORMAT_LABELS } from "@janne6565/music-collector-shared";
 import { useNavigate } from "@tanstack/react-router";
-import { ChevronDown, Disc3, GripVertical, Heart, Pencil, Plus, Search, Users } from "lucide-react";
+import {
+  Check,
+  ChevronDown,
+  Disc3,
+  GripVertical,
+  Heart,
+  Pencil,
+  Plus,
+  Search,
+  Users,
+} from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -78,6 +88,7 @@ export function WishlistPage() {
               <span>{t("wishlist.column.format")}</span>
               <span>{t("wishlist.column.note")}</span>
               <span>{t("wishlist.column.added")}</span>
+              <span />
             </div>
 
             {logic.items.map((item, index) => (
@@ -93,6 +104,7 @@ export function WishlistPage() {
                 onDragEnd={drag.putDown}
                 onDrop={() => drag.dropOn(index)}
                 onOpen={() => setReading(item.id)}
+                onFound={() => setHunting(item)}
                 language={i18n.language}
               />
             ))}
@@ -145,13 +157,18 @@ export function WishlistPage() {
 }
 
 /**
- * handle · art · release · format · note · added, as turn 18 redraws 16g.
+ * handle · art · release · format · note · added · found it.
  *
- * No actions column any more: the row is the click target and all three verbs — found it,
- * edit, remove — live in the entry modal it opens. Twenty-four rows each carrying three
- * buttons is a list you read past rather than read.
+ * Turn 18 draws 16g with no actions at all, on the grounds that the row opens an entry
+ * holding all three verbs. One is kept anyway: "I found a copy" is the reason the list
+ * exists, and making the common ending of a hunt cost an extra click to reach is the wrong
+ * trade. Editing and removing did go — both are one click away in the entry, and 16c is
+ * the add sheet now.
+ *
+ * 112px is the widest label the button carries, the German "Gefunden" at 103px rather than
+ * the width English happens to need; squeezed to fit, it folded onto two lines.
  */
-const GRID = "18px 44px minmax(0,1.5fr) 84px minmax(0,2fr) 96px";
+const GRID = "18px 44px minmax(0,1.5fr) 84px minmax(0,2fr) 96px 112px";
 
 function SortMenu({ logic }: { readonly logic: ReturnType<typeof useWishlistLogic> }) {
   const { t } = useTranslation();
@@ -210,6 +227,8 @@ interface RowProps {
   readonly onDrop: () => void;
   /** Opens the entry (16j). The whole row, because everything on it is about one entry. */
   readonly onOpen: () => void;
+  /** The hunt's ending, kept on the row: it is what the list is for. */
+  readonly onFound: () => void;
   readonly language: string;
 }
 
@@ -224,6 +243,7 @@ function Row({
   onDragEnd,
   onDrop,
   onOpen,
+  onFound,
   language,
 }: RowProps) {
   const { t } = useTranslation();
@@ -300,6 +320,22 @@ function Row({
       <span className="font-mono text-[10px] text-ink-subtle">
         {formatRelativeTime(item.createdAt, language)}
       </span>
+
+      {/* Quiet until the row is under the pointer: a column that shouts on every row is one
+          you read past. Never folds — a label on two lines pushed the row out of line. */}
+      <div className="flex justify-end opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+        <Button
+          onClick={(event) => {
+            // The row opens the entry; this button does its own thing instead.
+            event.stopPropagation();
+            onFound();
+          }}
+          className="h-8 flex-none whitespace-nowrap rounded-lg px-3 text-[12px]"
+        >
+          <Check size={14} strokeWidth={2} aria-hidden />
+          {t("wishlist.foundIt")}
+        </Button>
+      </div>
     </div>
   );
 }

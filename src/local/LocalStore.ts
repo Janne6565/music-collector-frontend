@@ -1,7 +1,17 @@
-import type { CollectionStats, Copy, Format, Photo, Release, WishlistItem } from "@/domain/types";
+import type {
+  CollectionStats,
+  Condition,
+  Copy,
+  Format,
+  Photo,
+  Release,
+  WishlistItem,
+} from "@/domain/types";
 
 export interface LibraryFilter {
   readonly format?: Format | "ALL";
+  /** The grade rail from screen 1f. Null — or absent — is every grade, ungraded included. */
+  readonly condition?: Condition | null;
   readonly search?: string;
   readonly sort?: "ADDED_DESC" | "ARTIST_ASC" | "YEAR_DESC";
 }

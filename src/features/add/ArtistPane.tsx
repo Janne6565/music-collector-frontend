@@ -1,5 +1,5 @@
 import { ReleaseArt } from "@/components/ReleaseArt";
-import { Button, Skeleton } from "@/components/ui";
+import { Button, ModalClose, Skeleton } from "@/components/ui";
 import type { Album, Artist, Release } from "@/domain/types";
 import { FORMAT_LABELS } from "@/domain/types";
 import { ArtistAvatar } from "@/features/add/ArtistResults";
@@ -11,6 +11,7 @@ import {
 } from "@/features/add/useDiscographyLogic";
 import { cn } from "@/lib/utils";
 import { ChevronDown, ChevronLeft, ChevronUp, Plus, Search } from "lucide-react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 interface ArtistPaneProps {
@@ -18,9 +19,13 @@ interface ArtistPaneProps {
   /** The search this artist was opened from, so "Back" can name it. */
   readonly fromQuery: string;
   readonly onBack: () => void;
+  readonly onClose: () => void;
   readonly onAdd: (release: Release) => void;
   readonly addingMbid: string | undefined;
   readonly isOwned: (release: Release) => boolean;
+  /** The pressing the sheet's footer will act on, picked by clicking its row. */
+  readonly selected: Release | null;
+  readonly onSelect: (release: Release | null) => void;
 }
 
 /**
@@ -33,9 +38,12 @@ export function ArtistPane({
   artist,
   fromQuery,
   onBack,
+  onClose,
   onAdd,
   addingMbid,
   isOwned,
+  selected,
+  onSelect,
 }: ArtistPaneProps) {
   const { t } = useTranslation();
   const logic = useDiscographyLogic(artist);
@@ -47,11 +55,12 @@ export function ArtistPane({
         <button
           type="button"
           onClick={onBack}
-          className="flex items-center gap-1.5 text-xs font-semibold text-ink-muted hover:text-ink"
+          className="flex min-w-0 items-center gap-1.5 truncate text-xs font-semibold text-ink-muted hover:text-ink"
         >
-          <ChevronLeft size={15} strokeWidth={2} aria-hidden />
+          <ChevronLeft size={15} strokeWidth={2} className="flex-none" aria-hidden />
           {t("artists.backToResults", { query: fromQuery })}
         </button>
+        <ModalClose onClose={onClose} label={t("common.close")} />
       </div>
 
       <header className="flex flex-none gap-4 border-b border-line px-6 pt-4 pb-4.5">
@@ -126,6 +135,8 @@ export function ArtistPane({
               onAdd={onAdd}
               addingMbid={addingMbid}
               isOwned={isOwned}
+              selected={selected}
+              onSelect={onSelect}
             />
           ))
         )}
@@ -191,6 +202,8 @@ interface AlbumRowProps {
   readonly onAdd: (release: Release) => void;
   readonly addingMbid: string | undefined;
   readonly isOwned: (release: Release) => boolean;
+  readonly selected: Release | null;
+  readonly onSelect: (release: Release | null) => void;
 }
 
 function AlbumRow({
@@ -203,12 +216,15 @@ function AlbumRow({
   onAdd,
   addingMbid,
   isOwned,
+  selected,
+  onSelect,
 }: AlbumRowProps) {
   const { t } = useTranslation();
 
   return (
     <div
       className={cn(
+        "mb-1",
         expanded && "rounded-b-[10px] bg-surface shadow-[0_1px_3px_rgba(25,23,19,.07)]",
       )}
     >
@@ -233,7 +249,12 @@ function AlbumRow({
           variant="secondary"
           onClick={onToggle}
           aria-expanded={expanded}
-          className="h-8 flex-none rounded-lg px-3 text-xs"
+          // Open, the button sits on the album's own white card, so the deck drops its
+          // border for a flat fill rather than drawing a box inside a box.
+          className={cn(
+            "h-8 flex-none rounded-lg px-3 text-xs",
+            expanded && "border-transparent bg-ink/8 hover:bg-ink/12",
+          )}
         >
           {t("artists.pressings")}
           {expanded ? (
@@ -258,6 +279,8 @@ function AlbumRow({
               onAdd={onAdd}
               addingMbid={addingMbid}
               isOwned={isOwned}
+              selected={selected}
+              onSelect={onSelect}
             />
           )}
         </div>
@@ -266,20 +289,30 @@ function AlbumRow({
   );
 }
 
-const COLUMNS = "grid-cols-[52px_1fr_1fr_112px_84px]";
+const COLUMNS = "grid-cols-[52px_1fr_1fr_96px_62px_84px]";
 
 function PressingTable({
   pressings,
   onAdd,
   addingMbid,
   isOwned,
+  selected,
+  onSelect,
 }: {
   readonly pressings: readonly Release[];
   readonly onAdd: (release: Release) => void;
   readonly addingMbid: string | undefined;
   readonly isOwned: (release: Release) => boolean;
+  readonly selected: Release | null;
+  readonly onSelect: (release: Release | null) => void;
 }) {
   const { t } = useTranslation();
+  /**
+   * Which pressing has its facts open. One at a time, like the album above it: the whole
+   * point of the table is comparing rows, and a stack of open panels pushes the rows you
+   * were comparing off the bottom of the sheet.
+   */
+  const [openDetails, setOpenDetails] = useState<string | null>(null);
 
   return (
     <div>
@@ -294,6 +327,7 @@ function PressingTable({
         <span>{t("artists.column.catalog")}</span>
         <span>{t("artists.column.format")}</span>
         <span />
+        <span />
       </div>
       <div className="border-t border-line">
         {pressings.map((pressing) => (
@@ -303,12 +337,31 @@ function PressingTable({
             owned={isOwned(pressing)}
             adding={addingMbid === pressing.id}
             onAdd={() => onAdd(pressing)}
+            selected={selected?.id === pressing.id}
+            onSelect={() => onSelect(selected?.id === pressing.id ? null : pressing)}
+            detailsOpen={openDetails === pressing.id}
+            onToggleDetails={() =>
+              setOpenDetails((current) => (current === pressing.id ? null : pressing.id))
+            }
           />
         ))}
       </div>
-      <p className="px-2 pt-2.5 text-[11px] text-ink-subtle">{t("artists.pickLater")}</p>
+      <div className="flex items-center justify-end border-t border-line px-2 pt-2.5">
+        <p className="text-[11px] text-ink-subtle">{t("artists.pickLater")}</p>
+      </div>
     </div>
   );
+}
+
+interface PressingRowProps {
+  readonly pressing: Release;
+  readonly owned: boolean;
+  readonly adding: boolean;
+  readonly onAdd: () => void;
+  readonly selected: boolean;
+  readonly onSelect: () => void;
+  readonly detailsOpen: boolean;
+  readonly onToggleDetails: () => void;
 }
 
 function PressingRow({
@@ -316,51 +369,124 @@ function PressingRow({
   owned,
   adding,
   onAdd,
-}: {
-  readonly pressing: Release;
-  readonly owned: boolean;
-  readonly adding: boolean;
-  readonly onAdd: () => void;
-}) {
+  selected,
+  onSelect,
+  detailsOpen,
+  onToggleDetails,
+}: PressingRowProps) {
   const { t } = useTranslation();
-  const details = [
-    pressing.releaseDate,
-    pressing.barcode === null ? null : `${t("artists.detail.barcode")} ${pressing.barcode}`,
-    pressing.trackCount === null
-      ? null
-      : t("artists.detail.tracks", { tracks: pressing.trackCount, discs: pressing.discCount ?? 1 }),
-  ]
-    .filter((part): part is string => typeof part === "string" && part !== "")
-    .join(" · ");
 
   return (
-    <div className={cn("grid items-center gap-2.5 border-b border-line/60 px-2 py-2.25", COLUMNS)}>
-      <span className="text-xs font-semibold">{pressing.year ?? "—"}</span>
-      <span className="truncate text-xs text-ink/70">
-        {[pressing.label, pressing.country].filter(Boolean).join(" · ") || "—"}
-      </span>
-      <span className="truncate font-mono text-[11px] text-ink-subtle">
-        {pressing.catalogNumber ?? "—"}
-      </span>
-      <span className="flex items-center gap-1.75 text-[11.5px] font-medium text-ink/70">
-        <span className="h-[18px] w-[18px] flex-none">
-          <ReleaseArt release={pressing} className="rounded-[2px]" />
-        </span>
-        {FORMAT_LABELS[pressing.format]}
-      </span>
-      {owned ? (
-        <span className="text-right font-mono text-[9.5px] uppercase tracking-[0.08em] text-ink-subtle">
-          {t("addDialog.inLibrary")}
-        </span>
-      ) : (
-        <Button onClick={onAdd} loading={adding} className="h-7 rounded-md px-2.5 text-[11.5px]">
-          {!adding && <Plus size={13} strokeWidth={2} aria-hidden />}
-          {t("addDialog.add")}
-        </Button>
-      )}
-      {details !== "" && (
-        <p className="col-span-5 px-0 pt-0.5 font-mono text-[10px] text-ink-subtle">{details}</p>
-      )}
+    <>
+      <div
+        className={cn(
+          "grid items-center gap-2.5 border-b border-line/60 px-2 py-2.25",
+          COLUMNS,
+          selected && "bg-canvas/60",
+          detailsOpen && "border-b-0",
+        )}
+      >
+        {/* The row itself picks the pressing for the footer, the way a search result does.
+            It stops short of the two controls to its right, which do their own jobs. */}
+        <button
+          type="button"
+          onClick={onSelect}
+          aria-pressed={selected}
+          className="col-span-4 grid items-center gap-2.5 text-left"
+          style={{ gridTemplateColumns: "52px 1fr 1fr 96px" }}
+        >
+          <span className="text-xs font-semibold">{pressing.year ?? "—"}</span>
+          <span className="truncate text-xs text-ink/70">
+            {[pressing.label, pressing.country].filter(Boolean).join(" · ") || "—"}
+          </span>
+          <span className="truncate font-mono text-[11px] text-ink-subtle">
+            {pressing.catalogNumber ?? "—"}
+          </span>
+          <span className="flex items-center gap-1.75 text-[11.5px] font-medium text-ink/70">
+            <span className="h-[18px] w-[18px] flex-none">
+              <ReleaseArt release={pressing} className="rounded-[2px]" />
+            </span>
+            {FORMAT_LABELS[pressing.format]}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={onToggleDetails}
+          aria-expanded={detailsOpen}
+          className={cn(
+            "flex items-center gap-1 text-[11px] font-semibold",
+            detailsOpen ? "text-ink/65" : "text-ink-subtle hover:text-ink",
+          )}
+        >
+          {t("artists.column.details")}
+          {detailsOpen ? (
+            <ChevronUp size={12} strokeWidth={2} aria-hidden />
+          ) : (
+            <ChevronDown size={12} strokeWidth={2} aria-hidden />
+          )}
+        </button>
+
+        {owned ? (
+          <span className="text-right font-mono text-[9.5px] uppercase tracking-[0.08em] text-ink-subtle">
+            {t("addDialog.inLibrary")}
+          </span>
+        ) : (
+          <Button onClick={onAdd} loading={adding} className="h-7 rounded-md px-2.5 text-[11.5px]">
+            {!adding && <Plus size={13} strokeWidth={2} aria-hidden />}
+            {t("addDialog.add")}
+          </Button>
+        )}
+      </div>
+
+      {detailsOpen && <PressingDetails pressing={pressing} />}
+    </>
+  );
+}
+
+/**
+ * What one pressing is, spelled out (10d).
+ *
+ * The four facts that separate two pressings a catalog number does not: the exact date, a
+ * barcode you can check against the sleeve in your hand, how many discs it came on, and
+ * whether there is any artwork to expect. Each says "none" or "unknown" out loud rather
+ * than disappearing — a missing barcode is itself the answer to "is this the CD reissue?".
+ */
+function PressingDetails({ pressing }: { readonly pressing: Release }) {
+  const { t } = useTranslation();
+  const facts: readonly (readonly [string, string])[] = [
+    [t("artists.detail.released"), pressing.releaseDate ?? t("artists.detail.unknown")],
+    [t("artists.detail.barcode"), pressing.barcode ?? t("artists.detail.none")],
+    [
+      t("artists.detail.tracks"),
+      pressing.trackCount === null
+        ? t("artists.detail.unknown")
+        : t("artists.detail.trackCount", {
+            tracks: pressing.trackCount,
+            discs: pressing.discCount ?? 1,
+          }),
+    ],
+    [
+      t("artists.detail.sleeveArt"),
+      pressing.coverArtUrl === null ? t("artists.detail.noArt") : t("artists.detail.hasArt"),
+    ],
+  ];
+
+  return (
+    <div className="mx-2 mb-2.5 flex gap-3.5 rounded-[9px] bg-paper p-3 shadow-[inset_0_0_0_1px_rgba(25,23,19,.08)]">
+      <div className="h-24 w-24 flex-none">
+        <ReleaseArt release={pressing} className="rounded-sm" />
+      </div>
+      <dl className="grid min-w-0 flex-1 grid-cols-2 content-start gap-x-4.5 gap-y-2">
+        {facts.map(([label, value]) => (
+          <div key={label}>
+            <dt className="font-mono text-[9.5px] uppercase tracking-[0.1em] text-ink-subtle">
+              {label}
+            </dt>
+            <dd className="mt-0.5 truncate text-xs">{value}</dd>
+          </div>
+        ))}
+      </dl>
     </div>
   );
 }

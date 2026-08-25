@@ -1,34 +1,51 @@
 import { ReleaseArt } from "@/components/ReleaseArt";
+import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui";
 import type { Copy, Release } from "@/domain/types";
 import { CONDITION_LABELS, CONDITION_SHORT, FORMAT_LABELS } from "@/domain/types";
 import { CopyEditor } from "@/features/detail/CopyEditor";
 import { type DetailChrome, chromeFor } from "@/features/detail/theme";
 import { useDetailLogic } from "@/features/detail/useDetailLogic";
+import { useCollectionStats } from "@/features/library/useLibraryLogic";
 import { PhotoStrip } from "@/features/photos/PhotoStrip";
 import { usePhotoStripLogic } from "@/features/photos/usePhotoStripLogic";
 import { Link } from "@tanstack/react-router";
-import { ArrowLeft, Pencil, Star, Trash2 } from "lucide-react";
+import { Pencil, Star, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
+/**
+ * Screen 1g — the item detail, inside the sidebar shell the rest of the app lives in.
+ *
+ * The shell stays in the app's own paper chrome while the page under it follows the sleeve
+ * (turn 3, applied to web as the deck suggested). Only the content region is themed: a
+ * sidebar that changed colour with whatever record you last opened would make the one
+ * fixed thing on screen the least stable one.
+ */
 export function DetailPage({ copyId }: { readonly copyId: string }) {
   const { t } = useTranslation();
   const logic = useDetailLogic(copyId);
   const photos = usePhotoStripLogic(copyId);
+  const stats = useCollectionStats();
   const [editing, setEditing] = useState(false);
 
   if (logic.loading) {
-    return <main className="p-8 text-sm text-ink-muted">…</main>;
+    return (
+      <AppShell stats={stats}>
+        <div className="p-8 text-sm text-ink-muted">…</div>
+      </AppShell>
+    );
   }
   if (logic.data === null) {
     return (
-      <main className="flex flex-col items-start gap-4 p-8">
-        <p className="text-sm text-ink-muted">{t("detail.notFound")}</p>
-        <Link to="/" className="text-sm text-accent underline">
-          {t("detail.back")}
-        </Link>
-      </main>
+      <AppShell stats={stats}>
+        <div className="flex flex-col items-start gap-4 p-8">
+          <p className="text-sm text-ink-muted">{t("detail.notFound")}</p>
+          <Link to="/" className="text-sm text-accent underline">
+            {t("detail.back")}
+          </Link>
+        </div>
+      </AppShell>
     );
   }
 
@@ -36,71 +53,98 @@ export function DetailPage({ copyId }: { readonly copyId: string }) {
   const chrome = chromeFor(release?.coverTheme ?? null);
 
   return (
-    <main className="min-h-screen" style={{ background: chrome.background, color: chrome.ink }}>
-      <div className="mx-auto flex max-w-5xl gap-10 px-8 py-7">
-        <div className="flex-none">
-          <Link
-            to="/"
-            className="mb-5 flex items-center gap-1.5 text-[13px]"
-            style={{ color: chrome.muted }}
+    <AppShell stats={stats}>
+      <header
+        className="flex flex-none items-center justify-between gap-4 border-b px-8 py-4"
+        style={{ background: chrome.background, borderColor: chrome.line }}
+      >
+        <Breadcrumb release={release} chrome={chrome} />
+        {/* The deck's one header action. While the editor is open it governs its own
+            saving, so a second Save up here would be two buttons for one job. */}
+        {!editing && (
+          <Button
+            onClick={() => setEditing(true)}
+            className="h-[34px] flex-none rounded-lg px-3.5 text-[12.5px]"
           >
-            <ArrowLeft size={16} strokeWidth={1.75} aria-hidden />
-            {t("detail.back")}
-          </Link>
-          <Cover release={release} fallbackSrc={photos.firstSrc} />
-          <PhotoStrip logic={photos} chrome={chrome} />
-        </div>
+            <Pencil size={14} strokeWidth={1.75} aria-hidden />
+            {t("detail.edit")}
+          </Button>
+        )}
+      </header>
 
-        <div className="min-w-0 flex-1 pt-11">
-          <Header copy={copy} release={release} chrome={chrome} />
+      <div
+        className="min-h-0 flex-1 overflow-auto"
+        style={{ background: chrome.background, color: chrome.ink }}
+      >
+        <div className="flex gap-10 p-8">
+          <div className="flex-none">
+            <Cover release={release} fallbackSrc={photos.firstSrc} />
+            <PhotoStrip logic={photos} chrome={chrome} />
+          </div>
 
-          {editing ? (
-            <CopyEditor
+          <div className="min-w-0 flex-1">
+            <Header copy={copy} release={release} chrome={chrome} />
+
+            {editing ? (
+              <CopyEditor
+                copy={copy}
+                chrome={chrome}
+                saving={logic.saving}
+                onSave={(patch) => {
+                  logic.save(patch);
+                  setEditing(false);
+                }}
+                onCancel={() => setEditing(false)}
+              />
+            ) : (
+              <Fields copy={copy} release={release} chrome={chrome} />
+            )}
+
+            <Notes
               copy={copy}
               chrome={chrome}
               saving={logic.saving}
-              onSave={(patch) => {
-                logic.save(patch);
-                setEditing(false);
-              }}
-              onCancel={() => setEditing(false)}
+              onKeep={(notes) => logic.save({ notes })}
             />
-          ) : (
-            <>
-              <div className="mt-6">
-                <Button
-                  onClick={() => setEditing(true)}
-                  className="h-9 rounded-full px-4 text-[13px]"
-                >
-                  <Pencil size={14} strokeWidth={1.75} aria-hidden />
-                  {t("detail.edit")}
-                </Button>
-              </div>
-              <Fields copy={copy} release={release} chrome={chrome} />
-            </>
-          )}
+            {otherCopies.length > 0 && <OtherCopies copies={otherCopies} chrome={chrome} />}
 
-          <Notes
-            copy={copy}
-            chrome={chrome}
-            saving={logic.saving}
-            onKeep={(notes) => logic.save({ notes })}
-          />
-          {otherCopies.length > 0 && <OtherCopies copies={otherCopies} chrome={chrome} />}
-
-          <Button
-            variant="secondary"
-            onClick={logic.remove}
-            loading={logic.removing}
-            className="mt-8 h-9 border-0 px-4 text-[13px]"
-            style={{ background: chrome.surface, color: chrome.muted }}
-          >
-            <Trash2 size={15} strokeWidth={1.75} aria-hidden />
-            {t("detail.remove")}
-          </Button>
+            <Button
+              variant="secondary"
+              onClick={logic.remove}
+              loading={logic.removing}
+              className="mt-8 h-9 border-0 px-4 text-[13px]"
+              style={{ background: chrome.surface, color: chrome.muted }}
+            >
+              <Trash2 size={15} strokeWidth={1.75} aria-hidden />
+              {t("detail.remove")}
+            </Button>
+          </div>
         </div>
       </div>
-    </main>
+    </AppShell>
+  );
+}
+
+/** "Library / Miles Davis / Bitches Brew" — the trail the deck puts above the sleeve. */
+function Breadcrumb({ release, chrome }: { readonly release: Release | undefined } & WithChrome) {
+  const { t } = useTranslation();
+  const trail = [release?.artistName, release?.title].filter(
+    (part): part is string => typeof part === "string" && part !== "",
+  );
+
+  return (
+    <nav
+      aria-label={t("detail.breadcrumb")}
+      className="min-w-0 truncate text-[12.5px] font-medium"
+      style={{ color: chrome.muted }}
+    >
+      <Link to="/" className="hover:underline">
+        {t("nav.library")}
+      </Link>
+      {trail.map((part) => (
+        <span key={part}> / {part}</span>
+      ))}
+    </nav>
   );
 }
 

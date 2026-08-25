@@ -154,6 +154,15 @@ export class DexieLocalStore implements LocalStore {
       ) {
         return false;
       }
+      // A grade the copy has never been given is not "Good" — an ungraded copy drops out
+      // of every grade filter rather than defaulting into the mildest one.
+      if (
+        filter.condition !== undefined &&
+        filter.condition !== null &&
+        copy.condition !== filter.condition
+      ) {
+        return false;
+      }
       const term = filter.search?.trim().toLowerCase();
       if (term === undefined || term === "") return true;
       const haystack = [release?.title, release?.artistName, release?.catalogNumber, copy.notes]

@@ -55,7 +55,13 @@ export function useAddDialogLogic(onClose: () => void) {
   const [term, setTerm] = useState("");
   const [submitted, setSubmitted] = useState("");
   const [format, setFormat] = useState<AddFormatFilter>("ALL");
-  const [selectedMbid, setSelectedMbid] = useState<string | null>(null);
+  /**
+   * The row the footer's "Add and edit details" acts on.
+   *
+   * The release itself rather than its id: a pressing picked inside an artist's
+   * discography (screen 10d) is not in `results`, so there is nothing to look an id up in.
+   */
+  const [selected, setSelected] = useState<Release | null>(null);
   /**
    * The artist whose discography is open over the results, if any (screen 10d). A pane
    * rather than a route: opening an artist is a detour inside adding a record, and the
@@ -162,11 +168,10 @@ export function useAddDialogLogic(onClose: () => void) {
 
   const all = resultsQuery.data ?? [];
   const results = format === "ALL" ? all : all.filter((release) => release.format === format);
-  const selected = results.find((release) => release.id === selectedMbid) ?? null;
 
   const search = useCallback((next: string) => {
     setSubmitted(next);
-    setSelectedMbid(null);
+    setSelected(null);
     // A new search invalidates the discography that was opened from the old one.
     setOpenArtist(null);
   }, []);
@@ -220,7 +225,7 @@ export function useAddDialogLogic(onClose: () => void) {
     setTab: useCallback(
       (next: AddTab) => {
         setTab(next);
-        setSelectedMbid(null);
+        setSelected(null);
         // The field is cleared with the tab, so the barcode box never opens holding a
         // half-typed album title that no barcode can ever match — and, now that the
         // search runs itself, never carries one tab's query into the other's request.
@@ -239,7 +244,12 @@ export function useAddDialogLogic(onClose: () => void) {
     }, [query, search, remember]),
     canSubmit: query !== "",
     format,
-    setFormat,
+    // Narrowing the filter can take the picked row off screen, and a footer acting on a
+    // release you can no longer see is worse than making you pick again.
+    setFormat: useCallback((next: AddFormatFilter) => {
+      setFormat(next);
+      setSelected(null);
+    }, []),
     results,
     /**
      * True from the keystroke, not from the request: the skeletons stand in for the wait
@@ -251,7 +261,7 @@ export function useAddDialogLogic(onClose: () => void) {
     submittedTerm: submitted,
     isOwned: (release: Release) => owned.data?.has(release.id) === true,
     selected,
-    select: setSelectedMbid,
+    select: setSelected,
     /** Adds the copy and stays put, so several can be added in one sitting. */
     addRelease: (release: Release) => {
       // The search that found something you kept is one worth offering again.

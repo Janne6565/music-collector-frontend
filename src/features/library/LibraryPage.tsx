@@ -1,8 +1,8 @@
 import { ReleaseArt } from "@/components/ReleaseArt";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button, Skeleton } from "@/components/ui";
-import type { Format } from "@/domain/types";
-import { FORMAT_LABELS } from "@/domain/types";
+import type { Condition, Format } from "@/domain/types";
+import { CONDITION_LABELS, CONDITION_SHORT, FORMAT_LABELS } from "@/domain/types";
 import { AddDialog } from "@/features/add/AddDialog";
 import { CopyDetailsDialog } from "@/features/add/CopyDetailsDialog";
 import {
@@ -18,6 +18,20 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 const FILTERS: readonly FormatFilter[] = ["ALL", "VINYL", "CD", "CASSETTE", "DIGITAL"];
+
+/**
+ * The grade rail from screen 1f, in the deck's own wording.
+ *
+ * Four of the eight grades, and spelled the way the deck spells them: the two that are a
+ * single letter get their full name, because "M" and "G" on their own are the pair people
+ * mix up, while "NM" and "VG+" are unambiguous abbreviations collectors already read.
+ */
+const CONDITION_RAIL: readonly (readonly [Condition, string])[] = [
+  ["M", CONDITION_LABELS.M],
+  ["NM", CONDITION_SHORT.NM],
+  ["VG_PLUS", CONDITION_SHORT.VG_PLUS],
+  ["G", CONDITION_LABELS.G],
+];
 
 /**
  * A grid page's worth of placeholders, in the widths the deck draws them.
@@ -56,7 +70,10 @@ export function LibraryPage() {
   const [detailsFor, setDetailsFor] = useState<string | null>(null);
 
   return (
-    <AppShell stats={logic.stats}>
+    <AppShell
+      stats={logic.stats}
+      rail={<ConditionRail active={logic.condition} onPick={logic.handleCondition} />}
+    >
       <header className="flex flex-none items-center gap-4 border-b border-line px-7 py-4">
         <label className="flex h-9 flex-1 items-center gap-2 rounded-lg border border-line bg-surface px-3.5">
           <Search size={16} strokeWidth={1.75} className="flex-none text-ink-subtle" aria-hidden />
@@ -133,6 +150,39 @@ export function LibraryPage() {
         />
       )}
     </AppShell>
+  );
+}
+
+/** Screen 1f's condition rail, under the format counts in the sidebar. */
+function ConditionRail({
+  active,
+  onPick,
+}: { readonly active: Condition | null; readonly onPick: (condition: Condition) => void }) {
+  const { t } = useTranslation();
+  return (
+    <div>
+      <div className="px-2.5 pb-2 font-mono text-[10px] uppercase tracking-[0.1em] text-ink-subtle">
+        {t("library.condition")}
+      </div>
+      <div className="flex flex-wrap gap-1.5 px-2.5">
+        {CONDITION_RAIL.map(([condition, label]) => (
+          <button
+            key={condition}
+            type="button"
+            onClick={() => onPick(condition)}
+            aria-pressed={active === condition}
+            className={cn(
+              "rounded-full px-2 py-1 text-[11px] font-medium transition-colors",
+              active === condition
+                ? "bg-ink text-paper"
+                : "border border-line text-ink-muted hover:bg-surface",
+            )}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
 

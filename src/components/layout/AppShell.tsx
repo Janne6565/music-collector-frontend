@@ -8,20 +8,29 @@ import { useTranslation } from "react-i18next";
 
 interface AppShellProps {
   readonly stats: CollectionStats | undefined;
+  /**
+   * Filters that belong to the page under the shell rather than to the shell itself — the
+   * grade rail screen 1f draws below the format counts. Only the library has one, which is
+   * exactly why it is passed in instead of living here.
+   */
+  readonly rail?: ReactNode;
   readonly children: ReactNode;
 }
 
 /** The sidebar layout from screen 1f, shared by the library and the item detail. */
-export function AppShell({ stats, children }: AppShellProps) {
+export function AppShell({ stats, rail, children }: AppShellProps) {
   return (
     <div className="flex h-screen bg-paper text-ink">
-      <Sidebar stats={stats} />
+      <Sidebar stats={stats} rail={rail} />
       <div className="flex min-w-0 flex-1 flex-col">{children}</div>
     </div>
   );
 }
 
-function Sidebar({ stats }: { readonly stats: CollectionStats | undefined }) {
+function Sidebar({
+  stats,
+  rail,
+}: { readonly stats: CollectionStats | undefined; readonly rail: ReactNode }) {
   const { t } = useTranslation();
   return (
     <nav className="flex w-56 flex-none flex-col gap-6 border-r border-line p-4 pt-5">
@@ -41,6 +50,7 @@ function Sidebar({ stats }: { readonly stats: CollectionStats | undefined }) {
             does not exist is worse than no link, so they appear when they work. */}
       </div>
       {stats !== undefined && <FormatCounts stats={stats} />}
+      {rail}
       <SidebarAccount copyCount={stats?.copyCount} />
     </nav>
   );

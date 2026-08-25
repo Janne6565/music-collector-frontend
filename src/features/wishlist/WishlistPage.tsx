@@ -3,7 +3,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui";
 import type { WishlistItem } from "@/domain/types";
 import { FORMAT_LABELS } from "@/domain/types";
-import { useLibraryLogic } from "@/features/library/useLibraryLogic";
+import { useCollectionStats } from "@/features/library/useLibraryLogic";
 import { useWishlistLogic } from "@/features/wishlist/useWishlistLogic";
 import { Check, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -11,7 +11,7 @@ import { useTranslation } from "react-i18next";
 export function WishlistPage() {
   const { t } = useTranslation();
   const logic = useWishlistLogic();
-  const { stats } = useLibraryLogic();
+  const stats = useCollectionStats();
 
   return (
     <AppShell stats={stats}>

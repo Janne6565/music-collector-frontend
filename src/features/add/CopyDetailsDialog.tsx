@@ -1,8 +1,10 @@
 import { ReleaseArt } from "@/components/ReleaseArt";
 import { Button, Modal, ModalClose } from "@/components/ui";
+import type { Format } from "@/domain/types";
 import { FORMAT_LABELS } from "@/domain/types";
 import { useCopyDetailsLogic } from "@/features/add/useCopyDetailsLogic";
 import { ConditionScale } from "@/features/detail/ConditionScale";
+import { cn } from "@/lib/utils";
 import { Calendar, HardDrive, Star } from "lucide-react";
 import { type ReactNode, useId } from "react";
 import { useTranslation } from "react-i18next";
@@ -71,14 +73,10 @@ export function CopyDetailsDialog({ copyId, onClose, onBack }: CopyDetailsDialog
           <div className="h-45 w-45">
             <ReleaseArt release={release} loading="eager" />
           </div>
-          {/* The format belongs to the pressing you picked, not to your copy of it, so it
-              is stated here rather than offered as a choice. */}
           <div className="mt-3.5 font-mono text-[10px] uppercase tracking-[0.08em] text-ink-subtle">
             {t("copyDetails.format")}
           </div>
-          <div className="mt-1.5 inline-flex rounded-full bg-ink px-2.5 py-1.25 text-[11.5px] font-semibold text-paper">
-            {FORMAT_LABELS[release?.format ?? "OTHER"]}
-          </div>
+          <FormatChips format={release?.format ?? "OTHER"} />
         </div>
 
         <div className="min-w-0 flex-1">
@@ -208,6 +206,42 @@ export function CopyDetailsDialog({ copyId, onClose, onBack }: CopyDetailsDialog
         </div>
       </div>
     </Modal>
+  );
+}
+
+/** The formats screen 8d puts under the sleeve, of which the pressing's own is lit. */
+const FORMAT_CHIPS: readonly Format[] = ["VINYL", "CD", "CASSETTE", "DIGITAL"];
+
+/**
+ * The whole scale, with this copy's place on it.
+ *
+ * The deck draws four chips here, and seeing "Vinyl" against the three it is not is what
+ * makes the answer legible — one lone chip reads as a label, not a position. They are
+ * inert all the same: a copy's format is the format of the pressing it is a copy of, and
+ * changing it would mean pointing the copy at a different release entirely.
+ */
+function FormatChips({ format }: { readonly format: Format }) {
+  const { t } = useTranslation();
+  const chips = FORMAT_CHIPS.includes(format) ? FORMAT_CHIPS : [...FORMAT_CHIPS, format];
+
+  return (
+    <div className="mt-1.5 flex flex-wrap gap-1.5">
+      {chips.map((chip) => (
+        <span
+          key={chip}
+          aria-current={chip === format}
+          title={t("copyDetails.formatFixed")}
+          className={cn(
+            "rounded-full px-2.5 py-1.25 text-[11.5px]",
+            chip === format
+              ? "bg-ink font-semibold text-paper"
+              : "border border-line bg-surface font-medium text-ink-subtle",
+          )}
+        >
+          {FORMAT_LABELS[chip]}
+        </span>
+      ))}
+    </div>
   );
 }
 

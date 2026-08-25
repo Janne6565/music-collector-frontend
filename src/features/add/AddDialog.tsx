@@ -56,19 +56,25 @@ export function AddDialog({ onClose, onEditDetails }: AddDialogProps) {
 
   return (
     <Modal onClose={onClose} labelledBy={titleId} width="660px">
-      <div className="flex flex-none items-start justify-between gap-4 px-6 pt-5.5">
-        <div className={cn(logic.openArtist !== null && "sr-only")}>
-          <h2 id={titleId} className="font-serif text-2xl leading-[1.1]">
-            {t("addDialog.title")}
-          </h2>
-          <p className="mt-1 text-[12.5px] text-ink-muted">{t("addDialog.lede")}</p>
-        </div>
-        {/* ml-auto, not just justify-between: an open discography takes the title block
-            out of flow (sr-only), which would otherwise slide the close button left. */}
-        <div className="ml-auto">
+      {/* An open discography replaces the whole header: screen 10d puts "Back to results"
+          and the close button on one row, and the sheet's own title is not the artist's.
+          The heading stays rendered for the dialog's accessible name — sr-only rather
+          than removed, because aria-labelledby cannot point at something that is gone. */}
+      {logic.openArtist !== null ? (
+        <h2 id={titleId} className="sr-only">
+          {t("addDialog.title")}
+        </h2>
+      ) : (
+        <div className="flex flex-none items-start justify-between gap-4 px-6 pt-5.5">
+          <div>
+            <h2 id={titleId} className="font-serif text-2xl leading-[1.1]">
+              {t("addDialog.title")}
+            </h2>
+            <p className="mt-1 text-[12.5px] text-ink-muted">{t("addDialog.lede")}</p>
+          </div>
           <ModalClose onClose={onClose} label={t("common.close")} />
         </div>
-      </div>
+      )}
 
       {/* The tab strip goes away with the search: an open discography is not a fifth tab,
           and leaving them live would strand you on "Barcode" with an artist still open. */}
@@ -113,14 +119,22 @@ export function AddDialog({ onClose, onEditDetails }: AddDialogProps) {
       {logic.tab === "CSV" ? (
         <CsvTab logic={logic} />
       ) : logic.openArtist !== null ? (
-        <ArtistPane
-          artist={logic.openArtist}
-          fromQuery={logic.submittedTerm}
-          onBack={logic.closeArtist}
-          onAdd={logic.addRelease}
-          addingMbid={logic.addingMbid}
-          isOwned={logic.isOwned}
-        />
+        <>
+          <ArtistPane
+            artist={logic.openArtist}
+            fromQuery={logic.submittedTerm}
+            onBack={logic.closeArtist}
+            onClose={onClose}
+            onAdd={logic.addRelease}
+            addingMbid={logic.addingMbid}
+            isOwned={logic.isOwned}
+            selected={logic.selected}
+            onSelect={logic.select}
+          />
+          {/* The sheet keeps its footer inside the discography (10d): the way out of the
+              modal should not depend on which pane of it you happen to be looking at. */}
+          <SheetFooter logic={logic} onEditDetails={onEditDetails} hint={t("artists.footerHint")} />
+        </>
       ) : (
         <SearchTab logic={logic} onEditDetails={onEditDetails} />
       )}
@@ -219,29 +233,52 @@ function SearchTab({
         <Results logic={logic} />
       </div>
 
-      <div className="flex flex-none items-center justify-between gap-4 border-t border-line bg-surface px-6 py-3.5">
-        <span className="text-[11.5px] text-ink-muted">{t("addDialog.footerHint")}</span>
-        <div className="flex gap-2.5">
-          <Button
-            variant="secondary"
-            onClick={logic.close}
-            className="h-[34px] rounded-lg px-3.5 text-[12.5px]"
-          >
-            {t("common.cancel")}
-          </Button>
-          <Button
-            onClick={async () => {
-              if (logic.selected === null) return;
-              onEditDetails(await logic.addAndEdit(logic.selected));
-            }}
-            disabled={logic.selected === null}
-            className="h-[34px] rounded-lg px-3.5 text-[12.5px]"
-          >
-            {t("addDialog.addAndEdit")}
-          </Button>
-        </div>
-      </div>
+      <SheetFooter logic={logic} onEditDetails={onEditDetails} hint={t("addDialog.footerHint")} />
     </>
+  );
+}
+
+/**
+ * The sheet's standing footer — the same one under the search results and the discography.
+ *
+ * The primary acts on whichever row is picked, wherever it was picked: a pressing chosen
+ * three levels into an artist's discography is as much "the one you meant" as a row in the
+ * search list, and 10d draws the button live for exactly that reason.
+ */
+function SheetFooter({
+  logic,
+  onEditDetails,
+  hint,
+}: {
+  readonly logic: Logic;
+  readonly onEditDetails: (copyId: string) => void;
+  readonly hint: string;
+}) {
+  const { t } = useTranslation();
+
+  return (
+    <div className="flex flex-none items-center justify-between gap-4 border-t border-line bg-surface px-6 py-3.5">
+      <span className="text-[11.5px] text-ink-muted">{hint}</span>
+      <div className="flex flex-none gap-2.5">
+        <Button
+          variant="secondary"
+          onClick={logic.close}
+          className="h-[34px] rounded-lg px-3.5 text-[12.5px]"
+        >
+          {t("common.cancel")}
+        </Button>
+        <Button
+          onClick={async () => {
+            if (logic.selected === null) return;
+            onEditDetails(await logic.addAndEdit(logic.selected));
+          }}
+          disabled={logic.selected === null}
+          className="h-[34px] rounded-lg px-3.5 text-[12.5px]"
+        >
+          {t("addDialog.addAndEdit")}
+        </Button>
+      </div>
+    </div>
   );
 }
 
@@ -432,7 +469,7 @@ function ResultRow({ release, logic }: { readonly release: Release; readonly log
       {/* Selecting a row is what the footer's "Add and edit details" acts on. */}
       <button
         type="button"
-        onClick={() => logic.select(release.id)}
+        onClick={() => logic.select(selected ? null : release)}
         aria-pressed={selected}
         className="flex min-w-0 flex-1 items-center gap-3.5 text-left"
       >

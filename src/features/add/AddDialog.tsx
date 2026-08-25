@@ -63,7 +63,11 @@ export function AddDialog({ onClose, onEditDetails }: AddDialogProps) {
           </h2>
           <p className="mt-1 text-[12.5px] text-ink-muted">{t("addDialog.lede")}</p>
         </div>
-        <ModalClose onClose={onClose} label={t("common.close")} />
+        {/* ml-auto, not just justify-between: an open discography takes the title block
+            out of flow (sr-only), which would otherwise slide the close button left. */}
+        <div className="ml-auto">
+          <ModalClose onClose={onClose} label={t("common.close")} />
+        </div>
       </div>
 
       {/* The tab strip goes away with the search: an open discography is not a fifth tab,

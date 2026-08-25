@@ -73,6 +73,37 @@ describe("ReleaseArt", () => {
     expect(cover(container).parentElement?.className).not.toContain("w-[88%]");
   });
 
+  it("falls back to the copy's own photo when the release has no cover", () => {
+    // Nothing in the archive, but the owner photographed the sleeve: that picture is the
+    // best answer we have, and it belongs in the frame instead of the placeholder.
+    const { container } = render(
+      <ReleaseArt release={release({ coverArtUrl: null })} fallbackSrc="blob:photo-1" />,
+    );
+
+    expect(cover(container).getAttribute("src")).toBe("blob:photo-1");
+  });
+
+  it("falls back to the photo only after the archive URL turns out to be empty", () => {
+    const { container } = render(<ReleaseArt release={release()} fallbackSrc="blob:photo-1" />);
+    expect(cover(container).getAttribute("src")).toBe("https://covers.example/rel-1.jpg");
+
+    fireEvent.error(cover(container));
+
+    expect(cover(container).getAttribute("src")).toBe("blob:photo-1");
+  });
+
+  it("settles on the placeholder when the photo fails too", () => {
+    // Two addresses in play: forgetting the first failure once the second one fails would
+    // swap the two forever.
+    const { container } = render(<ReleaseArt release={release()} fallbackSrc="blob:photo-1" />);
+
+    fireEvent.error(cover(container));
+    fireEvent.error(cover(container));
+
+    expect(container.querySelector("img")).toBeNull();
+    expect(container.querySelector(".mc-sweep")).toBeNull();
+  });
+
   it("waits again when it is handed a different release", () => {
     // The caller does not re-key these — the library grid reuses rows as filters change —
     // so a loaded flag that survived the swap would show the old cover's state.

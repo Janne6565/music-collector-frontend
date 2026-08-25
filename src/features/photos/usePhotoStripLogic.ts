@@ -13,6 +13,8 @@ export interface PhotoTile {
   readonly src: string | null;
 }
 
+export type PhotoStripLogic = ReturnType<typeof usePhotoStripLogic>;
+
 export function usePhotoStripLogic(copyId: string) {
   const { store, clock } = useStore();
   const queryClient = useQueryClient();
@@ -94,6 +96,11 @@ export function usePhotoStripLogic(copyId: string) {
 
   return {
     tiles,
+    /**
+     * The first photo whose bytes are already on the device, for the detail hero to stand
+     * in with when the release has no artwork of its own.
+     */
+    firstSrc: tiles.find((tile) => tile.src !== null)?.src ?? null,
     loading: photos.isLoading,
     accept: ACCEPTED.join(","),
     add: (file: File) => add.mutate(file),

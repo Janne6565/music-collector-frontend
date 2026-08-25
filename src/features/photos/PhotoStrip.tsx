@@ -1,5 +1,5 @@
 import type { DetailChrome } from "@/features/detail/theme";
-import { usePhotoStripLogic } from "@/features/photos/usePhotoStripLogic";
+import type { PhotoStripLogic } from "@/features/photos/usePhotoStripLogic";
 import { cn } from "@/lib/utils";
 import { ImageUp, Trash2 } from "lucide-react";
 import { useRef, useState } from "react";
@@ -50,7 +50,7 @@ function PhotoTile({
 }
 
 interface PhotoStripProps {
-  readonly copyId: string;
+  readonly logic: PhotoStripLogic;
   readonly chrome: DetailChrome;
 }
 
@@ -60,9 +60,8 @@ interface PhotoStripProps {
  * Works with no account — the photos live on the device. Signing in uploads them and makes
  * them appear on your other devices.
  */
-export function PhotoStrip({ copyId, chrome }: PhotoStripProps) {
+export function PhotoStrip({ logic, chrome }: PhotoStripProps) {
   const { t } = useTranslation();
-  const logic = usePhotoStripLogic(copyId);
   const input = useRef<HTMLInputElement>(null);
 
   return (

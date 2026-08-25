@@ -28,6 +28,13 @@ interface ReleaseArtProps {
    * which the deck draws as an edge-to-edge cover with no format furniture at all.
    */
   readonly variant?: "sleeve" | "bleed";
+  /**
+   * What to show when the release's own cover turns out not to exist — the copy's first
+   * photo. A user who photographs a sleeve the Cover Art Archive never had is telling us
+   * what this record looks like; the placeholder should not keep outranking that. Tried
+   * only once the archive URL is gone or has failed, so real artwork always wins.
+   */
+  readonly fallbackSrc?: string | null;
 }
 
 /**
@@ -53,15 +60,19 @@ export function ReleaseArt({
   className,
   loading = "lazy",
   variant = "sleeve",
+  fallbackSrc = null,
 }: ReleaseArtProps) {
   const [loadedUrl, setLoadedUrl] = useState<string | null>(null);
-  const [failedUrl, setFailedUrl] = useState<string | null>(null);
-  const url = release?.coverArtUrl ?? null;
+  // A set rather than one URL: with a fallback there are two addresses in play, and
+  // remembering only the last failure would let the first one look untried again.
+  const [failed, setFailed] = useState<ReadonlySet<string>>(() => new Set());
+  const cover = release?.coverArtUrl ?? null;
+  const url = cover === null || failed.has(cover) ? fallbackSrc : cover;
 
-  const gone = url === null || failedUrl === url;
+  const gone = url === null || failed.has(url);
   const shown = !gone && loadedUrl === url;
 
-  const cover = gone ? null : (
+  const art = gone ? null : (
     <img
       // The browser fires neither load nor error for an image it already has, so a cached
       // cover is read straight off the element as it mounts. Doing it in the ref callback
@@ -74,7 +85,7 @@ export function ReleaseArt({
       alt=""
       loading={loading}
       onLoad={() => setLoadedUrl(url)}
-      onError={() => setFailedUrl(url)}
+      onError={() => setFailed((seen) => new Set(seen).add(url))}
       className={cn(
         "absolute inset-0 h-full w-full object-cover transition-opacity duration-300",
         shown ? "opacity-100" : "opacity-0",
@@ -88,14 +99,14 @@ export function ReleaseArt({
         {/* Kept mounted underneath rather than swapped out: an image that decodes with a
             transparent edge would otherwise flash whatever is behind the frame. */}
         {!shown && <FormatThumb format={release?.format ?? "OTHER"} sweep={!gone} />}
-        {cover}
+        {art}
       </div>
     );
   }
 
   return (
     <div className={cn("relative h-full w-full", className)}>
-      <FormatThumb format={release?.format ?? "OTHER"} cover={cover} sweep={!gone && !shown} />
+      <FormatThumb format={release?.format ?? "OTHER"} cover={art} sweep={!gone && !shown} />
     </div>
   );
 }

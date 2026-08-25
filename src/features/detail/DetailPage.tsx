@@ -6,6 +6,7 @@ import { CopyEditor } from "@/features/detail/CopyEditor";
 import { type DetailChrome, chromeFor } from "@/features/detail/theme";
 import { useDetailLogic } from "@/features/detail/useDetailLogic";
 import { PhotoStrip } from "@/features/photos/PhotoStrip";
+import { usePhotoStripLogic } from "@/features/photos/usePhotoStripLogic";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft, Pencil, Star, Trash2 } from "lucide-react";
 import { useState } from "react";
@@ -14,6 +15,7 @@ import { useTranslation } from "react-i18next";
 export function DetailPage({ copyId }: { readonly copyId: string }) {
   const { t } = useTranslation();
   const logic = useDetailLogic(copyId);
+  const photos = usePhotoStripLogic(copyId);
   const [editing, setEditing] = useState(false);
 
   if (logic.loading) {
@@ -45,8 +47,8 @@ export function DetailPage({ copyId }: { readonly copyId: string }) {
             <ArrowLeft size={16} strokeWidth={1.75} aria-hidden />
             {t("detail.back")}
           </Link>
-          <Cover release={release} />
-          <PhotoStrip copyId={copy.id} chrome={chrome} />
+          <Cover release={release} fallbackSrc={photos.firstSrc} />
+          <PhotoStrip logic={photos} chrome={chrome} />
         </div>
 
         <div className="min-w-0 flex-1 pt-11">
@@ -102,10 +104,13 @@ export function DetailPage({ copyId }: { readonly copyId: string }) {
   );
 }
 
-function Cover({ release }: { readonly release: Release | undefined }) {
+function Cover({
+  release,
+  fallbackSrc,
+}: { readonly release: Release | undefined; readonly fallbackSrc: string | null }) {
   return (
     <div className="h-[340px] w-[340px] overflow-hidden rounded-lg shadow-[0_10px_30px_rgba(0,0,0,.25)]">
-      <ReleaseArt release={release} loading="eager" variant="bleed" />
+      <ReleaseArt release={release} loading="eager" variant="bleed" fallbackSrc={fallbackSrc} />
     </div>
   );
 }

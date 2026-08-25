@@ -294,6 +294,28 @@ describe("photos", () => {
     expect((await store.getPhotoIncludingDeleted("p-1"))?.deletedAt).toBe(9000);
   });
 
+  it("picks one cover photo per copy in a single lookup", async () => {
+    // What the library grid stands in with, so it has to be the same picture the detail
+    // strip shows first — the lowest sort index, not whichever row comes back first.
+    await store.putPhoto(photo("p-second", "copy-1", 1));
+    await store.putPhoto(photo("p-first", "copy-1", 0));
+    await store.putPhoto(photo("p-other", "copy-2", 0));
+
+    const covers = await store.listCoverPhotos(["copy-1", "copy-2", "copy-3"]);
+
+    expect(covers.get("copy-1")?.id).toBe("p-first");
+    expect(covers.get("copy-2")?.id).toBe("p-other");
+    expect(covers.has("copy-3")).toBe(false);
+  });
+
+  it("leaves a copy out of the cover lookup once its only photo is deleted", async () => {
+    await store.putPhoto(photo("p-1"));
+    const stored = await store.getPhotoIncludingDeleted("p-1");
+    await store.putPhoto(tombstonePhoto(stored as NonNullable<typeof stored>, clock, 9000));
+
+    expect((await store.listCoverPhotos(["copy-1"])).has("copy-1")).toBe(false);
+  });
+
   it("offers for upload only photos whose bytes are actually here", async () => {
     // A photo pulled from another device has metadata but no local bytes; uploading it
     // would be impossible and retrying forever would be pointless.

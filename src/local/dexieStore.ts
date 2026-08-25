@@ -222,6 +222,23 @@ export class DexieLocalStore implements LocalStore {
       .sort((a, b) => a.sortIndex - b.sortIndex);
   }
 
+  async listCoverPhotos(copyIds: readonly string[]): Promise<Map<string, Photo>> {
+    // anyOf on an empty list is legal but pointless, and the callers hit it on first paint.
+    if (copyIds.length === 0) return new Map();
+    const photos = await this.db.photos
+      .where("copyId")
+      .anyOf(copyIds as string[])
+      .toArray();
+
+    const first = new Map<string, Photo>();
+    for (const photo of photos) {
+      if (photo.deletedAt !== null) continue;
+      const held = first.get(photo.copyId);
+      if (held === undefined || photo.sortIndex < held.sortIndex) first.set(photo.copyId, photo);
+    }
+    return first;
+  }
+
   async getPhotoIncludingDeleted(id: string): Promise<Photo | undefined> {
     return this.db.photos.get(id);
   }

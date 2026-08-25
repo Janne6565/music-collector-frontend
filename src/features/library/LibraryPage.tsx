@@ -10,10 +10,11 @@ import {
   type LibraryRow,
   useLibraryLogic,
 } from "@/features/library/useLibraryLogic";
+import { useCoverPhotos } from "@/features/photos/useCoverPhotos";
 import { cn } from "@/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { ArrowDownNarrowWide, Search } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 const FILTERS: readonly FormatFilter[] = ["ALL", "VINYL", "CD", "CASSETTE", "DIGITAL"];
@@ -152,10 +153,20 @@ function LibraryBody({
   if (rows.length === 0)
     return <p className="pt-8 text-sm text-ink-muted">{t("library.noMatches")}</p>;
 
+  return <LibraryGrid rows={rows} />;
+}
+
+/**
+ * Split out because the photo lookup is a hook, and the body above returns early for
+ * loading, failure and both kinds of empty before there are ever any rows to look up.
+ */
+function LibraryGrid({ rows }: { readonly rows: readonly LibraryRow[] }) {
+  const covers = useCoverPhotos(useMemo(() => rows.map((row) => row.copy.id), [rows]));
+
   return (
     <div className={GRID_CLASS}>
       {rows.map((row) => (
-        <GridItem key={row.copy.id} row={row} />
+        <GridItem key={row.copy.id} row={row} fallbackSrc={covers.get(row.copy.id) ?? null} />
       ))}
     </div>
   );
@@ -182,12 +193,15 @@ function LibrarySkeleton() {
   );
 }
 
-function GridItem({ row }: { readonly row: LibraryRow }) {
+function GridItem({
+  row,
+  fallbackSrc,
+}: { readonly row: LibraryRow; readonly fallbackSrc: string | null }) {
   const { t } = useTranslation();
   return (
     <Link to="/copies/$copyId" params={{ copyId: row.copy.id }} className="group block">
       <div className="relative aspect-square">
-        <ReleaseArt release={row.release} />
+        <ReleaseArt release={row.release} fallbackSrc={fallbackSrc} />
       </div>
       <div className="mt-1.5 truncate text-[12.5px] font-semibold leading-tight group-hover:text-accent">
         {row.release?.title ?? "—"}

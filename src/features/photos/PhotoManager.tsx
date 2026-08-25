@@ -1,4 +1,5 @@
 import { ReleaseArt } from "@/components/ReleaseArt";
+import { ConfirmDialog } from "@/components/ui";
 import {
   type ShownImage,
   previewImage,
@@ -8,6 +9,7 @@ import {
 import type { PhotoStripLogic } from "@/features/photos/usePhotoStripLogic";
 import { cn } from "@/lib/utils";
 import type { Release } from "@janne6565/music-collector-shared";
+import { catalogArtShown } from "@janne6565/music-collector-shared";
 import { ImagePlus, Star, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -36,11 +38,15 @@ export function PhotoManager({ logic, release }: PhotoManagerProps) {
   const [shown, setShown] = useState<ShownImage | null>(null);
   /** The tile being dragged, so the drop target knows what is landing on it. */
   const [dragging, setDragging] = useState<string | null>(null);
+  /** Open while the copy is being asked whether to drop the catalogue's artwork. */
+  const [confirmingHide, setConfirmingHide] = useState(false);
 
-  const hasCatalog = release?.coverArtUrl != null && release.coverArtUrl !== "";
+  const releaseHasArt = release?.coverArtUrl != null && release.coverArtUrl !== "";
+  // A copy that has dropped the artwork has no catalogue tile at all — not a greyed one.
+  const hasCatalog = catalogArtShown({ catalogArt: logic.catalogArt }, releaseHasArt);
   // Shared with the detail page's strip, so the two views resolve a selection the same way.
-  const current = resolveShown(shown, logic.tiles, hasCatalog, logic.preferCatalogArt);
-  const preview = previewImage(logic.tiles, logic.preferCatalogArt);
+  const current = resolveShown(shown, logic.tiles, hasCatalog, logic.catalogArt);
+  const preview = previewImage(logic.tiles, logic.catalogArt);
 
   const shownTile =
     current.kind === "PHOTO" ? logic.tiles.find((tile) => tile.photo.id === current.id) : undefined;
@@ -164,6 +170,17 @@ export function PhotoManager({ logic, release }: PhotoManagerProps) {
                 {t("photos.catalog")}
               </span>
             </button>
+            {/* The same gesture as removing a photo, though it removes rather less: the
+                artwork stays in the archive and on every other copy of the release, and
+                this copy can take it back below. */}
+            <button
+              type="button"
+              onClick={() => setConfirmingHide(true)}
+              aria-label={t("photos.hideCatalog")}
+              className="absolute top-0.75 right-0.75 hidden h-3.75 w-3.75 items-center justify-center rounded-full bg-paper text-ink shadow-[0_1px_3px_rgba(25,23,19,.28)] group-hover:flex"
+            >
+              <X size={9} strokeWidth={2.4} aria-hidden />
+            </button>
           </div>
         )}
 
@@ -179,11 +196,38 @@ export function PhotoManager({ logic, release }: PhotoManagerProps) {
         </button>
       </div>
 
+      {/* Dropping the artwork has to be undoable from where it was dropped, or the tile
+          simply vanishes and nothing on the screen says it could come back. */}
+      {releaseHasArt && !hasCatalog && (
+        <button
+          type="button"
+          onClick={logic.restoreCatalogArt}
+          disabled={logic.choosing}
+          className="mt-2 text-[11px] font-medium text-accent underline-offset-2 hover:underline disabled:opacity-50"
+        >
+          {t("photos.restoreCatalog")}
+        </button>
+      )}
+
       <p className="mt-2 text-[11px] leading-normal text-ink-muted text-pretty">
         {t("photos.managerHint")}
       </p>
       {logic.rejected === "type" && (
         <p className="mt-2 text-xs text-accent">{t("photos.wrongType")}</p>
+      )}
+
+      {confirmingHide && (
+        <ConfirmDialog
+          title={t("photos.hideCatalogTitle")}
+          body={t("photos.hideCatalogBody")}
+          confirmLabel={t("photos.hideCatalogConfirm")}
+          cancelLabel={t("common.cancel")}
+          onCancel={() => setConfirmingHide(false)}
+          onConfirm={() => {
+            logic.hideCatalogArt();
+            setConfirmingHide(false);
+          }}
+        />
       )}
 
       <input

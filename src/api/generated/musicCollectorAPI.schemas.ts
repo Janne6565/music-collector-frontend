@@ -16,7 +16,7 @@ export interface SyncCopyDto {
   releaseId?: string;
   condition?: string;
   sleeveCondition?: string;
-  preferCatalogArt?: boolean;
+  catalogArt?: string;
   pricePaidCents?: number;
   currency?: string;
   purchasedOn?: string;

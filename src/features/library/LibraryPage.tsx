@@ -11,7 +11,7 @@ import {
 import { useCoverPhotos } from "@/features/photos/useCoverPhotos";
 import { cn } from "@/lib/utils";
 import type { Condition, Format } from "@janne6565/music-collector-shared";
-import { copyPreviewSrc } from "@janne6565/music-collector-shared";
+import { catalogArtShown, copyPreviewSrc } from "@janne6565/music-collector-shared";
 import {
   CONDITION_LABELS,
   CONDITION_SHORT,
@@ -222,6 +222,7 @@ function LibraryGrid({ rows }: { readonly rows: readonly LibraryRow[] }) {
           key={row.copy.id}
           row={row}
           previewSrc={copyPreviewSrc(row.copy, covers.get(row.copy.id) ?? null)}
+          allowCatalogArt={catalogArtShown(row.copy, true)}
         />
       ))}
     </div>
@@ -252,12 +253,21 @@ function LibrarySkeleton() {
 function GridItem({
   row,
   previewSrc,
-}: { readonly row: LibraryRow; readonly previewSrc: string | null }) {
+  allowCatalogArt,
+}: {
+  readonly row: LibraryRow;
+  readonly previewSrc: string | null;
+  readonly allowCatalogArt: boolean;
+}) {
   const { t } = useTranslation();
   return (
     <Link to="/copies/$copyId" params={{ copyId: row.copy.id }} className="group block">
       <div className="relative aspect-square">
-        <ReleaseArt release={row.release} previewSrc={previewSrc} />
+        <ReleaseArt
+          release={row.release}
+          previewSrc={previewSrc}
+          allowCatalogArt={allowCatalogArt}
+        />
       </div>
       <div className="mt-1.5 truncate text-[12.5px] font-semibold leading-tight group-hover:text-accent">
         {row.release?.title ?? "—"}

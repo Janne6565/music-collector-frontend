@@ -1,6 +1,6 @@
 import type { ShownImage } from "@/features/photos/shownImage";
 import { useStore } from "@/local/StoreProvider";
-import type { Photo } from "@janne6565/music-collector-shared";
+import type { CatalogArtChoice, Photo } from "@janne6565/music-collector-shared";
 import {
   applyCopyPatch,
   copyPreviewSrc,
@@ -143,13 +143,13 @@ export function usePhotoStripLogic(copyId: string) {
    * the front of its list is not a state anyone chose, it is a state the two gestures drift
    * into. Every star writes both sides.
    */
-  const preferCatalog = useMutation({
-    mutationFn: async (prefer: boolean) => {
+  const chooseCatalogArt = useMutation({
+    mutationFn: async (choice: CatalogArtChoice) => {
       const current = await store.getCopy(copyId);
       if (current === undefined) return;
       // applyCopyPatch restamps nothing when the value is unchanged, so starring the tile
       // that is already the preview does not start winning merges against real edits.
-      await store.putCopy(applyCopyPatch(current, { preferCatalogArt: prefer }, clock));
+      await store.putCopy(applyCopyPatch(current, { catalogArt: choice }, clock));
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["copy", copyId] });
@@ -176,12 +176,12 @@ export function usePhotoStripLogic(copyId: string) {
    * their bytes, and a hero pointed at a blob that is not there yet shows nothing at all.
    */
   const firstSrc = tiles.find((tile) => tile.src !== null)?.src ?? null;
-  const preferCatalogArt = copy.data?.preferCatalogArt ?? false;
+  const catalogArt: CatalogArtChoice = copy.data?.catalogArt ?? "AUTO";
 
   return {
     tiles,
     /** The image every other screen draws for this copy — null means the catalogue's own. */
-    previewSrc: copyPreviewSrc({ preferCatalogArt }, firstSrc),
+    previewSrc: copyPreviewSrc({ catalogArt }, firstSrc),
     loading: photos.isLoading,
     accept: ACCEPTED.join(","),
     add: (file: File) => add.mutate(file),
@@ -190,19 +190,25 @@ export function usePhotoStripLogic(copyId: string) {
     remove: (photo: Photo) => remove.mutate(photo),
     removing: remove.isPending ? remove.variables?.id : undefined,
     /** False until the catalogue's own artwork has been starred for this copy. */
-    preferCatalogArt,
+    catalogArt,
     /** Star — this image becomes the one every other screen shows for this copy. */
     setPreview: (shown: ShownImage) => {
       if (shown.kind === "CATALOG") {
-        preferCatalog.mutate(true);
+        chooseCatalogArt.mutate("PREFERRED");
         return;
       }
-      // Both halves: to the front of the list, and off the catalogue. See `preferCatalog`.
+      // Both halves: to the front of the list, and off the catalogue — see the note on
+      // `chooseCatalogArt`. Starring a photo is not a reason to un-hide the artwork, so a
+      // copy that has hidden it keeps that answer.
       move.mutate({ photoId: shown.id, to: 0 });
-      preferCatalog.mutate(false);
+      if (catalogArt === "PREFERRED") chooseCatalogArt.mutate("AUTO");
     },
+    /** Remove the release's artwork from this copy's images, and put it back. */
+    hideCatalogArt: () => chooseCatalogArt.mutate("HIDDEN"),
+    restoreCatalogArt: () => chooseCatalogArt.mutate("AUTO"),
+    choosing: chooseCatalogArt.isPending,
     /** Drag — the same write, to wherever it was dropped. */
     moveTo: (photoId: string, index: number) => move.mutate({ photoId, to: index }),
-    reordering: move.isPending || preferCatalog.isPending,
+    reordering: move.isPending || chooseCatalogArt.isPending,
   };
 }

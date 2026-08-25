@@ -65,7 +65,7 @@ export function DetailPage({ copyId }: { readonly copyId: string }) {
     shown,
     photos.tiles,
     release?.coverArtUrl != null && release.coverArtUrl !== "",
-    photos.preferCatalogArt,
+    photos.catalogArt,
   );
   /**
    * `previewSrc` while nothing is picked, not the resolved tile's source: it is the first
@@ -114,7 +114,11 @@ export function DetailPage({ copyId }: { readonly copyId: string }) {
       <div className="min-h-0 flex-1 overflow-auto bg-paper text-ink">
         <div className="flex gap-10 p-8">
           <div className="flex-none">
-            <Cover release={release} previewSrc={heroSrc} />
+            <Cover
+              release={release}
+              previewSrc={heroSrc}
+              allowCatalogArt={photos.catalogArt !== "HIDDEN"}
+            />
             <PhotoStrip logic={photos} release={release} shown={currentImage} onShow={setShown} />
           </div>
 
@@ -168,10 +172,21 @@ function Breadcrumb({ release }: { readonly release: Release | undefined }) {
 function Cover({
   release,
   previewSrc,
-}: { readonly release: Release | undefined; readonly previewSrc: string | null }) {
+  allowCatalogArt,
+}: {
+  readonly release: Release | undefined;
+  readonly previewSrc: string | null;
+  readonly allowCatalogArt: boolean;
+}) {
   return (
     <div className="h-[340px] w-[340px] overflow-hidden rounded-lg shadow-[0_10px_30px_rgba(25,23,19,.16)]">
-      <ReleaseArt release={release} loading="eager" variant="bleed" previewSrc={previewSrc} />
+      <ReleaseArt
+        release={release}
+        loading="eager"
+        variant="bleed"
+        previewSrc={previewSrc}
+        allowCatalogArt={allowCatalogArt}
+      />
     </div>
   );
 }

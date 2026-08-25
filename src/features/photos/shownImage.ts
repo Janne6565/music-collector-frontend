@@ -1,4 +1,5 @@
 import type { PhotoTile } from "@/features/photos/usePhotoStripLogic";
+import type { CatalogArtChoice } from "@janne6565/music-collector-shared";
 
 /**
  * Which of a copy's images the large frame is showing.
@@ -20,9 +21,12 @@ export type ShownImage =
  * flag. With neither, the front photo wins, and the catalogue stands in only where there
  * are no photos at all.
  */
-export function previewImage(tiles: readonly PhotoTile[], preferCatalogArt: boolean): ShownImage {
+export function previewImage(
+  tiles: readonly PhotoTile[],
+  catalogArt: CatalogArtChoice,
+): ShownImage {
   const first = tiles[0];
-  return preferCatalogArt || first === undefined
+  return catalogArt === "PREFERRED" || first === undefined
     ? { kind: "CATALOG" }
     : { kind: "PHOTO", id: first.photo.id };
 }
@@ -39,14 +43,14 @@ export function resolveShown(
   shown: ShownImage | null,
   tiles: readonly PhotoTile[],
   hasCatalog: boolean,
-  preferCatalogArt: boolean,
+  catalogArt: CatalogArtChoice,
 ): ShownImage {
   const stillThere =
     shown !== null &&
     (shown.kind === "CATALOG" ? hasCatalog : tiles.some((tile) => tile.photo.id === shown.id));
   if (stillThere) return shown;
 
-  const preview = previewImage(tiles, preferCatalogArt);
+  const preview = previewImage(tiles, catalogArt);
   // The catalogue is only a place to fall back to when there is artwork behind it.
   return preview.kind === "CATALOG" && !hasCatalog && tiles[0] !== undefined
     ? { kind: "PHOTO", id: tiles[0].photo.id }

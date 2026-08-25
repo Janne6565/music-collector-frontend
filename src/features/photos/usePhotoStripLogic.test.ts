@@ -78,7 +78,7 @@ describe("usePhotoStripLogic", () => {
         {
           condition: null,
           sleeveCondition: null,
-          preferCatalogArt: false,
+          catalogArt: "AUTO",
           pricePaidCents: null,
           currency: "EUR",
           purchasedOn: null,
@@ -93,6 +93,9 @@ describe("usePhotoStripLogic", () => {
     );
 
     for (const [index, id] of ["p-a", "p-b", "p-c"].entries()) {
+      // With bytes, so `previewSrc` is a real answer here rather than null for want of
+      // anything downloaded — which would make every assertion about it pass vacuously.
+      await store.putPhotoBytes(id, new ArrayBuffer(10), "image/jpeg");
       await store.putPhoto(
         createPhoto(
           { copyId: "copy-1", contentType: "image/jpeg", byteSize: 10, sortIndex: index },
@@ -157,10 +160,41 @@ describe("usePhotoStripLogic", () => {
 
     result.current.setPreview({ kind: "CATALOG" });
 
-    await waitFor(() => expect(result.current.preferCatalogArt).toBe(true));
+    await waitFor(() => expect(result.current.catalogArt).toBe("PREFERRED"));
     // Null means "fall through to the release's own cover art" — see copyPreviewSrc.
     expect(result.current.previewSrc).toBeNull();
     expect(await order()).toEqual(["p-a", "p-b", "p-c"]);
+  });
+
+  it("dropping the catalogue's artwork leaves the photos alone", async () => {
+    // Hiding is a statement about the list, not about which of its entries is the
+    // preview, so it must not disturb the order the star gesture writes.
+    const { result } = harness();
+    await waitFor(() => expect(result.current.tiles).toHaveLength(3));
+
+    result.current.hideCatalogArt();
+
+    await waitFor(() => expect(result.current.catalogArt).toBe("HIDDEN"));
+    expect(result.current.previewSrc).not.toBeNull();
+    expect(await order()).toEqual(["p-a", "p-b", "p-c"]);
+
+    result.current.restoreCatalogArt();
+    await waitFor(() => expect(result.current.catalogArt).toBe("AUTO"));
+  });
+
+  it("starring a photo does not un-hide artwork the copy has dropped", async () => {
+    // Two different questions: which entry is the preview, and whether the artwork is in
+    // the list at all. Answering the first must not silently answer the second.
+    const { result } = harness();
+    await waitFor(() => expect(result.current.tiles).toHaveLength(3));
+
+    result.current.hideCatalogArt();
+    await waitFor(() => expect(result.current.catalogArt).toBe("HIDDEN"));
+
+    result.current.setPreview({ kind: "PHOTO", id: "p-c" });
+
+    await waitFor(async () => expect(await order()).toEqual(["p-c", "p-a", "p-b"]));
+    expect(result.current.catalogArt).toBe("HIDDEN");
   });
 
   it("starring a photo takes the copy back off the catalogue", async () => {
@@ -170,11 +204,11 @@ describe("usePhotoStripLogic", () => {
     await waitFor(() => expect(result.current.tiles).toHaveLength(3));
 
     result.current.setPreview({ kind: "CATALOG" });
-    await waitFor(() => expect(result.current.preferCatalogArt).toBe(true));
+    await waitFor(() => expect(result.current.catalogArt).toBe("PREFERRED"));
 
     result.current.setPreview({ kind: "PHOTO", id: "p-c" });
 
-    await waitFor(() => expect(result.current.preferCatalogArt).toBe(false));
+    await waitFor(() => expect(result.current.catalogArt).toBe("AUTO"));
     expect(await order()).toEqual(["p-c", "p-a", "p-b"]);
   });
 });

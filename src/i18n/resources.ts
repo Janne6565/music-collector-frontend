@@ -48,6 +48,12 @@ const enCommon = {
     preview: "Preview",
     makePreview: "Make preview",
     catalog: "Catalog",
+    hideCatalog: "Remove the catalog image from this copy",
+    hideCatalogTitle: "Remove the catalog image?",
+    hideCatalogBody:
+      "It stops being one of this copy's images. The artwork stays in the catalog and on your other copies of this release, and you can put it back here at any time.",
+    hideCatalogConfirm: "Remove it",
+    restoreCatalog: "Put the catalog image back",
     managerHint: "Click a thumbnail to view it, star it to make it the preview, drag to reorder.",
     manageIn_one: "1 image · manage in Edit copy",
     manageIn_other: "{{count}} images · manage in Edit copy",
@@ -413,6 +419,12 @@ const deCommon: CommonSchema = {
     preview: "Vorschau",
     makePreview: "Als Vorschau",
     catalog: "Katalog",
+    hideCatalog: "Katalogbild aus diesem Exemplar entfernen",
+    hideCatalogTitle: "Katalogbild entfernen?",
+    hideCatalogBody:
+      "Es gehört dann nicht mehr zu den Bildern dieses Exemplars. Im Katalog und bei deinen anderen Exemplaren dieser Veröffentlichung bleibt es erhalten, und du kannst es hier jederzeit zurückholen.",
+    hideCatalogConfirm: "Entfernen",
+    restoreCatalog: "Katalogbild zurückholen",
     managerHint:
       "Klicke ein Vorschaubild an, um es zu sehen, markiere es als Vorschau oder zieh es an eine andere Stelle.",
     manageIn_one: "1 Bild · Verwalten unter „Exemplar bearbeiten“",

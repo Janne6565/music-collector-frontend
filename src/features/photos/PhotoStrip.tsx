@@ -3,6 +3,7 @@ import { type ShownImage, previewImage, sameImage } from "@/features/photos/show
 import type { PhotoStripLogic } from "@/features/photos/usePhotoStripLogic";
 import { cn } from "@/lib/utils";
 import type { Release } from "@janne6565/music-collector-shared";
+import { catalogArtShown } from "@janne6565/music-collector-shared";
 import { Star } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -79,8 +80,11 @@ interface PhotoStripProps {
  */
 export function PhotoStrip({ logic, release, shown, onShow }: PhotoStripProps) {
   const { t } = useTranslation();
-  const hasCatalog = release?.coverArtUrl != null && release.coverArtUrl !== "";
-  const preview = previewImage(logic.tiles, logic.preferCatalogArt);
+  const hasCatalog = catalogArtShown(
+    { catalogArt: logic.catalogArt },
+    release?.coverArtUrl != null && release.coverArtUrl !== "",
+  );
+  const preview = previewImage(logic.tiles, logic.catalogArt);
   const total = logic.tiles.length + (hasCatalog ? 1 : 0);
   if (total === 0) return null;
 

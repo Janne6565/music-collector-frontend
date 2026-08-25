@@ -39,6 +39,14 @@ interface ReleaseArtProps {
    * device yet shows artwork rather than a placeholder.
    */
   readonly previewSrc?: string | null;
+  /**
+   * Whether the release's own cover art may be drawn at all.
+   *
+   * False for a copy that has dropped it: the artwork the archive holds for a pressing can
+   * be the wrong cover, and such a copy should fall back to the format silhouette exactly
+   * as a release with no art does — not quietly keep showing what it discarded.
+   */
+  readonly allowCatalogArt?: boolean;
 }
 
 /**
@@ -65,12 +73,13 @@ export function ReleaseArt({
   loading = "lazy",
   variant = "sleeve",
   previewSrc = null,
+  allowCatalogArt = true,
 }: ReleaseArtProps) {
   const [loadedUrl, setLoadedUrl] = useState<string | null>(null);
   // A set rather than one URL: with a preview there are two addresses in play, and
   // remembering only the last failure would let the first one look untried again.
   const [failed, setFailed] = useState<ReadonlySet<string>>(() => new Set());
-  const cover = release?.coverArtUrl ?? null;
+  const cover = allowCatalogArt ? (release?.coverArtUrl ?? null) : null;
   // Preview first, catalogue second, and whichever has already failed is skipped.
   const url =
     [previewSrc, cover].find((candidate) => candidate != null && !failed.has(candidate)) ?? null;

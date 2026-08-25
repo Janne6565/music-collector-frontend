@@ -30,7 +30,7 @@ function copy(id: string, releaseId: string, overrides: Partial<Copy> = {}): Cop
     releaseId,
     condition: null,
     sleeveCondition: null,
-    preferCatalogArt: false,
+    catalogArt: "AUTO",
     pricePaidCents: null,
     currency: "EUR",
     purchasedOn: null,

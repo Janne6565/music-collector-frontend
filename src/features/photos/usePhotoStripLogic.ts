@@ -32,9 +32,16 @@ export function usePhotoStripLogic(copyId: string) {
     queryFn: () => store.listPhotos(copyId),
   });
 
-  // The copy itself, for the one preview choice its photo order cannot express.
+  /**
+   * The copy itself, for the one preview choice its photo order cannot express.
+   *
+   * Its own key, not the `["copy", id]` the detail page reads. Two queries under one key
+   * are one cache entry with one queryFn — the last observer to mount decides it — so
+   * sharing the key let this hook hand the page a bare Copy where it expected the whole
+   * `DetailData`, and the page crashed on the fields that were suddenly missing.
+   */
   const copy = useQuery({
-    queryKey: ["copy", copyId],
+    queryKey: ["copyCatalogArt", copyId],
     // Null rather than undefined: react-query rejects undefined as a query result.
     queryFn: async () => (await store.getCopy(copyId)) ?? null,
   });
@@ -152,6 +159,8 @@ export function usePhotoStripLogic(copyId: string) {
       await store.putCopy(applyCopyPatch(current, { catalogArt: choice }, clock));
     },
     onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["copyCatalogArt", copyId] });
+      // What the detail page and the shelf read, so the choice shows without a reload.
       await queryClient.invalidateQueries({ queryKey: ["copy", copyId] });
       await queryClient.invalidateQueries({ queryKey: ["copies"] });
     },

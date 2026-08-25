@@ -105,7 +105,7 @@ export function DetailPage({ copyId }: { readonly copyId: string }) {
 function Cover({ release }: { readonly release: Release | undefined }) {
   return (
     <div className="h-[340px] w-[340px] overflow-hidden rounded-lg shadow-[0_10px_30px_rgba(0,0,0,.25)]">
-      <ReleaseArt release={release} loading="eager" />
+      <ReleaseArt release={release} loading="eager" variant="bleed" />
     </div>
   );
 }

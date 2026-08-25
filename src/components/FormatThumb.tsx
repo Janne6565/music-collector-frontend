@@ -1,15 +1,56 @@
 import type { Format } from "@/domain/types";
 import { cn } from "@/lib/utils";
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 interface FormatThumbProps {
   readonly format: Format;
   readonly className?: string;
+  /**
+   * The real cover, drawn into the sleeve panel.
+   *
+   * Artwork belongs on the sleeve, not over the whole tile: a record sticks out past its
+   * cover, a CD sits in front of one, and replacing the entire composition with the image
+   * throws away the thing that tells you which of the four formats you are looking at.
+   * The node is layered over the stripes rather than swapped for them, so a cover that
+   * has not arrived — or never will — leaves the placeholder underneath intact.
+   */
+  readonly cover?: ReactNode;
+  /** Runs the loading sweep over the sleeve, which is the part the cover will fill. */
+  readonly sweep?: boolean;
 }
 
 const SLEEVE: CSSProperties = {
   background: "repeating-linear-gradient(135deg,#e3ded4 0 5px,#eae6de 5px 10px)",
 };
+
+/** The hairline every format's sleeve carries, drawn over the cover rather than under. */
+const SLEEVE_EDGE: CSSProperties = { boxShadow: "inset 0 0 0 1px rgba(25,23,19,.1)" };
+
+/**
+ * The sleeve panel — the same box in all four formats, and the one the cover fills.
+ *
+ * The edge is a sibling rather than this element's own inset shadow, because an inset
+ * shadow paints under the element's content and the cover would swallow it.
+ */
+function Sleeve({
+  cover,
+  sweep,
+  shadow,
+}: {
+  readonly cover?: ReactNode;
+  readonly sweep?: boolean;
+  readonly shadow?: string;
+}) {
+  return (
+    <div
+      className="absolute left-0 top-[6%] h-[88%] w-[88%] overflow-hidden rounded-[3px]"
+      style={{ ...SLEEVE, boxShadow: shadow }}
+    >
+      {cover}
+      <div className={cn("absolute inset-0", sweep === true && "mc-sweep")} style={SLEEVE_EDGE} />
+    </div>
+  );
+}
 
 /**
  * The placeholder artwork from the design deck, ported from FormatThumb.dc.html.
@@ -21,21 +62,26 @@ const SLEEVE: CSSProperties = {
  * Everything is CSS gradients and shadows, so there are no image requests and it stays
  * crisp at any size.
  */
-export function FormatThumb({ format, className }: FormatThumbProps) {
+export function FormatThumb({ format, className, cover, sweep }: FormatThumbProps) {
+  const sleeve = <Sleeve cover={cover} sweep={sweep} />;
+
   return (
+    // Decorative throughout, cover included: the row beside it already names the release,
+    // and "album artwork" read out per tile is noise in a grid of two hundred.
     <div className={cn("relative h-full w-full", className)} aria-hidden>
-      {format === "VINYL" && <Vinyl />}
-      {format === "CD" && <Disc />}
-      {format === "CASSETTE" && <Cassette />}
-      {(format === "DIGITAL" || format === "OTHER") && <Digital />}
+      {format === "VINYL" && <Vinyl cover={cover} sweep={sweep} />}
+      {format === "CD" && <Disc sleeve={sleeve} />}
+      {format === "CASSETTE" && <Cassette sleeve={sleeve} />}
+      {(format === "DIGITAL" || format === "OTHER") && <Digital sleeve={sleeve} />}
     </div>
   );
 }
 
-function Vinyl() {
+function Vinyl({ cover, sweep }: { readonly cover?: ReactNode; readonly sweep?: boolean }) {
   return (
     <>
-      {/* The record, peeking out to the right of the sleeve. */}
+      {/* The record, peeking out to the right of the sleeve — which is why the cover goes
+          inside the sleeve and not over the tile: it would bury the record. */}
       <div
         className="absolute right-0 top-[10%] h-[80%] w-[80%] rounded-full"
         style={{
@@ -44,24 +90,15 @@ function Vinyl() {
           boxShadow: "inset 0 0 0 1px rgba(0,0,0,.25)",
         }}
       />
-      <div
-        className="absolute left-0 top-[6%] h-[88%] w-[88%] rounded-[3px]"
-        style={{
-          ...SLEEVE,
-          boxShadow: "inset 0 0 0 1px rgba(25,23,19,.1),3px 0 7px rgba(25,23,19,.14)",
-        }}
-      />
+      <Sleeve cover={cover} sweep={sweep} shadow="3px 0 7px rgba(25,23,19,.14)" />
     </>
   );
 }
 
-function Disc() {
+function Disc({ sleeve }: { readonly sleeve: ReactNode }) {
   return (
     <>
-      <div
-        className="absolute left-0 top-[6%] h-[88%] w-[88%] rounded-[3px]"
-        style={{ ...SLEEVE, boxShadow: "inset 0 0 0 1px rgba(25,23,19,.1)" }}
-      />
+      {sleeve}
       <div
         className="absolute left-[13%] top-[19%] h-[62%] w-[62%] rounded-full"
         style={{
@@ -98,13 +135,10 @@ function Disc() {
   );
 }
 
-function Cassette() {
+function Cassette({ sleeve }: { readonly sleeve: ReactNode }) {
   return (
     <>
-      <div
-        className="absolute left-0 top-[6%] h-[88%] w-[88%] rounded-[3px]"
-        style={{ ...SLEEVE, boxShadow: "inset 0 0 0 1px rgba(25,23,19,.1)" }}
-      />
+      {sleeve}
       <div
         className="absolute left-[4%] top-[10%] h-[80%] w-[80%] rounded-[4px]"
         style={{
@@ -143,14 +177,11 @@ function Cassette() {
 /** Waveform bar heights, from the deck. */
 const WAVEFORM = [10, 18, 28, 20, 34, 24, 14, 22, 12] as const;
 
-function Digital() {
+function Digital({ sleeve }: { readonly sleeve: ReactNode }) {
   return (
     <>
       {/* One sleeve, like every other format. The waveform is what says "file". */}
-      <div
-        className="absolute left-0 top-[6%] h-[88%] w-[88%] rounded-[3px]"
-        style={{ ...SLEEVE, boxShadow: "inset 0 0 0 1px rgba(25,23,19,.1)" }}
-      />
+      {sleeve}
       {WAVEFORM.map((height, index) => (
         <div
           // Bars are positional, so the index is the identity.

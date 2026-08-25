@@ -7,27 +7,41 @@ interface ReleaseArtProps {
   readonly release: Release | undefined;
   readonly className?: string;
   readonly loading?: "lazy" | "eager";
+  /**
+   * Where the artwork sits.
+   *
+   * `sleeve` draws it into the sleeve panel of the format thumbnail, which is how the
+   * deck composes every grid tile and result row: the record still sticks out past its
+   * cover, the CD still sits in front of one. `bleed` is the item detail's hero (3a, 1j),
+   * which the deck draws as an edge-to-edge cover with no format furniture at all.
+   */
+  readonly variant?: "sleeve" | "bleed";
 }
 
 /**
- * A release's cover, falling back to the format placeholder.
+ * A release's cover.
  *
- * The fallback is not decoration. The server builds the Cover Art Archive URL from the
- * release mbid, and for a release it has not probed it cannot yet know whether any bytes
- * sit behind it — around four in ten do not. Hiding the broken image, which is what the
- * library used to do, left an empty square where the placeholder belonged.
+ * The format thumbnail underneath is not decoration, and it is not only a fallback. The
+ * server builds the Cover Art Archive URL from the release mbid, and for a release it has
+ * not probed it cannot yet know whether any bytes sit behind it — around four in ten do
+ * not. So the thumbnail holds the frame in all three cases: while the cover is on its way
+ * (with a sweep over the sleeve to say so), when it turns out there is nothing behind the
+ * URL, and when there was never a URL at all.
  *
- * The same placeholder also holds the frame while the bytes are on their way, with a
- * sweep over it to say the wait is still running. Using the silhouette rather than a grey
- * skeleton is what keeps the two kinds of missing cover from reading as different things:
- * the frame never changes shape, the cover fades in over it, and a release that turns out
- * to have no cover simply keeps what was already on screen once the sweep stops.
+ * The cover is layered into the sleeve rather than over the tile. Replacing the whole
+ * composition would bury the very thing the silhouette is there to say — which format
+ * this copy is — in the one view where a release appears four times, once per format.
  *
  * The loaded and failed URLs are remembered rather than booleans, so the component
  * self-corrects when it is handed a different release without needing to be re-keyed by
  * the caller — a new URL is neither loaded nor failed, which is exactly "loading".
  */
-export function ReleaseArt({ release, className, loading = "lazy" }: ReleaseArtProps) {
+export function ReleaseArt({
+  release,
+  className,
+  loading = "lazy",
+  variant = "sleeve",
+}: ReleaseArtProps) {
   const [loadedUrl, setLoadedUrl] = useState<string | null>(null);
   const [failedUrl, setFailedUrl] = useState<string | null>(null);
   const url = release?.coverArtUrl ?? null;
@@ -35,36 +49,41 @@ export function ReleaseArt({ release, className, loading = "lazy" }: ReleaseArtP
   const gone = url === null || failedUrl === url;
   const shown = !gone && loadedUrl === url;
 
+  const cover = gone ? null : (
+    <img
+      // The browser fires neither load nor error for an image it already has, so a cached
+      // cover is read straight off the element as it mounts. Doing it in the ref callback
+      // means the state is set before the first paint, and the sweep never appears for
+      // artwork that was never actually awaited.
+      ref={(node) => {
+        if (node?.complete === true && node.naturalWidth > 0) setLoadedUrl(url);
+      }}
+      src={url}
+      alt=""
+      loading={loading}
+      onLoad={() => setLoadedUrl(url)}
+      onError={() => setFailedUrl(url)}
+      className={cn(
+        "absolute inset-0 h-full w-full object-cover transition-opacity duration-300",
+        shown ? "opacity-100" : "opacity-0",
+      )}
+    />
+  );
+
+  if (variant === "bleed") {
+    return (
+      <div className={cn("relative h-full w-full overflow-hidden", className)}>
+        {/* Kept mounted underneath rather than swapped out: an image that decodes with a
+            transparent edge would otherwise flash whatever is behind the frame. */}
+        {!shown && <FormatThumb format={release?.format ?? "OTHER"} sweep={!gone} />}
+        {cover}
+      </div>
+    );
+  }
+
   return (
-    <div className={cn("relative h-full w-full overflow-hidden", className)}>
-      {/* Kept mounted underneath rather than swapped out: an image that decodes with a
-          transparent edge would otherwise flash whatever is behind the frame. */}
-      {!shown && (
-        <FormatThumb
-          format={release?.format ?? "OTHER"}
-          className={gone ? undefined : "mc-sweep"}
-        />
-      )}
-      {!gone && (
-        <img
-          // The browser fires neither load nor error for an image it already has, so a
-          // cached cover is read straight off the element as it mounts. Doing it in the
-          // ref callback means the state is set before the first paint, and the sweep
-          // never appears for artwork that was never actually awaited.
-          ref={(node) => {
-            if (node?.complete === true && node.naturalWidth > 0) setLoadedUrl(url);
-          }}
-          src={url}
-          alt=""
-          loading={loading}
-          onLoad={() => setLoadedUrl(url)}
-          onError={() => setFailedUrl(url)}
-          className={cn(
-            "absolute inset-0 h-full w-full object-cover transition-opacity duration-300",
-            shown ? "opacity-100" : "opacity-0",
-          )}
-        />
-      )}
+    <div className={cn("relative h-full w-full", className)}>
+      <FormatThumb format={release?.format ?? "OTHER"} cover={cover} sweep={!gone && !shown} />
     </div>
   );
 }

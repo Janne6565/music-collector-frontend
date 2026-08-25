@@ -187,10 +187,7 @@ function GridItem({ row }: { readonly row: LibraryRow }) {
   return (
     <Link to="/copies/$copyId" params={{ copyId: row.copy.id }} className="group block">
       <div className="relative aspect-square">
-        <ReleaseArt
-          release={row.release}
-          className="rounded-sm shadow-[inset_0_0_0_1px_rgba(25,23,19,.08)]"
-        />
+        <ReleaseArt release={row.release} />
       </div>
       <div className="mt-1.5 truncate text-[12.5px] font-semibold leading-tight group-hover:text-accent">
         {row.release?.title ?? "—"}

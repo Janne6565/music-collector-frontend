@@ -69,11 +69,7 @@ export function CopyDetailsDialog({ copyId, onClose, onBack }: CopyDetailsDialog
       >
         <div className="flex-none">
           <div className="h-45 w-45">
-            <ReleaseArt
-              release={release}
-              loading="eager"
-              className="rounded-sm shadow-[inset_0_0_0_1px_rgba(25,23,19,.08)]"
-            />
+            <ReleaseArt release={release} loading="eager" />
           </div>
           {/* The format belongs to the pressing you picked, not to your copy of it, so it
               is stated here rather than offered as a choice. */}

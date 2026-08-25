@@ -387,7 +387,7 @@ function ResultRow({ release, logic }: { readonly release: Release; readonly log
             recognise. The format is still named in the line below, and ReleaseArt falls
             back to the silhouette whenever the archive has nothing. */}
         <div className="h-13 w-13 flex-none">
-          <ReleaseArt release={release} className="rounded-sm" />
+          <ReleaseArt release={release} />
         </div>
         <div className="min-w-0 flex-1">
           <div className="truncate text-[13.5px] font-semibold leading-tight">{release.title}</div>

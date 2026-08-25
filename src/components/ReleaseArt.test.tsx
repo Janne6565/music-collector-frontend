@@ -56,6 +56,23 @@ describe("ReleaseArt", () => {
     expect(container.querySelector(".mc-sweep")).toBeNull();
   });
 
+  it("draws the cover into the sleeve, not over the whole tile", () => {
+    // A record sticks out past its cover and a CD sits in front of one. Covering the tile
+    // would bury the silhouette — the only thing saying which of the four formats this
+    // copy is, in the one view where a release appears once per format.
+    const { container } = render(<ReleaseArt release={release()} />);
+
+    expect(cover(container).parentElement?.className).toContain("w-[88%]");
+  });
+
+  it("fills the frame edge to edge on the item detail", () => {
+    // Screens 3a and 1j draw the hero as the cover and nothing else — no sleeve, no
+    // record, no format furniture.
+    const { container } = render(<ReleaseArt release={release()} variant="bleed" />);
+
+    expect(cover(container).parentElement?.className).not.toContain("w-[88%]");
+  });
+
   it("waits again when it is handed a different release", () => {
     // The caller does not re-key these — the library grid reuses rows as filters change —
     // so a loaded flag that survived the swap would show the old cover's state.

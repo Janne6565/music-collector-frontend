@@ -5,24 +5,15 @@ import { formatRelativeTime } from "@/domain/relativeTime";
 import { AddDialog } from "@/features/add/AddDialog";
 import { CopyDetailsDialog } from "@/features/copy/CopyDetailsDialog";
 import { useCollectionStats } from "@/features/library/useLibraryLogic";
+import { WishDetailsDialog } from "@/features/wishlist/WishDetailsDialog";
 import { WishDialog } from "@/features/wishlist/WishDialog";
 import { useRowDrag } from "@/features/wishlist/useRowDrag";
 import { useWishlistLogic } from "@/features/wishlist/useWishlistLogic";
 import { cn } from "@/lib/utils";
 import type { WishSort, WishlistItem } from "@janne6565/music-collector-shared";
 import { CHOOSABLE_WISH_SORTS, FORMAT_LABELS } from "@janne6565/music-collector-shared";
-import {
-  Check,
-  ChevronDown,
-  Disc3,
-  GripVertical,
-  Heart,
-  Pencil,
-  Plus,
-  Search,
-  Trash2,
-  Users,
-} from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { ChevronDown, Disc3, GripVertical, Heart, Pencil, Plus, Search, Users } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -49,6 +40,9 @@ export function WishlistPage() {
    */
   const [hunting, setHunting] = useState<WishlistItem | null>(null);
   const [detailsFor, setDetailsFor] = useState<string | null>(null);
+  /** The entry being read (16j). The list stays behind it — it is the workspace. */
+  const [reading, setReading] = useState<string | null>(null);
+  const navigate = useNavigate();
   const drag = useRowDrag(logic.reorder);
 
   return (
@@ -84,7 +78,6 @@ export function WishlistPage() {
               <span>{t("wishlist.column.format")}</span>
               <span>{t("wishlist.column.note")}</span>
               <span>{t("wishlist.column.added")}</span>
-              <span />
             </div>
 
             {logic.items.map((item, index) => (
@@ -99,10 +92,7 @@ export function WishlistPage() {
                 onLift={() => drag.lift(index)}
                 onDragEnd={drag.putDown}
                 onDrop={() => drag.dropOn(index)}
-                onFound={() => setHunting(item)}
-                onEdit={() => setSheet(item)}
-                onRemove={() => logic.remove(item)}
-                removing={logic.removing === item.id}
+                onOpen={() => setReading(item.id)}
                 language={i18n.language}
               />
             ))}
@@ -111,6 +101,22 @@ export function WishlistPage() {
           </>
         )}
       </div>
+
+      {reading !== null && (
+        <WishDetailsDialog
+          wishId={reading}
+          onClose={() => setReading(null)}
+          onFound={() => {
+            const item = logic.items.find((entry) => entry.id === reading);
+            setReading(null);
+            if (item !== undefined) setHunting(item);
+          }}
+          onSeeCopy={(copyId) => {
+            setReading(null);
+            void navigate({ to: "/copies/$copyId", params: { copyId } });
+          }}
+        />
+      )}
 
       {sheet !== null && (
         <WishDialog onClose={() => setSheet(null)} entry={sheet === true ? null : sheet} />
@@ -139,13 +145,13 @@ export function WishlistPage() {
 }
 
 /**
- * handle · art · release · format · note · added · actions, as 16g draws it.
+ * handle · art · release · format · note · added, as turn 18 redraws 16g.
  *
- * The actions column is wide enough for the longest label the three controls carry — 167px
- * for the German "Gefunden" — rather than the width the English happens to need. Squeezed
- * to fit, the button folded its label onto two lines and stood taller than the row.
+ * No actions column any more: the row is the click target and all three verbs — found it,
+ * edit, remove — live in the entry modal it opens. Twenty-four rows each carrying three
+ * buttons is a list you read past rather than read.
  */
-const GRID = "18px 44px minmax(0,1.5fr) 84px minmax(0,2fr) 96px 176px";
+const GRID = "18px 44px minmax(0,1.5fr) 84px minmax(0,2fr) 96px";
 
 function SortMenu({ logic }: { readonly logic: ReturnType<typeof useWishlistLogic> }) {
   const { t } = useTranslation();
@@ -202,10 +208,8 @@ interface RowProps {
   readonly onLift: () => void;
   readonly onDragEnd: () => void;
   readonly onDrop: () => void;
-  readonly onFound: () => void;
-  readonly onEdit: () => void;
-  readonly onRemove: () => void;
-  readonly removing: boolean;
+  /** Opens the entry (16j). The whole row, because everything on it is about one entry. */
+  readonly onOpen: () => void;
   readonly language: string;
 }
 
@@ -219,18 +223,24 @@ function Row({
   onLift,
   onDragEnd,
   onDrop,
-  onFound,
-  onEdit,
-  onRemove,
-  removing,
+  onOpen,
   language,
 }: RowProps) {
   const { t } = useTranslation();
 
   return (
-    // Draggable on the row, but only *started* by the handle: a row that lifts wherever
-    // you happen to press makes selecting the note impossible.
+    // The row opens the entry, and is draggable, but a drag is only *started* by the
+    // handle: a row that lifts wherever you happen to press makes reading impossible.
+    // biome-ignore lint/a11y/useSemanticElements: a button cannot hold the drag handle
     <div
+      role="button"
+      tabIndex={0}
+      onClick={onOpen}
+      onKeyDown={(event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        onOpen();
+      }}
       draggable={draggable}
       onDragStart={(event) => {
         // Firefox starts no drag at all for a dragstart that carries no data, so the row
@@ -242,7 +252,9 @@ function Row({
       onDrop={onDrop}
       onDragEnd={onDragEnd}
       className={cn(
-        "group grid items-center gap-x-3 border-b border-line py-2.5 transition-opacity",
+        "group grid cursor-pointer items-center gap-x-3 rounded-lg border-b border-line px-2 py-2.5",
+        "transition-[opacity,background-color] hover:bg-canvas/60",
+        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-ink",
         lifted && "opacity-40",
       )}
       style={{ gridTemplateColumns: GRID }}
@@ -251,7 +263,9 @@ function Row({
         type="button"
         // Mouse-down rather than a click: the drag has to be armed before the browser's
         // own dragstart fires, and dragstart never waits for a click to complete.
+        // Stopped here: pressing the handle arms a drag, it does not open the entry.
         onMouseDown={onArm}
+        onClick={(event) => event.stopPropagation()}
         aria-label={t("wishlist.reorder")}
         className="cursor-grab text-ink-subtle opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
       >
@@ -286,36 +300,6 @@ function Row({
       <span className="font-mono text-[10px] text-ink-subtle">
         {formatRelativeTime(item.createdAt, language)}
       </span>
-
-      {/* Quiet until the row is under the pointer: twenty-four rows each shouting two
-          buttons is a list you have to read past rather than read. */}
-      <div className="flex items-center justify-end gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
-        {/* Never fold: a label on two lines is what pushed this row out of alignment. */}
-        <Button
-          onClick={onFound}
-          className="h-8 flex-none whitespace-nowrap rounded-lg px-3 text-[12px]"
-        >
-          <Check size={14} strokeWidth={2} aria-hidden />
-          {t("wishlist.foundIt")}
-        </Button>
-        <button
-          type="button"
-          onClick={onEdit}
-          aria-label={t("wishlist.editNote")}
-          className="p-1.5 text-ink-subtle hover:text-ink"
-        >
-          <Pencil size={14} strokeWidth={1.75} aria-hidden />
-        </button>
-        <button
-          type="button"
-          onClick={onRemove}
-          disabled={removing}
-          aria-label={t("wishlist.remove")}
-          className="p-1.5 text-ink-subtle hover:text-ink disabled:opacity-40"
-        >
-          <Trash2 size={14} strokeWidth={1.75} aria-hidden />
-        </button>
-      </div>
     </div>
   );
 }

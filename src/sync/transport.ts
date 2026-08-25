@@ -5,6 +5,7 @@ import type {
 } from "@/api/generated/musicCollectorAPI.schemas";
 import { pull, push } from "@/api/generated/sync/sync";
 import { downloadPhotoBytes, uploadPhotoBytes } from "@/api/photos";
+import type { CopyOrigin, OriginJournal } from "@/local/dexieStore";
 import type {
   ClockSource,
   Copy,
@@ -35,6 +36,7 @@ function wishToDto(item: WishlistItem): SyncWishDto {
     year: item.year ?? undefined,
     desiredFormat: item.desiredFormat ?? undefined,
     note: item.note ?? undefined,
+    sortIndex: item.sortIndex ?? undefined,
     createdAt: item.createdAt,
     deletedAt: item.deletedAt ?? undefined,
     fieldClocks: item.fieldClocks,
@@ -96,6 +98,7 @@ export function wishFromDto(dto: SyncWishDto): WishlistItem | null {
     year: dto.year ?? null,
     desiredFormat: (dto.desiredFormat ?? null) as WishlistItem["desiredFormat"],
     note: dto.note ?? null,
+    sortIndex: dto.sortIndex ?? null,
     createdAt: dto.createdAt,
     deletedAt: dto.deletedAt ?? null,
     fieldClocks: dto.fieldClocks as WishlistItem["fieldClocks"],
@@ -124,6 +127,9 @@ function toDto(copy: Copy): SyncCopyDto {
     notes: copy.notes ?? undefined,
     notesConflict: copy.notesConflict ?? undefined,
     rating: copy.rating ?? undefined,
+    // Always sent, never `?? undefined`: an omitted boolean would leave a server that had
+    // been told `true` never hearing it undone. Same reasoning as `catalogArt` above.
+    hidden: copy.hidden,
     createdAt: copy.createdAt,
     deletedAt: copy.deletedAt ?? undefined,
     fieldClocks: copy.fieldClocks,
@@ -164,6 +170,8 @@ export function fromDto(dto: SyncCopyDto): Copy | null {
     notes: dto.notes ?? null,
     notesConflict: dto.notesConflict ?? null,
     rating: dto.rating ?? null,
+    // Absent means a server older than the field, which reads as not hidden.
+    hidden: dto.hidden ?? false,
     createdAt: dto.createdAt,
     deletedAt: dto.deletedAt ?? null,
     fieldClocks: dto.fieldClocks as Copy["fieldClocks"],
@@ -191,18 +199,46 @@ function toPage(
   };
 }
 
-export function createSyncTransport(store: LocalStore): SyncTransport {
+/**
+ * A store that may or may not keep the origin journal. Optional rather than required so a
+ * test double, or any store that has no use for feeds, still satisfies it.
+ */
+type SyncStore = LocalStore & Partial<OriginJournal>;
+
+export function createSyncTransport(store: SyncStore): SyncTransport {
   return {
     async pull(cursor: number): Promise<SyncPage> {
       return toPage(await pull({ since: cursor }), cursor);
     },
 
     async push(copies, wishes, photos): Promise<PushResult> {
+      /*
+       * Why each copy exists, answered beside the records rather than on them.
+       *
+       * The server cannot work this out for itself — an import and a fortnight of typing
+       * arrive in the same shape — and it is what keeps a CSV file and the first sign-in
+       * push out of everybody's feed. Only ids in this batch are sent, so a stale answer
+       * about a copy that is not being pushed cannot ride along.
+       */
+      const remembered: Record<string, CopyOrigin> = (await store.readOrigins?.()) ?? {};
+      const origins = Object.fromEntries(
+        copies
+          .map((copy) => copy.id)
+          .filter((id) => remembered[id] !== undefined)
+          .map((id) => [id, remembered[id]]),
+      );
+
       const response = await push({
         copies: copies.map(toDto),
         wishes: wishes.map(wishToDto),
         photos: photos.map(photoToDto),
+        origins,
       });
+
+      // Only after the server has answered: a push that failed has to be able to say the
+      // same thing again, or a record added on a train would go quiet for good.
+      await store.forgetOrigins?.(Object.keys(origins));
+
       const page = toPage(response, 0);
       return {
         copies: page.copies,
@@ -230,6 +266,6 @@ export function createSyncTransport(store: LocalStore): SyncTransport {
 }
 
 /** The engine, wired to this app's transport. Every caller goes through here. */
-export function createSyncEngine(store: LocalStore, clock: ClockSource): SyncEngine {
+export function createSyncEngine(store: SyncStore, clock: ClockSource): SyncEngine {
   return new SyncEngine(store, clock, createSyncTransport(store));
 }

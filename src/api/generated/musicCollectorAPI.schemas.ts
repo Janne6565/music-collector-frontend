@@ -77,6 +77,7 @@ export interface SyncWishDto {
   year?: number;
   desiredFormat?: string;
   note?: string;
+  sortIndex?: number;
   createdAt?: number;
   deletedAt?: number;
   fieldClocks?: SyncWishDtoFieldClocks;

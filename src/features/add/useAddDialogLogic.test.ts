@@ -14,12 +14,18 @@ vi.mock("@/api/releases", async (original) => ({
 const settings = new Map<string, string>();
 
 const copies: unknown[] = [];
+/** Adding a copy consults the wishlist now (screen 16e), so the fake has to hold one. */
+let wishes: unknown[] = [];
 
 const store = {
   listCopies: async () => [],
   cacheReleases: async () => {},
   putCopy: async (copy: unknown) => {
     copies.push(copy);
+  },
+  listWishlist: async () => wishes,
+  putWishlistItem: async (item: { id: string }) => {
+    wishes = wishes.map((wish) => ((wish as { id: string }).id === item.id ? item : wish));
   },
   readSetting: async (key: string) => settings.get(key),
   writeSetting: async (key: string, value: string) => {
@@ -91,6 +97,7 @@ describe("useAddDialogLogic", () => {
   beforeEach(() => {
     settings.clear();
     copies.length = 0;
+    wishes = [];
     vi.mocked(searchReleases).mockClear();
     vi.useFakeTimers();
   });
@@ -182,6 +189,57 @@ describe("useAddDialogLogic", () => {
     expect(copies).toHaveLength(1);
     expect(onAdded).toHaveBeenCalledTimes(1);
     expect(onAdded).toHaveBeenCalledWith((copies[0] as { id: string }).id);
+  });
+
+  it("takes the record off the wishlist when the copy that satisfies it is filed", async () => {
+    // Screen 16e — the wishlist's quietest exit. Wired here rather than on the wishlist
+    // page because the add is where it happens, whichever way in was used.
+    wishes = [
+      {
+        id: "w1",
+        albumId: RELEASE.albumId,
+        title: RELEASE.title,
+        artistName: RELEASE.artistName,
+        year: RELEASE.year,
+        desiredFormat: "VINYL",
+        note: null,
+        sortIndex: null,
+        createdAt: 1,
+        deletedAt: null,
+        fieldClocks: {},
+      },
+    ];
+    const { result } = harness();
+
+    await act(async () => result.current.addRelease(RELEASE));
+    await settle();
+
+    expect((wishes[0] as { deletedAt: number | null }).deletedAt).not.toBeNull();
+  });
+
+  it("leaves an entry standing when the copy is not the format it asked for", async () => {
+    wishes = [
+      {
+        id: "w1",
+        albumId: RELEASE.albumId,
+        title: RELEASE.title,
+        artistName: RELEASE.artistName,
+        year: RELEASE.year,
+        // The release is vinyl; wanting the tape is not satisfied by buying the record.
+        desiredFormat: "CASSETTE",
+        note: null,
+        sortIndex: null,
+        createdAt: 1,
+        deletedAt: null,
+        fieldClocks: {},
+      },
+    ];
+    const { result } = harness();
+
+    await act(async () => result.current.addRelease(RELEASE));
+    await settle();
+
+    expect((wishes[0] as { deletedAt: number | null }).deletedAt).toBeNull();
   });
 
   it("drops the picked row once it has been added", async () => {

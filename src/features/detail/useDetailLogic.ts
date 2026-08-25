@@ -82,7 +82,7 @@ export function useDetailLogic(copyId: string) {
       window.setTimeout(() => {
         markBackNavigation();
         void navigate({ to: "/", viewTransition: true });
-        offerUndo(copyId);
+        offerUndo({ kind: "COPY", copyId });
       }, DURATION.quick - 30);
     },
   });

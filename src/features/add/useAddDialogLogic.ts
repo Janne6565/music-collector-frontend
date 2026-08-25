@@ -1,5 +1,7 @@
 import { lookupByBarcode, lookupRelease, searchReleases } from "@/api/releases";
 import { fromCsv } from "@/domain/csv";
+import { rememberCopyOrigins } from "@/local/dexieStore";
+import { useSatisfyWishes } from "@/features/wishlist/useSatisfyWishes";
 import { useStore } from "@/local/StoreProvider";
 import { clearRecentSearches, readRecentSearches, rememberSearch } from "@/local/settings";
 import type {
@@ -73,13 +75,19 @@ export interface CsvImportResult {
  * the library you are looking at, and coming back to a scroll position you had lost is a
  * small tax paid on every single addition.
  */
-export function useAddDialogLogic(onClose: () => void, onAdded: (copyId: string) => void) {
+export function useAddDialogLogic(
+  onClose: () => void,
+  onAdded: (copyId: string) => void,
+  /** A search to open with, so "I found a copy" lands on the wish's own results (16d). */
+  seedTerm = "",
+) {
   const { store, clock } = useStore();
   const queryClient = useQueryClient();
+  const satisfyWishes = useSatisfyWishes();
 
   const [tab, setTab] = useState<AddTab>("SEARCH");
-  const [term, setTerm] = useState("");
-  const [submitted, setSubmitted] = useState("");
+  const [term, setTerm] = useState(seedTerm);
+  const [submitted, setSubmitted] = useState(seedTerm);
   const [format, setFormat] = useState<AddFormatFilter>("ALL");
   /**
    * The row the footer's primary acts on.
@@ -136,12 +144,17 @@ export function useAddDialogLogic(onClose: () => void, onAdded: (copyId: string)
       await store.cacheReleases([release]);
       const copy = createCopy(release, EMPTY_DRAFT, clock, Date.now(), crypto.randomUUID());
       await store.putCopy(copy);
+      // One record, added by a person: the only origin that reaches anybody's feed.
+      await rememberCopyOrigins(store, [copy.id], "MANUAL");
       return copy;
     },
     onSuccess: async (copy, release) => {
       await queryClient.invalidateQueries({ queryKey: ["copies"] });
       await queryClient.invalidateQueries({ queryKey: ["stats"] });
       await queryClient.invalidateQueries({ queryKey: ["ownedMbids"] });
+      // Screen 16e: filing the record a wish was waiting for takes the entry off the list,
+      // whichever way in you used and whether or not you came from the wishlist at all.
+      await satisfyWishes(copy, release);
       // A search result carries no cover theme — only the detail lookup samples one, and on
       // a cover the server has never seen that takes seconds. Warm it while the user is
       // still in the sheet, so the record they just added opens already themed.
@@ -168,6 +181,10 @@ export function useAddDialogLogic(onClose: () => void, onAdded: (copyId: string)
       const { rows, skipped: malformed } = fromCsv(await file.text());
       let added = 0;
       let skipped = malformed;
+      // Everything this loop creates is an import, however many records that turns out to
+      // be. Two hundred rows are one act, and one act is not two hundred lines in the feeds
+      // of everybody who knows you.
+      const importedIds: string[] = [];
       for (const row of rows) {
         const draft = {
           condition: row.mediaCondition,
@@ -189,22 +206,22 @@ export function useAddDialogLogic(onClose: () => void, onAdded: (copyId: string)
             skipped += 1;
             continue;
           }
-          await store.putCopy(
-            createManualCopy(
-              {
-                manualTitle: row.title === "" ? null : row.title,
-                manualArtist: row.artist === "" ? null : row.artist,
-                manualYear: row.year,
-                manualLabel: row.label,
-                manualCatalogNumber: row.catalogNumber,
-                manualFormat: row.format,
-              },
-              draft,
-              clock,
-              Date.now(),
-              crypto.randomUUID(),
-            ),
+          const manual = createManualCopy(
+            {
+              manualTitle: row.title === "" ? null : row.title,
+              manualArtist: row.artist === "" ? null : row.artist,
+              manualYear: row.year,
+              manualLabel: row.label,
+              manualCatalogNumber: row.catalogNumber,
+              manualFormat: row.format,
+            },
+            draft,
+            clock,
+            Date.now(),
+            crypto.randomUUID(),
           );
+          await store.putCopy(manual);
+          importedIds.push(manual.id);
           added += 1;
           continue;
         }
@@ -241,8 +258,10 @@ export function useAddDialogLogic(onClose: () => void, onAdded: (copyId: string)
             ? applyCopyPatch(imported, { manualFormat: row.format }, clock)
             : imported;
         await store.putCopy(overridden);
+        importedIds.push(overridden.id);
         added += 1;
       }
+      await rememberCopyOrigins(store, importedIds, "CSV_IMPORT");
       return { added, skipped };
     },
     onSuccess: async () => {

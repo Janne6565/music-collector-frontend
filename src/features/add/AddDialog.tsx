@@ -10,13 +10,15 @@ import {
   useAddDialogLogic,
 } from "@/features/add/useAddDialogLogic";
 import { useArtistSearchLogic } from "@/features/add/useArtistSearchLogic";
+import { WishDialog } from "@/features/wishlist/WishDialog";
 import { cn } from "@/lib/utils";
-import type { Format, Release } from "@janne6565/music-collector-shared";
+import type { Format, Release, WishlistItem } from "@janne6565/music-collector-shared";
 import { FORMAT_LABELS } from "@janne6565/music-collector-shared";
 import {
   ArrowUpLeft,
   Clock,
   FileUp,
+  Heart,
   Pencil,
   Plus,
   ScanBarcode,
@@ -24,7 +26,7 @@ import {
   SearchX,
   X,
 } from "lucide-react";
-import { useId, useRef } from "react";
+import { useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 const FILTERS: readonly AddFormatFilter[] = ["ALL", "VINYL", "CD", "CASSETTE", "DIGITAL"];
@@ -48,12 +50,16 @@ interface AddDialogProps {
   readonly onClose: () => void;
   /** Opens the details step (screen 8d) over the sheet for the copy just created. */
   readonly onAdded: (copyId: string) => void;
+  /** A search to open with — the wishlist's "I found a copy" arrives with one (16d). */
+  readonly seedTerm?: string;
+  /** The entry being hunted down, for the reminder above the results (16d). */
+  readonly hunting?: WishlistItem | null;
 }
 
 /** Screen 6a — the add sheet over a dimmed library. */
-export function AddDialog({ onClose, onAdded }: AddDialogProps) {
+export function AddDialog({ onClose, onAdded, seedTerm = "", hunting = null }: AddDialogProps) {
   const { t } = useTranslation();
-  const logic = useAddDialogLogic(onClose, onAdded);
+  const logic = useAddDialogLogic(onClose, onAdded, seedTerm);
   const titleId = useId();
 
   return (
@@ -128,7 +134,7 @@ export function AddDialog({ onClose, onAdded }: AddDialogProps) {
           <SheetFooter logic={logic} hint={t("artists.footerHint")} />
         </>
       ) : (
-        <SearchTab logic={logic} />
+        <SearchTab logic={logic} hunting={hunting} />
       )}
     </Modal>
   );
@@ -136,9 +142,14 @@ export function AddDialog({ onClose, onAdded }: AddDialogProps) {
 
 type Logic = ReturnType<typeof useAddDialogLogic>;
 
-function SearchTab({ logic }: { readonly logic: Logic }) {
+function SearchTab({
+  logic,
+  hunting,
+}: { readonly logic: Logic; readonly hunting: WishlistItem | null }) {
   const { t } = useTranslation();
   const barcode = logic.tab === "BARCODE";
+  /** A release the heart was pressed on, which opens the wishlist sheet over this one. */
+  const [wishing, setWishing] = useState<Release | null>(null);
 
   return (
     <>
@@ -215,6 +226,8 @@ function SearchTab({ logic }: { readonly logic: Logic }) {
         )}
       </form>
 
+      {hunting !== null && <HuntingBanner item={hunting} />}
+
       <div className="min-h-0 flex-1 overflow-auto px-6 pt-2 pb-1">
         {/*
          * A Cross on the list as one block, never per row — and keyed on the term that
@@ -224,12 +237,42 @@ function SearchTab({ logic }: { readonly logic: Logic }) {
          * happening.
          */}
         <div key={logic.submittedTerm} className="mc-cross">
-          <Results logic={logic} />
+          <Results logic={logic} onWish={setWishing} />
         </div>
       </div>
 
       <SheetFooter logic={logic} hint={t("addDialog.footerHint")} />
+
+      {wishing !== null && <WishDialog onClose={() => setWishing(null)} release={wishing} />}
     </>
+  );
+}
+
+/**
+ * Screen 16d's reminder — what you wrote down when you put this record on the list.
+ *
+ * A wish names an album, not a pressing, so the results below are still a choice. The note
+ * is here because it is usually the thing that decides which of them is the right one.
+ */
+function HuntingBanner({ item }: { readonly item: WishlistItem }) {
+  const { t } = useTranslation();
+
+  return (
+    <div className="mx-6 mt-3 flex flex-none items-start gap-3 rounded-xl border border-line bg-canvas px-3.5 py-3">
+      <Heart
+        size={15}
+        strokeWidth={1.75}
+        className="mt-0.5 flex-none text-ink-subtle"
+        aria-hidden
+      />
+      <div className="min-w-0 text-[12px] leading-relaxed">
+        <span className="font-semibold">{item.title}</span>
+        <span className="text-ink-muted"> · {t("wishlist.fromYourWishlist")}</span>
+        {item.note !== null && (
+          <div className="text-ink-muted">{t("wishlist.yourNote", { note: item.note })}</div>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -270,7 +313,10 @@ function SheetFooter({ logic, hint }: { readonly logic: Logic; readonly hint: st
   );
 }
 
-function Results({ logic }: { readonly logic: Logic }) {
+function Results({
+  logic,
+  onWish,
+}: { readonly logic: Logic; readonly onWish: (release: Release) => void }) {
   const { t } = useTranslation();
   /**
    * Artists are a second request, a second behind the releases one — MusicBrainz allows
@@ -312,7 +358,7 @@ function Results({ logic }: { readonly logic: Logic }) {
             </p>
           ) : (
             logic.results.map((release) => (
-              <ResultRow key={release.id} release={release} logic={logic} />
+              <ResultRow key={release.id} release={release} logic={logic} onWish={onWish} />
             ))
           )}
         </section>
@@ -435,7 +481,15 @@ function NoMatches({ logic }: { readonly logic: Logic }) {
   );
 }
 
-function ResultRow({ release, logic }: { readonly release: Release; readonly logic: Logic }) {
+function ResultRow({
+  release,
+  logic,
+  onWish,
+}: {
+  readonly release: Release;
+  readonly logic: Logic;
+  readonly onWish: (release: Release) => void;
+}) {
   const { t } = useTranslation();
   const owned = logic.isOwned(release);
   const selected = logic.selected?.id === release.id;
@@ -484,6 +538,17 @@ function ResultRow({ release, logic }: { readonly release: Release; readonly log
           {t("addDialog.inLibrary")}
         </span>
       ) : null}
+      {/* Screen 16c's first way in. A search that turned up the record but not one you can
+          buy today is exactly the moment a wishlist entry is worth making. */}
+      <button
+        type="button"
+        onClick={() => onWish(release)}
+        aria-label={t("wishlist.addToWishlist")}
+        title={t("wishlist.addToWishlist")}
+        className="flex-none p-1.5 text-ink-subtle hover:text-accent"
+      >
+        <Heart size={15} strokeWidth={1.75} aria-hidden />
+      </button>
       <Button
         onClick={() => logic.addRelease(release)}
         loading={logic.addingMbid === release.id}

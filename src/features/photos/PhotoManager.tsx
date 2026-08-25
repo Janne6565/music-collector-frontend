@@ -1,20 +1,11 @@
 import { ReleaseArt } from "@/components/ReleaseArt";
+import { type ShownImage, isPreview, resolveShown } from "@/features/photos/shownImage";
 import type { PhotoStripLogic } from "@/features/photos/usePhotoStripLogic";
 import { cn } from "@/lib/utils";
 import type { Release } from "@janne6565/music-collector-shared";
 import { ImagePlus, Star, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-
-/**
- * What the column can show large: one of your photos, or the catalogue's own artwork.
- *
- * The catalogue cover is not a Photo and never will be — nobody uploaded it, it belongs to
- * the release rather than to your copy, and it is already on every other screen. Screen 11
- * still wants it *in* the list, because "which picture stands for this record" is one
- * question and answering it should not depend on where the picture came from.
- */
-type Shown = { readonly kind: "PHOTO"; readonly id: string } | { readonly kind: "CATALOG" };
 
 interface PhotoManagerProps {
   readonly logic: PhotoStripLogic;
@@ -37,30 +28,17 @@ interface PhotoManagerProps {
 export function PhotoManager({ logic, release }: PhotoManagerProps) {
   const { t } = useTranslation();
   const input = useRef<HTMLInputElement>(null);
-  const [shown, setShown] = useState<Shown | null>(null);
+  const [shown, setShown] = useState<ShownImage | null>(null);
   /** The tile being dragged, so the drop target knows what is landing on it. */
   const [dragging, setDragging] = useState<string | null>(null);
 
   const hasCatalog = release?.coverArtUrl != null && release.coverArtUrl !== "";
-  const first = logic.tiles[0];
-  /**
-   * Nothing is selected until you click something: the large tile follows the list, so a
-   * remembered selection would survive the photo it pointed at and strand the column on a
-   * blank frame.
-   */
-  const current: Shown =
-    shown !== null &&
-    (shown.kind === "CATALOG" ? hasCatalog : logic.tiles.some((tile) => tile.photo.id === shown.id))
-      ? shown
-      : first !== undefined
-        ? { kind: "PHOTO", id: first.photo.id }
-        : { kind: "CATALOG" };
+  // Shared with the detail page's strip, so the two views resolve a selection the same way.
+  const current = resolveShown(shown, logic.tiles, hasCatalog);
 
   const shownTile =
     current.kind === "PHOTO" ? logic.tiles.find((tile) => tile.photo.id === current.id) : undefined;
-  /** The preview is the first image, so the large tile is the preview only when it is that one. */
-  const showingPreview =
-    current.kind === "PHOTO" ? first?.photo.id === current.id : logic.tiles.length === 0;
+  const showingPreview = isPreview(current, logic.tiles);
 
   useEffect(() => {
     if (shown?.kind === "CATALOG" && !hasCatalog) setShown(null);
@@ -119,7 +97,11 @@ export function PhotoManager({ logic, release }: PhotoManagerProps) {
             className={cn(
               "group relative aspect-square overflow-hidden rounded-[5px] bg-canvas",
               dragging === photo.id && "opacity-40",
-              index === 0 ? "ring-2 ring-accent" : "ring-1 ring-line",
+              // The ring is what you are looking at and the star is the preview — the same
+              // two signals the detail strip uses. They start on one tile and come apart.
+              current.kind === "PHOTO" && current.id === photo.id
+                ? "ring-2 ring-accent"
+                : "ring-1 ring-line",
             )}
           >
             <button
@@ -180,10 +162,19 @@ export function PhotoManager({ logic, release }: PhotoManagerProps) {
             aria-current={current.kind === "CATALOG" ? "true" : undefined}
             className={cn(
               "relative aspect-square overflow-hidden rounded-[5px] bg-canvas",
-              logic.tiles.length === 0 ? "ring-2 ring-accent" : "ring-1 ring-line",
+              current.kind === "CATALOG" ? "ring-2 ring-accent" : "ring-1 ring-line",
             )}
           >
             <ReleaseArt release={release} variant="bleed" />
+            {logic.tiles.length === 0 && (
+              <span
+                title={t("photos.preview")}
+                className="pointer-events-none absolute top-0.75 left-0.75 flex h-3.75 w-3.75 items-center justify-center rounded-full bg-accent text-paper shadow-[0_1px_3px_rgba(25,23,19,.28)]"
+              >
+                <Star size={9} strokeWidth={2.4} fill="currentColor" aria-hidden />
+                <span className="sr-only">{t("photos.preview")}</span>
+              </span>
+            )}
             <span className="absolute inset-x-0 bottom-0 bg-ink/70 py-0.5 text-center font-mono text-[7px] uppercase tracking-[0.06em] text-paper">
               {t("photos.catalog")}
             </span>

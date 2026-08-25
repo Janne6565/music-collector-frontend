@@ -5,6 +5,7 @@ import { CopyDetailsDialog } from "@/features/copy/CopyDetailsDialog";
 import { useDetailLogic } from "@/features/detail/useDetailLogic";
 import { useCollectionStats } from "@/features/library/useLibraryLogic";
 import { PhotoStrip } from "@/features/photos/PhotoStrip";
+import { type ShownImage, resolveShown } from "@/features/photos/shownImage";
 import { usePhotoStripLogic } from "@/features/photos/usePhotoStripLogic";
 import type { Copy, Release } from "@janne6565/music-collector-shared";
 import { CONDITION_SHORT, FORMAT_LABELS } from "@janne6565/music-collector-shared";
@@ -33,6 +34,9 @@ export function DetailPage({ copyId }: { readonly copyId: string }) {
   const { t } = useTranslation();
   const logic = useDetailLogic(copyId);
   const photos = usePhotoStripLogic(copyId);
+  /** Which picture the hero is showing. Null until you pick one — see `resolveShown`. */
+  const [shown, setShown] = useState<ShownImage | null>(null);
+
   const stats = useCollectionStats();
   const [editing, setEditing] = useState(false);
 
@@ -57,6 +61,24 @@ export function DetailPage({ copyId }: { readonly copyId: string }) {
   }
 
   const { copy, release, otherCopies } = logic.data;
+  const currentImage = resolveShown(
+    shown,
+    photos.tiles,
+    release?.coverArtUrl != null && release.coverArtUrl !== "",
+  );
+  /**
+   * `firstSrc` while nothing is picked, not the resolved tile's source: it is the first
+   * photo whose *bytes are already here*, so a copy pulled down from another account
+   * shows artwork rather than an empty frame while its images are still arriving. Once
+   * you have picked a tile the answer is that tile, and null — the catalogue — for the
+   * catalogue tile or for a photo whose bytes have not landed yet.
+   */
+  const heroSrc =
+    shown === null
+      ? photos.firstSrc
+      : currentImage.kind === "PHOTO"
+        ? (photos.tiles.find((tile) => tile.photo.id === currentImage.id)?.src ?? null)
+        : null;
 
   return (
     <AppShell stats={stats}>
@@ -76,11 +98,8 @@ export function DetailPage({ copyId }: { readonly copyId: string }) {
       <div className="min-h-0 flex-1 overflow-auto bg-paper text-ink">
         <div className="flex gap-10 p-8">
           <div className="flex-none">
-            <Cover release={release} previewSrc={photos.firstSrc} />
-            <PhotoStrip
-              logic={photos}
-              hasCatalog={release?.coverArtUrl != null && release.coverArtUrl !== ""}
-            />
+            <Cover release={release} previewSrc={heroSrc} />
+            <PhotoStrip logic={photos} release={release} shown={currentImage} onShow={setShown} />
           </div>
 
           <div className="min-w-0 flex-1">

@@ -137,8 +137,14 @@ export function WishlistPage() {
   );
 }
 
-/** handle · art · release · format · note · added · actions, as 16g draws it. */
-const GRID = "18px 44px minmax(0,1.5fr) 84px minmax(0,2fr) 96px 150px";
+/**
+ * handle · art · release · format · note · added · actions, as 16g draws it.
+ *
+ * The actions column is wide enough for the longest label the three controls carry — 167px
+ * for the German "Gefunden" — rather than the width the English happens to need. Squeezed
+ * to fit, the button folded its label onto two lines and stood taller than the row.
+ */
+const GRID = "18px 44px minmax(0,1.5fr) 84px minmax(0,2fr) 96px 176px";
 
 function SortMenu({ logic }: { readonly logic: ReturnType<typeof useWishlistLogic> }) {
   const { t } = useTranslation();
@@ -279,7 +285,11 @@ function Row({
       {/* Quiet until the row is under the pointer: twenty-four rows each shouting two
           buttons is a list you have to read past rather than read. */}
       <div className="flex items-center justify-end gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
-        <Button onClick={onFound} className="h-8 rounded-lg px-3 text-[12px]">
+        {/* Never fold: a label on two lines is what pushed this row out of alignment. */}
+        <Button
+          onClick={onFound}
+          className="h-8 flex-none whitespace-nowrap rounded-lg px-3 text-[12px]"
+        >
           <Check size={14} strokeWidth={2} aria-hidden />
           {t("wishlist.foundIt")}
         </Button>

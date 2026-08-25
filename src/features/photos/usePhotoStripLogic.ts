@@ -1,6 +1,6 @@
 import type { Photo } from "@/domain/types";
 import { useStore } from "@/local/StoreProvider";
-import { createPhoto, tombstonePhoto } from "@/local/photoWrites";
+import { createPhoto, reorderPhoto, tombstonePhoto } from "@/local/photoWrites";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
@@ -81,6 +81,43 @@ export function usePhotoStripLogic(copyId: string) {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["photos", copyId] });
+      await queryClient.invalidateQueries({ queryKey: ["cover-photos"] });
+    },
+  });
+
+  /**
+   * Putting one photo at a given place in the list, and renumbering the rest around it.
+   *
+   * Order *is* the preview: the first image is the one the library grid and the detail
+   * hero show, which is why 12b draws starring and dragging as one gesture rather than two
+   * — a star is a move to the front. Keeping it that way means the preview syncs on the
+   * `sortIndex` every device already merges, instead of on a second field that could
+   * disagree with the order it is drawn in.
+   *
+   * The whole list is renumbered rather than the moved photo alone: gaps and ties in
+   * `sortIndex` survive a merge, and a list that renumbers itself densely on every move
+   * cannot drift into an order nobody chose.
+   */
+  const move = useMutation({
+    mutationFn: async ({ photoId, to }: { photoId: string; to: number }) => {
+      const current = await store.listPhotos(copyId);
+      const from = current.findIndex((photo) => photo.id === photoId);
+      if (from === -1 || from === to) return;
+      const next = [...current];
+      const [moved] = next.splice(from, 1);
+      if (moved === undefined) return;
+      next.splice(Math.max(0, Math.min(to, next.length)), 0, moved);
+      for (const [index, photo] of next.entries()) {
+        const renumbered = reorderPhoto(photo, index, clock);
+        // Identity, not equality: reorderPhoto hands back the same object when the index
+        // did not change, so an untouched photo is never restamped into winning a merge.
+        if (renumbered !== photo) await store.putPhoto(renumbered);
+      }
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["photos", copyId] });
+      // The grid and the detail hero read the preview out of this list too.
+      await queryClient.invalidateQueries({ queryKey: ["cover-photos"] });
     },
   });
 
@@ -91,14 +128,18 @@ export function usePhotoStripLogic(copyId: string) {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["photos", copyId] });
+      await queryClient.invalidateQueries({ queryKey: ["cover-photos"] });
     },
   });
 
   return {
     tiles,
     /**
-     * The first photo whose bytes are already on the device, for the detail hero to stand
-     * in with when the release has no artwork of its own.
+     * The preview — the first photo whose bytes are already on the device.
+     *
+     * First, because order is what the star sets (see `move`). "Already on the device"
+     * because a copy pulled down from another account has its photo records before it has
+     * their bytes, and a hero pointed at a blob that is not there yet shows nothing at all.
      */
     firstSrc: tiles.find((tile) => tile.src !== null)?.src ?? null,
     loading: photos.isLoading,
@@ -108,5 +149,10 @@ export function usePhotoStripLogic(copyId: string) {
     rejected,
     remove: (photo: Photo) => remove.mutate(photo),
     removing: remove.isPending ? remove.variables?.id : undefined,
+    /** Star — the photo becomes the one every other screen shows for this copy. */
+    setPreview: (photo: Photo) => move.mutate({ photoId: photo.id, to: 0 }),
+    /** Drag — the same write, to wherever it was dropped. */
+    moveTo: (photoId: string, index: number) => move.mutate({ photoId, to: index }),
+    reordering: move.isPending,
   };
 }

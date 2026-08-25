@@ -73,29 +73,38 @@ describe("ReleaseArt", () => {
     expect(cover(container).parentElement?.className).not.toContain("w-[88%]");
   });
 
-  it("falls back to the copy's own photo when the release has no cover", () => {
+  it("shows the copy's own photo when the release has no cover", () => {
     // Nothing in the archive, but the owner photographed the sleeve: that picture is the
     // best answer we have, and it belongs in the frame instead of the placeholder.
     const { container } = render(
-      <ReleaseArt release={release({ coverArtUrl: null })} fallbackSrc="blob:photo-1" />,
+      <ReleaseArt release={release({ coverArtUrl: null })} previewSrc="blob:photo-1" />,
     );
 
     expect(cover(container).getAttribute("src")).toBe("blob:photo-1");
   });
 
-  it("falls back to the photo only after the archive URL turns out to be empty", () => {
-    const { container } = render(<ReleaseArt release={release()} fallbackSrc="blob:photo-1" />);
-    expect(cover(container).getAttribute("src")).toBe("https://covers.example/rel-1.jpg");
+  it("puts the preview ahead of the catalogue's own artwork", () => {
+    // Turn 11: the images of a copy are one ordered list and starring one puts it first.
+    // Ranking the archive above it would make that gesture do nothing on every record the
+    // archive happens to have — which is most of them.
+    const { container } = render(<ReleaseArt release={release()} previewSrc="blob:photo-1" />);
+
+    expect(cover(container).getAttribute("src")).toBe("blob:photo-1");
+  });
+
+  it("drops back to the catalogue cover when the preview cannot be shown", () => {
+    // A copy pulled from another device has photo records before it has their bytes.
+    const { container } = render(<ReleaseArt release={release()} previewSrc="blob:photo-1" />);
 
     fireEvent.error(cover(container));
 
-    expect(cover(container).getAttribute("src")).toBe("blob:photo-1");
+    expect(cover(container).getAttribute("src")).toBe("https://covers.example/rel-1.jpg");
   });
 
   it("settles on the placeholder when the photo fails too", () => {
     // Two addresses in play: forgetting the first failure once the second one fails would
     // swap the two forever.
-    const { container } = render(<ReleaseArt release={release()} fallbackSrc="blob:photo-1" />);
+    const { container } = render(<ReleaseArt release={release()} previewSrc="blob:photo-1" />);
 
     fireEvent.error(cover(container));
     fireEvent.error(cover(container));

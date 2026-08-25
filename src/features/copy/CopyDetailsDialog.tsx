@@ -2,43 +2,79 @@ import { ReleaseArt } from "@/components/ReleaseArt";
 import { Button, Modal, ModalClose } from "@/components/ui";
 import type { Format } from "@/domain/types";
 import { FORMAT_LABELS } from "@/domain/types";
-import { useCopyDetailsLogic } from "@/features/add/useCopyDetailsLogic";
+import { useCopyDetailsLogic } from "@/features/copy/useCopyDetailsLogic";
 import { ConditionScale } from "@/features/detail/ConditionScale";
+import { PhotoManager } from "@/features/photos/PhotoManager";
+import { usePhotoStripLogic } from "@/features/photos/usePhotoStripLogic";
 import { cn } from "@/lib/utils";
 import { Calendar, HardDrive, Star } from "lucide-react";
 import { type ReactNode, useId } from "react";
 import { useTranslation } from "react-i18next";
 
+/**
+ * Which of the two entry points opened it (turn 12).
+ *
+ * `ADD` is step two of the add flow (8d): the copy was written a moment ago and says
+ * nothing about itself yet. `EDIT` is the same field set reached from the detail page
+ * (12b), where the copy already has answers and its pictures are managed. One dialog
+ * rather than two, because a second implementation of these seven fields is how the add
+ * flow and the edit flow start disagreeing about what a copy can say.
+ */
+export type CopyDialogMode = "ADD" | "EDIT";
+
 interface CopyDetailsDialogProps {
   readonly copyId: string;
+  readonly mode?: CopyDialogMode;
   readonly onClose: () => void;
-  /** "Back" — returns to the add sheet the copy was picked in. */
-  readonly onBack: () => void;
+  /** "Back" — returns to the add sheet the copy was picked in. Add only. */
+  readonly onBack?: () => void;
+  /** "Remove copy" — the footer's destructive action. Edit only. */
+  readonly onRemove?: () => void;
+  readonly removing?: boolean;
 }
 
 /**
- * Screen 8d — step two of adding, where the copy stops being a release and becomes yours.
+ * Screens 8d and 12b — where a copy stops being a release and becomes yours.
  *
- * The copy already exists by the time this opens: it was written the moment "Add and edit
- * details" was pressed. Closing this without saving therefore loses the details, not the
+ * The copy already exists by the time this opens, in both modes: adding writes it the
+ * moment a release is picked. Closing without saving therefore loses the details, not the
  * copy, which is the right way round — a record you own is worth keeping even if you never
  * got round to grading it.
+ *
+ * What differs between the two is only the frame: the eyebrow, what fills the left column
+ * (the sleeve while adding, the image editor while editing) and the footer. The fields
+ * themselves are one set, written through one hook.
  */
-export function CopyDetailsDialog({ copyId, onClose, onBack }: CopyDetailsDialogProps) {
+export function CopyDetailsDialog({
+  copyId,
+  mode = "ADD",
+  onClose,
+  onBack,
+  onRemove,
+  removing = false,
+}: CopyDetailsDialogProps) {
   const { t } = useTranslation();
   const logic = useCopyDetailsLogic(copyId, onClose);
+  const photos = usePhotoStripLogic(copyId);
   const titleId = useId();
 
+  const editing = mode === "EDIT";
   const release = logic.release;
 
   return (
-    <Modal onClose={onClose} labelledBy={titleId} width="720px">
+    <Modal onClose={onClose} labelledBy={titleId} width={editing ? "780px" : "720px"}>
       <div className="flex flex-none items-start justify-between gap-4 border-b border-line px-6 pt-5.5 pb-4.5">
         <div>
           <div className="flex items-center gap-2.25 font-mono text-[11px] uppercase tracking-[0.1em] text-ink-subtle">
-            {t("copyDetails.step")}
-            <span className="h-0.5 w-6.5 bg-ink/20" aria-hidden />
-            {t("copyDetails.yourCopy")}
+            {editing ? (
+              t("copyDetails.editTitle")
+            ) : (
+              <>
+                {t("copyDetails.step")}
+                <span className="h-0.5 w-6.5 bg-ink/20" aria-hidden />
+                {t("copyDetails.yourCopy")}
+              </>
+            )}
           </div>
           <h2 id={titleId} className="mt-2 font-serif text-2xl leading-[1.1]">
             {release?.title ?? "—"}
@@ -69,11 +105,18 @@ export function CopyDetailsDialog({ copyId, onClose, onBack }: CopyDetailsDialog
         }}
         id={`${titleId}-form`}
       >
+        {/* The sleeve while adding (8d), the whole image list while editing (12b): the
+            pictures of a copy are worth managing where its other answers are, and the add
+            step has none of them yet. */}
         <div className="flex-none">
-          <div className="h-45 w-45">
-            <ReleaseArt release={release} loading="eager" />
-          </div>
-          <div className="mt-3.5 font-mono text-[10px] uppercase tracking-[0.08em] text-ink-subtle">
+          {editing ? (
+            <PhotoManager logic={photos} release={release} />
+          ) : (
+            <div className="h-45 w-45">
+              <ReleaseArt release={release} loading="eager" />
+            </div>
+          )}
+          <div className="mt-4.5 font-mono text-[10px] uppercase tracking-[0.08em] text-ink-subtle">
             {t("copyDetails.format")}
           </div>
           <FormatChips format={release?.format ?? "OTHER"} />
@@ -183,17 +226,31 @@ export function CopyDetailsDialog({ copyId, onClose, onBack }: CopyDetailsDialog
       </form>
 
       <div className="flex flex-none items-center justify-between gap-4 border-t border-line bg-surface px-6 py-3.5">
-        <span className="flex items-center gap-1.75 text-[11.5px] text-ink-muted">
-          <HardDrive size={14} strokeWidth={1.75} aria-hidden />
-          {logic.signedIn ? t("copyDetails.storageSignedIn") : t("copyDetails.storageGuest")}
-        </span>
+        {editing ? (
+          // 12b puts removing the copy in the footer's quiet corner: it is the one thing
+          // here that cannot be undone, and it belongs where you are already deciding what
+          // this copy is rather than at the bottom of a page you were only reading.
+          <Button
+            variant="secondary"
+            onClick={onRemove}
+            loading={removing}
+            className="h-[34px] border-0 bg-transparent px-0 text-[12px] font-medium text-accent"
+          >
+            {t("detail.remove")}
+          </Button>
+        ) : (
+          <span className="flex items-center gap-1.75 text-[11.5px] text-ink-muted">
+            <HardDrive size={14} strokeWidth={1.75} aria-hidden />
+            {logic.signedIn ? t("copyDetails.storageSignedIn") : t("copyDetails.storageGuest")}
+          </span>
+        )}
         <div className="flex gap-2.5">
           <Button
             variant="secondary"
-            onClick={onBack}
+            onClick={editing ? onClose : onBack}
             className="h-[34px] rounded-lg px-3.5 text-[12.5px]"
           >
-            {t("common.back")}
+            {editing ? t("common.cancel") : t("common.back")}
           </Button>
           <Button
             type="submit"
@@ -201,7 +258,7 @@ export function CopyDetailsDialog({ copyId, onClose, onBack }: CopyDetailsDialog
             loading={logic.saving}
             className="h-[34px] rounded-lg px-3.5 text-[12.5px]"
           >
-            {t("copyDetails.save")}
+            {editing ? t("copyDetails.saveChanges") : t("copyDetails.save")}
           </Button>
         </div>
       </div>

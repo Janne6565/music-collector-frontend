@@ -4,7 +4,7 @@ import { Button, Skeleton } from "@/components/ui";
 import type { Condition, Format } from "@/domain/types";
 import { CONDITION_LABELS, CONDITION_SHORT, FORMAT_LABELS } from "@/domain/types";
 import { AddDialog } from "@/features/add/AddDialog";
-import { CopyDetailsDialog } from "@/features/add/CopyDetailsDialog";
+import { CopyDetailsDialog } from "@/features/copy/CopyDetailsDialog";
 import {
   type FormatFilter,
   type LibraryRow,
@@ -213,7 +213,7 @@ function LibraryGrid({ rows }: { readonly rows: readonly LibraryRow[] }) {
   return (
     <div className={GRID_CLASS}>
       {rows.map((row) => (
-        <GridItem key={row.copy.id} row={row} fallbackSrc={covers.get(row.copy.id) ?? null} />
+        <GridItem key={row.copy.id} row={row} previewSrc={covers.get(row.copy.id) ?? null} />
       ))}
     </div>
   );
@@ -242,13 +242,13 @@ function LibrarySkeleton() {
 
 function GridItem({
   row,
-  fallbackSrc,
-}: { readonly row: LibraryRow; readonly fallbackSrc: string | null }) {
+  previewSrc,
+}: { readonly row: LibraryRow; readonly previewSrc: string | null }) {
   const { t } = useTranslation();
   return (
     <Link to="/copies/$copyId" params={{ copyId: row.copy.id }} className="group block">
       <div className="relative aspect-square">
-        <ReleaseArt release={row.release} fallbackSrc={fallbackSrc} />
+        <ReleaseArt release={row.release} previewSrc={previewSrc} />
       </div>
       <div className="mt-1.5 truncate text-[12.5px] font-semibold leading-tight group-hover:text-accent">
         {row.release?.title ?? "—"}

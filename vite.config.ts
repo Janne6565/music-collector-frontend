@@ -17,5 +17,9 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     globals: true,
+    // Git worktrees are checked out inside .claude/, and a nested checkout of this same
+    // repo puts a second, older copy of every test in the glob — which then fails against
+    // whatever the parent has since renamed. Only this tree's tests are this tree's.
+    exclude: ["**/node_modules/**", "**/dist/**", "**/.claude/**"],
   },
 });

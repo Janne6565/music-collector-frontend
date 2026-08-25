@@ -29,12 +29,16 @@ interface ReleaseArtProps {
    */
   readonly variant?: "sleeve" | "bleed";
   /**
-   * What to show when the release's own cover turns out not to exist — the copy's first
-   * photo. A user who photographs a sleeve the Cover Art Archive never had is telling us
-   * what this record looks like; the placeholder should not keep outranking that. Tried
-   * only once the archive URL is gone or has failed, so real artwork always wins.
+   * The copy's preview image — the first picture in its own list.
+   *
+   * It outranks the catalogue's artwork rather than standing in for it (turn 11): the
+   * images of a copy are one ordered list with the catalogue art among them, and starring
+   * a photo is what puts it at the front. A preview that ranked below the archive would
+   * make that gesture do nothing on the four records in ten the archive does have. The
+   * catalogue cover is still the next candidate, so a preview whose bytes are not on this
+   * device yet shows artwork rather than a placeholder.
    */
-  readonly fallbackSrc?: string | null;
+  readonly previewSrc?: string | null;
 }
 
 /**
@@ -60,16 +64,18 @@ export function ReleaseArt({
   className,
   loading = "lazy",
   variant = "sleeve",
-  fallbackSrc = null,
+  previewSrc = null,
 }: ReleaseArtProps) {
   const [loadedUrl, setLoadedUrl] = useState<string | null>(null);
-  // A set rather than one URL: with a fallback there are two addresses in play, and
+  // A set rather than one URL: with a preview there are two addresses in play, and
   // remembering only the last failure would let the first one look untried again.
   const [failed, setFailed] = useState<ReadonlySet<string>>(() => new Set());
   const cover = release?.coverArtUrl ?? null;
-  const url = cover === null || failed.has(cover) ? fallbackSrc : cover;
+  // Preview first, catalogue second, and whichever has already failed is skipped.
+  const url =
+    [previewSrc, cover].find((candidate) => candidate != null && !failed.has(candidate)) ?? null;
 
-  const gone = url === null || failed.has(url);
+  const gone = url === null;
   const shown = !gone && loadedUrl === url;
 
   const art = gone ? null : (

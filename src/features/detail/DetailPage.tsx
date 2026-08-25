@@ -2,20 +2,26 @@ import { ReleaseArt } from "@/components/ReleaseArt";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui";
 import type { Copy, Release } from "@/domain/types";
-import { CONDITION_LABELS, CONDITION_SHORT, FORMAT_LABELS } from "@/domain/types";
-import { CopyEditor } from "@/features/detail/CopyEditor";
+import { CONDITION_SHORT, FORMAT_LABELS } from "@/domain/types";
+import { CopyDetailsDialog } from "@/features/copy/CopyDetailsDialog";
 import { type DetailChrome, chromeFor } from "@/features/detail/theme";
 import { useDetailLogic } from "@/features/detail/useDetailLogic";
 import { useCollectionStats } from "@/features/library/useLibraryLogic";
 import { PhotoStrip } from "@/features/photos/PhotoStrip";
 import { usePhotoStripLogic } from "@/features/photos/usePhotoStripLogic";
 import { Link } from "@tanstack/react-router";
-import { Pencil, Star, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { PencilLine, Star } from "lucide-react";
+import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 /**
- * Screen 1g — the item detail, inside the sidebar shell the rest of the app lives in.
+ * Screens 1g and 12a — the item detail, inside the sidebar shell the rest of the app
+ * lives in.
+ *
+ * Read-only, with one action. Every field on this page used to be editable in place, and
+ * turn 12 took all of it into the modal behind "Edit copy": one field set with two entry
+ * points, so what you can say about a copy while adding it and what you can say about it
+ * later cannot drift apart. What is left here is the record as it stands.
  *
  * The shell stays in the app's own paper chrome while the page under it follows the sleeve
  * (turn 3, applied to web as the deck suggested). Only the content region is themed: a
@@ -59,17 +65,15 @@ export function DetailPage({ copyId }: { readonly copyId: string }) {
         style={{ background: chrome.background, borderColor: chrome.line }}
       >
         <Breadcrumb release={release} chrome={chrome} />
-        {/* The deck's one header action. While the editor is open it governs its own
-            saving, so a second Save up here would be two buttons for one job. */}
-        {!editing && (
-          <Button
-            onClick={() => setEditing(true)}
-            className="h-[34px] flex-none rounded-lg px-3.5 text-[12.5px]"
-          >
-            <Pencil size={14} strokeWidth={1.75} aria-hidden />
-            {t("detail.edit")}
-          </Button>
-        )}
+        {/* 12a's one header action, and no Save beside it: saving belongs to the modal
+            that does the editing. */}
+        <Button
+          onClick={() => setEditing(true)}
+          className="h-[34px] flex-none rounded-lg px-3.5 text-[12.5px]"
+        >
+          <PencilLine size={14} strokeWidth={1.9} aria-hidden />
+          {t("detail.edit")}
+        </Button>
       </header>
 
       <div
@@ -78,27 +82,18 @@ export function DetailPage({ copyId }: { readonly copyId: string }) {
       >
         <div className="flex gap-10 p-8">
           <div className="flex-none">
-            <Cover release={release} fallbackSrc={photos.firstSrc} />
-            <PhotoStrip logic={photos} chrome={chrome} />
+            <Cover release={release} previewSrc={photos.firstSrc} />
+            <PhotoStrip
+              logic={photos}
+              chrome={chrome}
+              hasCatalog={release?.coverArtUrl != null && release.coverArtUrl !== ""}
+            />
           </div>
 
           <div className="min-w-0 flex-1">
             <Header copy={copy} release={release} chrome={chrome} />
 
-            {editing ? (
-              <CopyEditor
-                copy={copy}
-                chrome={chrome}
-                saving={logic.saving}
-                onSave={(patch) => {
-                  logic.save(patch);
-                  setEditing(false);
-                }}
-                onCancel={() => setEditing(false)}
-              />
-            ) : (
-              <Fields copy={copy} release={release} chrome={chrome} />
-            )}
+            <Fields copy={copy} chrome={chrome} />
 
             <Notes
               copy={copy}
@@ -107,20 +102,21 @@ export function DetailPage({ copyId }: { readonly copyId: string }) {
               onKeep={(notes) => logic.save({ notes })}
             />
             {otherCopies.length > 0 && <OtherCopies copies={otherCopies} chrome={chrome} />}
-
-            <Button
-              variant="secondary"
-              onClick={logic.remove}
-              loading={logic.removing}
-              className="mt-8 h-9 border-0 px-4 text-[13px]"
-              style={{ background: chrome.surface, color: chrome.muted }}
-            >
-              <Trash2 size={15} strokeWidth={1.75} aria-hidden />
-              {t("detail.remove")}
-            </Button>
           </div>
         </div>
       </div>
+
+      {/* Screen 12b — the add flow's step two, reached from here instead. Removing the
+          copy lives in its footer, which is why this page no longer has a button for it. */}
+      {editing && (
+        <CopyDetailsDialog
+          copyId={copyId}
+          mode="EDIT"
+          onClose={() => setEditing(false)}
+          onRemove={logic.remove}
+          removing={logic.removing}
+        />
+      )}
     </AppShell>
   );
 }
@@ -150,11 +146,11 @@ function Breadcrumb({ release, chrome }: { readonly release: Release | undefined
 
 function Cover({
   release,
-  fallbackSrc,
-}: { readonly release: Release | undefined; readonly fallbackSrc: string | null }) {
+  previewSrc,
+}: { readonly release: Release | undefined; readonly previewSrc: string | null }) {
   return (
     <div className="h-[340px] w-[340px] overflow-hidden rounded-lg shadow-[0_10px_30px_rgba(0,0,0,.25)]">
-      <ReleaseArt release={release} loading="eager" variant="bleed" fallbackSrc={fallbackSrc} />
+      <ReleaseArt release={release} loading="eager" variant="bleed" previewSrc={previewSrc} />
     </div>
   );
 }
@@ -168,7 +164,6 @@ function Header({
   release,
   chrome,
 }: { readonly copy: Copy; readonly release: Release | undefined } & WithChrome) {
-  const { t } = useTranslation();
   return (
     <>
       <div className="flex items-center gap-2">
@@ -182,64 +177,74 @@ function Header({
         )}
       </div>
       <h1 className="mt-3.5 font-serif text-[38px] leading-[1.05]">{release?.title ?? "—"}</h1>
+      {/* The pressing reads as part of the record's name here rather than as a field of
+          its own — 12a's grid is the six things that are true of *your* copy. */}
       <p className="mt-1.5 text-[15px]" style={{ color: chrome.muted }}>
-        {release?.artistName}
-        {release?.year != null && ` · ${release.year}`}
+        {[
+          release?.artistName,
+          release?.year,
+          release?.label,
+          release?.catalogNumber,
+          release?.country,
+        ]
+          .filter((part) => part != null && part !== "")
+          .join(" · ")}
       </p>
-      <div className="mt-3.5 flex items-center gap-1">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <Star
-            key={star}
-            size={15}
-            strokeWidth={1.5}
-            aria-hidden
-            style={{ color: star <= (copy.rating ?? 0) ? chrome.accent : chrome.line }}
-            fill={star <= (copy.rating ?? 0) ? "currentColor" : "none"}
-          />
-        ))}
-        <span className="ml-2 text-xs" style={{ color: chrome.muted }}>
-          {t("detail.yourRating")}
-        </span>
-      </div>
     </>
   );
 }
 
-function Fields({
-  copy,
-  release,
-  chrome,
-}: { readonly copy: Copy; readonly release: Release | undefined } & WithChrome) {
+/**
+ * The six answers 12a rules off under the title.
+ *
+ * Ruled rows rather than the cards this used to be: a card each said every one of them
+ * was worth the same amount of attention, and half of them are usually a dash.
+ */
+function Fields({ copy, chrome }: { readonly copy: Copy } & WithChrome) {
   const { t } = useTranslation();
-  const rows: readonly (readonly [string, string])[] = [
-    [t("detail.mediaCondition"), copy.condition === null ? "—" : CONDITION_LABELS[copy.condition]],
+  const rows: readonly (readonly [string, ReactNode])[] = [
+    [t("detail.mediaCondition"), copy.condition === null ? "—" : CONDITION_SHORT[copy.condition]],
     [
       t("detail.sleeveCondition"),
-      copy.sleeveCondition === null ? "—" : CONDITION_LABELS[copy.sleeveCondition],
+      copy.sleeveCondition === null ? "—" : CONDITION_SHORT[copy.sleeveCondition],
     ],
     [t("detail.paid"), formatMoney(copy.pricePaidCents, copy.currency)],
     [t("detail.bought"), copy.purchasedOn ?? "—"],
     [t("detail.where"), copy.purchasedAt ?? "—"],
-    [
-      t("detail.pressing"),
-      [release?.label, release?.catalogNumber, release?.country].filter(Boolean).join(" · ") || "—",
-    ],
+    [t("detail.yourRating"), <Rating key="rating" rating={copy.rating} chrome={chrome} />],
   ];
 
   return (
-    <div className="mt-7 grid grid-cols-2 gap-3.5">
+    <div className="mt-6.5 grid grid-cols-3 border-t" style={{ borderColor: chrome.line }}>
       {rows.map(([label, value]) => (
-        <div key={label} className="rounded-lg p-3.5" style={{ background: chrome.surface }}>
+        <div key={label} className="border-b py-3.25 pr-4" style={{ borderColor: chrome.line }}>
           <div
-            className="font-mono text-[10px] uppercase tracking-[0.09em]"
+            className="font-mono text-[9.5px] uppercase tracking-[0.09em]"
             style={{ color: chrome.muted }}
           >
             {label}
           </div>
-          <div className="mt-1.5 text-[15px] font-semibold">{value}</div>
+          <div className="mt-1.25 truncate text-[15px] font-semibold">{value}</div>
         </div>
       ))}
     </div>
+  );
+}
+
+function Rating({ rating, chrome }: { readonly rating: number | null } & WithChrome) {
+  return (
+    <span className="flex items-center gap-0.5">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <Star
+          key={star}
+          size={14}
+          strokeWidth={1.5}
+          aria-hidden
+          style={{ color: star <= (rating ?? 0) ? chrome.accent : chrome.line }}
+          fill={star <= (rating ?? 0) ? "currentColor" : "none"}
+        />
+      ))}
+    </span>
   );
 }
 

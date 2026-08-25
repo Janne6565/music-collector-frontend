@@ -16,6 +16,9 @@ export interface DetailFields {
   notes: string;
 }
 
+/** The queries that read a copy out of the local store, and so change when one is saved. */
+const LOCAL_KEYS = ["copy", "copyDetails", "copies", "stats", "wishlist", "cover-photos"];
+
 const BLANK: DetailFields = {
   condition: null,
   sleeveCondition: null,
@@ -90,7 +93,12 @@ export function useCopyDetailsLogic(copyId: string, onSaved: () => void) {
       );
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries();
+      // Only what reads the copy. A bare invalidateQueries() also refetched the release
+      // search still mounted behind this sheet — every add ended in a second round trip to
+      // Discogs for results nobody had asked for again, out of a quota measured per minute.
+      await Promise.all(
+        LOCAL_KEYS.map((key) => queryClient.invalidateQueries({ queryKey: [key] })),
+      );
       onSaved();
     },
   });

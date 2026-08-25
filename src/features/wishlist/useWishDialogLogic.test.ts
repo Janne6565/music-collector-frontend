@@ -158,12 +158,15 @@ describe("a picture for a record no catalogue has", () => {
     expect(typedIn().result.current.canUploadImage).toBe(true);
   });
 
-  it("shows the chosen picture straight away, ahead of anything resolved", () => {
+  it("shows the chosen picture straight away, as the device's own rather than the catalogue's", () => {
     const { result } = typedIn();
 
     act(() => result.current.chooseImage(image()));
 
-    expect(result.current.subjectCoverArtUrl).toBe("blob:chosen");
+    expect(result.current.subjectPictureSrc).toBe("blob:chosen");
+    // Not folded into the catalogue's answer: a file already on the device must not be
+    // drawn with the shimmer that says "this is on its way".
+    expect(result.current.subjectCoverArtUrl).toBeNull();
     expect(result.current.imageRejected).toBeNull();
   });
 
@@ -176,7 +179,7 @@ describe("a picture for a record no catalogue has", () => {
     act(() => result.current.chooseImage(image("image/png", 16 * 1024 * 1024)));
     expect(result.current.imageRejected).toBe("size");
 
-    expect(result.current.subjectCoverArtUrl).toBeNull();
+    expect(result.current.subjectPictureSrc).toBeNull();
   });
 
   it("writes the picture against the wish, and only once the entry is saved", async () => {

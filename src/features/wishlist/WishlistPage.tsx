@@ -92,6 +92,7 @@ export function WishlistPage() {
                 key={item.id}
                 item={item}
                 coverArtUrl={logic.coverOf(item)}
+                pictureSrc={logic.pictureOf(item)}
                 draggable={drag.isDraggable(index)}
                 lifted={drag.isLifted(index)}
                 onArm={() => drag.arm(index)}
@@ -193,6 +194,8 @@ interface RowProps {
   readonly item: WishlistItem;
   /** The album's artwork, or null while it is on its way and when there is none. */
   readonly coverArtUrl: string | null;
+  /** The picture uploaded for this entry, for a record no catalogue has. */
+  readonly pictureSrc: string | null;
   readonly draggable: boolean;
   readonly lifted: boolean;
   readonly onArm: () => void;
@@ -209,6 +212,7 @@ interface RowProps {
 function Row({
   item,
   coverArtUrl,
+  pictureSrc,
   draggable,
   lifted,
   onArm,
@@ -259,6 +263,7 @@ function Row({
             a record you already have on CD should look like the thing you are hunting. */}
         <ReleaseArt
           release={{ coverArtUrl }}
+          previewSrc={pictureSrc}
           format={item.desiredFormat ?? "OTHER"}
           loading="lazy"
         />

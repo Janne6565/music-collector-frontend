@@ -130,14 +130,16 @@ export function useWishlistLogic() {
   return {
     items: ordered,
     count: items.length,
+    /** The album's artwork, resolved by the server. Null while on its way, and when none. */
+    coverOf: (item: WishlistItem): string | null => covers.data?.get(item.albumId) ?? null,
     /**
-     * The picture for one entry: its own, if somebody uploaded one, else the album's.
+     * The picture somebody uploaded for this entry, which only a hand-entered one can have.
      *
-     * They cannot both exist — only a hand-entered album can carry a picture, and only a
-     * matched one resolves a cover — so the order is documentation rather than precedence.
+     * Kept apart from the catalogue's cover rather than folded into it: this one is already
+     * on the device, so it paints on the frame it is asked for, and sweeping over it would
+     * invent a wait that never happened.
      */
-    coverOf: (item: WishlistItem): string | null =>
-      ownPhotos.get(item.id) ?? covers.data?.get(item.albumId) ?? null,
+    pictureOf: (item: WishlistItem): string | null => ownPhotos.get(item.id) ?? null,
     loading: wishlist.isLoading,
     sort,
     /** "Your order" is only a thing the menu names once a drag has produced one. */

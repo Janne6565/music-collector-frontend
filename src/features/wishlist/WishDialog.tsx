@@ -219,7 +219,7 @@ function CoverImageField({ logic }: { readonly logic: Logic }) {
   const { t } = useTranslation();
   const input = useRef<HTMLInputElement>(null);
   const describedBy = useId();
-  const chosen = logic.subjectCoverArtUrl !== null;
+  const chosen = logic.subjectPictureSrc !== null;
 
   return (
     <div className="pt-4">
@@ -274,6 +274,7 @@ function DetailsStep({ logic }: { readonly logic: Logic }) {
                 tile should follow what is being asked for as it is asked for. */}
             <ReleaseArt
               release={{ coverArtUrl: logic.subjectCoverArtUrl }}
+              previewSrc={logic.subjectPictureSrc}
               format={logic.format ?? "OTHER"}
             />
           </div>

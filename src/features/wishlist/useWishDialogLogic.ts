@@ -253,19 +253,19 @@ export function useWishDialogLogic(
   return {
     step,
     subject,
-    /**
-     * What the tile shows: the picture being chosen right now, then the one already saved,
-     * then the picked pressing's cover, then the album's — null while none is known.
-     *
-     * The unsaved choice outranks everything on purpose. Picking a file and watching the
-     * tile keep the old picture is the app telling you it did not hear you.
-     */
+    /** The catalogue's answer: the picked pressing's cover, else the album's. */
     subjectCoverArtUrl:
-      image?.url ??
-      ownPhoto.data ??
-      (subject === null
+      subject === null
         ? null
-        : (subject.coverArtUrl ?? albumCover.data?.get(subject.albumId) ?? null)),
+        : (subject.coverArtUrl ?? albumCover.data?.get(subject.albumId) ?? null),
+    /**
+     * The device's own picture: the file being chosen right now, else the one already saved.
+     *
+     * The unsaved choice outranks the saved one on purpose — picking a file and watching
+     * the tile keep the old picture is the app telling you it did not hear you — and both
+     * outrank the catalogue, which for a hand-entered record has nothing to say anyway.
+     */
+    subjectPictureSrc: image?.url ?? ownPhoto.data ?? null,
     /**
      * Whether this entry can carry a picture of its own.
      *

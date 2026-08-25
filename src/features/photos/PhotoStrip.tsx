@@ -1,6 +1,5 @@
 import type { PhotoStripLogic } from "@/features/photos/usePhotoStripLogic";
 import { cn } from "@/lib/utils";
-import type { DetailChrome } from "@janne6565/music-collector-shared";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 

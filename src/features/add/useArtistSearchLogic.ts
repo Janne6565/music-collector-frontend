@@ -14,9 +14,13 @@ export const ARTISTS_SHOWN = 3;
  * artists the moment they land reads as faster than one that waits to render both at once.
  *
  * A barcode never runs this: a number identifies a pressing, and no artist is named 602537.
+ *
+ * The disclosure state is keyed on the query rather than kept as a bare flag, so a new
+ * search opens collapsed again — a flag left standing would have the next search start
+ * expanded, which is the one state the screen is never drawn in.
  */
 export function useArtistSearchLogic(query: string, enabled: boolean) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState<string | null>(null);
 
   const artists = useQuery({
     queryKey: ["artistSearch", query],
@@ -25,13 +29,14 @@ export function useArtistSearchLogic(query: string, enabled: boolean) {
   });
 
   const all = artists.data ?? [];
+  const isExpanded = expanded === query;
   return {
     /** Everything matched, so the count on the section header is honest. */
     total: all.length,
-    shown: expanded ? all : all.slice(0, ARTISTS_SHOWN),
+    shown: isExpanded ? all : all.slice(0, ARTISTS_SHOWN),
     hidden: Math.max(0, all.length - ARTISTS_SHOWN),
-    expanded,
-    expand: () => setExpanded(true),
+    expanded: isExpanded,
+    expand: () => setExpanded(query),
     /**
      * True only while artists are still coming. The releases query has its own wait, and
      * conflating the two would hold back whichever landed first.
@@ -43,8 +48,6 @@ export function useArtistSearchLogic(query: string, enabled: boolean) {
      * trade — the section simply does not appear.
      */
     failed: artists.isError,
-    /** Reset when a new search starts, or the second search opens pre-expanded. */
-    collapse: () => setExpanded(false),
   };
 }
 

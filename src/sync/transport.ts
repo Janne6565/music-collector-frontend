@@ -5,6 +5,7 @@ import type {
 } from "@/api/generated/musicCollectorAPI.schemas";
 import { pull, push } from "@/api/generated/sync/sync";
 import { downloadPhotoBytes, uploadPhotoBytes } from "@/api/photos";
+import { lookupReleases } from "@/api/releases";
 import type { CopyOrigin, OriginJournal } from "@/local/dexieStore";
 import type {
   ClockSource,
@@ -256,6 +257,16 @@ export function createSyncTransport(store: SyncStore): SyncTransport {
       const bytes = await store.getPhotoBytes(photo.id);
       if (bytes === undefined) return null;
       return uploadPhotoBytes(photo.id, photo.copyId, bytes);
+    },
+
+    /**
+     * The catalogue behind the copies that just arrived. It does not travel inside a sync
+     * batch — a release is a shared cache, not somebody's record — so the engine asks for
+     * it separately, and without this a device that has only ever pulled draws a shelf of
+     * untitled placeholders.
+     */
+    async fetchReleases(releaseIds) {
+      return lookupReleases(releaseIds);
     },
 
     async downloadPhoto(photo) {

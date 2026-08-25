@@ -4,6 +4,7 @@ import {
   artistImage,
   findByBarcode,
   getRelease,
+  getReleases,
   releasesInGroup,
   search,
   searchArtists,
@@ -213,4 +214,25 @@ export async function lookupAlbumCovers(
     if (dto.albumId !== undefined) covers.set(dto.albumId, dto.coverArtUrl ?? null);
   }
   return covers;
+}
+
+/** The same hundred-id cap as the covers endpoint, so a large collection asks in pages. */
+const RELEASE_BATCH = 100;
+
+/**
+ * The releases behind a set of ids, straight from the mirror.
+ *
+ * What a device asks for after signing in: sync hands it copies that *name* releases,
+ * never the releases themselves, so without this every record on a second browser is an
+ * untitled placeholder. Ids the mirror cannot answer for — hand-entered `local:` releases
+ * among them — are simply absent, and the caller keeps whatever it had.
+ */
+export async function lookupReleases(releaseIds: readonly string[]): Promise<Release[]> {
+  const batches: string[][] = [];
+  for (let start = 0; start < releaseIds.length; start += RELEASE_BATCH) {
+    batches.push(releaseIds.slice(start, start + RELEASE_BATCH));
+  }
+
+  const pages = await Promise.all(batches.map((releaseId) => getReleases({ releaseId })));
+  return toReleases(pages.flat(), Date.now());
 }

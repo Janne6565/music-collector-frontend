@@ -99,7 +99,9 @@ function Choice({ strategy, selected, onSelect, title, body }: ChoiceProps) {
   return (
     <label
       className={cn(
-        "flex cursor-pointer items-start gap-3 rounded-xl bg-surface p-3.5 transition-colors duration-(--mc-quick)",
+        // `relative` contains the sr-only radio below; without it the absolutely
+        // positioned input is laid out against the document and can stretch it.
+        "relative flex cursor-pointer items-start gap-3 rounded-xl bg-surface p-3.5 transition-colors duration-(--mc-quick)",
         chosen ? "border-[1.5px] border-ink" : "border border-line hover:bg-canvas",
       )}
     >

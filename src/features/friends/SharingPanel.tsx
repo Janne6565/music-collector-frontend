@@ -129,7 +129,13 @@ function VisibilityGroup({ legend, value, onChange, note }: VisibilityGroupProps
           <label
             key={choice.value}
             className={cn(
-              "flex cursor-pointer items-start gap-3 border-b border-line px-3.5 py-3 last:border-b-0 transition-colors duration-(--mc-quick)",
+              // `relative` is load-bearing, not decoration. The radio below is `sr-only`,
+              // which is `position: absolute`; with no positioned ancestor its containing
+              // block is the initial one, so its static position is resolved in *document*
+              // coordinates. Sitting a thousand pixels down a scrolled column, it stretched
+              // <html> past the viewport, and focusing it scrolled the whole app -- sidebar
+              // and all -- off screen. Same reason Toggle's label is relative.
+              "relative flex cursor-pointer items-start gap-3 border-b border-line px-3.5 py-3 last:border-b-0 transition-colors duration-(--mc-quick)",
               value === choice.value ? "bg-surface" : "hover:bg-surface/60",
             )}
           >

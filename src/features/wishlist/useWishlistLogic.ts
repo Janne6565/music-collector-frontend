@@ -10,6 +10,7 @@ import {
   manualOrderWrites,
   moveWish,
   sortWishlist,
+  tombstonePhoto,
   tombstoneWishlistItem,
 } from "@janne6565/music-collector-shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -122,9 +123,18 @@ export function useWishlistLogic() {
 
   const remove = useMutation({
     mutationFn: async (item: WishlistItem) => {
-      await store.putWishlistItem(tombstoneWishlistItem(item, clock, Date.now()));
+      const now = Date.now();
+      await store.putWishlistItem(tombstoneWishlistItem(item, clock, now));
+      // The picture goes with it. A wish id is never reused, so a photo left behind is one
+      // nothing can ever reference again — and the server only deletes the object in
+      // storage when the record it belongs to is put down.
+      const picture = (await store.listWishPhotos([item.id])).get(item.id);
+      if (picture !== undefined) await store.putPhoto(tombstonePhoto(picture, clock, now));
     },
-    onSuccess: invalidate,
+    onSuccess: async () => {
+      await invalidate();
+      await queryClient.invalidateQueries({ queryKey: ["wish-photos"] });
+    },
   });
 
   return {

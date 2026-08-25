@@ -1,3 +1,4 @@
+import { useDebouncedSearch } from "@/lib/useDebouncedSearch";
 import { useStore } from "@/local/StoreProvider";
 import type {
   CollectionStats,
@@ -12,6 +13,16 @@ import { useCallback, useMemo, useState } from "react";
 
 export type FormatFilter = Format | "ALL";
 export type SortKey = NonNullable<LibraryFilter["sort"]>;
+
+/**
+ * How long the search box has to stand still before the grid re-queries.
+ *
+ * The query is local, so the cost is not a request — it is that every keystroke re-sorted
+ * and re-rendered the whole grid, and a shelf reflowing under each letter is hard to read
+ * while you are still typing the word. Shorter than the add dialog's 350ms, which is
+ * pacing an upstream call; this one only has to outlast the gap between two keystrokes.
+ */
+const SEARCH_DEBOUNCE_MS = 200;
 
 export interface LibraryRow {
   readonly copy: Copy;
@@ -37,12 +48,15 @@ export function useLibraryLogic() {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<SortKey>("ADDED_DESC");
 
+  /** What the grid is filtered by — the box stays instant, this trails it. */
+  const searchTerm = useDebouncedSearch(search, SEARCH_DEBOUNCE_MS);
+
   const stats = useCollectionStats();
 
   const copiesQuery = useQuery({
-    queryKey: ["copies", format, condition, search, sort],
+    queryKey: ["copies", format, condition, searchTerm, sort],
     queryFn: async () => {
-      const copies = await store.listCopies({ format, condition, search, sort });
+      const copies = await store.listCopies({ format, condition, search: searchTerm, sort });
       const releases = await store.getReleases(copies.map((copy) => copy.releaseId));
       return copies.map((copy) => ({ copy, release: releases.get(copy.releaseId) }));
     },

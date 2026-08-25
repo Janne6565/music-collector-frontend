@@ -2,6 +2,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { Button, Toggle } from "@/components/ui";
 import { formatRelativeTime } from "@/domain/relativeTime";
 import { useAccountLogic } from "@/features/account/useAccountLogic";
+import { SharingPanel } from "@/features/friends/SharingPanel";
 import { Navigate } from "@tanstack/react-router";
 import { FileDown, HardDrive, LogOut, RefreshCw, UserRound } from "lucide-react";
 import { type ReactNode, useId } from "react";
@@ -130,6 +131,13 @@ export function AccountPage() {
               }
             />
           </Card>
+
+          {/* Sharing sits with the account rather than with Friends: it is a decision about
+              this account, and somebody looking for "who can see my collection" looks here
+              first. It draws nothing until a handle exists to configure it for. */}
+          <div className="mt-7 rounded-xl border border-line bg-surface p-5">
+            <SharingPanel />
+          </div>
 
           <div className="mt-7 flex items-center justify-between gap-4 rounded-xl border border-accent/30 bg-accent/5 p-4">
             <div>

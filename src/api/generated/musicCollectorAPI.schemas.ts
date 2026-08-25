@@ -30,6 +30,7 @@ export interface SyncCopyDto {
   notes?: string;
   notesConflict?: string;
   rating?: number;
+  hidden?: boolean;
   createdAt?: number;
   deletedAt?: number;
   fieldClocks?: SyncCopyDtoFieldClocks;

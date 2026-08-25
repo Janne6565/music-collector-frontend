@@ -1,4 +1,5 @@
 import { useStore } from "@/local/StoreProvider";
+import { rememberCopyOrigins } from "@/local/dexieStore";
 import type {
   Condition,
   CopyDraft,
@@ -137,6 +138,8 @@ export function useManualEntryLogic(onAdded: (copyId: string) => void) {
       };
 
       const copy = createManualCopy(manual, draft, clock, Date.now(), crypto.randomUUID());
+      // Typed in by hand, one record at a time — the origin the feed is actually about.
+      await rememberCopyOrigins(store, [copy.id], "MANUAL");
       await store.putCopy(copy);
 
       // The cover is an ordinary photo of the copy — a manual pressing has no catalogue

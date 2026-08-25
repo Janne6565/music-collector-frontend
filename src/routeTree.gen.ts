@@ -10,16 +10,25 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as HandleRouteImport } from './routes/$handle'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as ForgotRouteImport } from './routes/forgot'
+import { Route as FriendsRouteImport } from './routes/friends'
 import { Route as ResetRouteImport } from './routes/reset'
 import { Route as SigninRouteImport } from './routes/signin'
 import { Route as WishlistRouteImport } from './routes/wishlist'
+import { Route as HandleWishlistRouteImport } from './routes/$handle.wishlist'
 import { Route as CopiesCopyIdRouteImport } from './routes/copies.$copyId'
+import { Route as FriendsHandleRouteImport } from './routes/friends.$handle'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HandleRoute = HandleRouteImport.update({
+  id: '/$handle',
+  path: '/$handle',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AccountRoute = AccountRouteImport.update({
@@ -30,6 +39,11 @@ const AccountRoute = AccountRouteImport.update({
 const ForgotRoute = ForgotRouteImport.update({
   id: '/forgot',
   path: '/forgot',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FriendsRoute = FriendsRouteImport.update({
+  id: '/friends',
+  path: '/friends',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetRoute = ResetRouteImport.update({
@@ -47,74 +61,110 @@ const WishlistRoute = WishlistRouteImport.update({
   path: '/wishlist',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HandleWishlistRoute = HandleWishlistRouteImport.update({
+  id: '/wishlist',
+  path: '/wishlist',
+  getParentRoute: () => HandleRoute,
+} as any)
 const CopiesCopyIdRoute = CopiesCopyIdRouteImport.update({
   id: '/copies/$copyId',
   path: '/copies/$copyId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FriendsHandleRoute = FriendsHandleRouteImport.update({
+  id: '/$handle',
+  path: '/$handle',
+  getParentRoute: () => FriendsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/$handle': typeof HandleRouteWithChildren
   '/account': typeof AccountRoute
   '/forgot': typeof ForgotRoute
+  '/friends': typeof FriendsRouteWithChildren
   '/reset': typeof ResetRoute
   '/signin': typeof SigninRoute
   '/wishlist': typeof WishlistRoute
+  '/$handle/wishlist': typeof HandleWishlistRoute
   '/copies/$copyId': typeof CopiesCopyIdRoute
+  '/friends/$handle': typeof FriendsHandleRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/$handle': typeof HandleRouteWithChildren
   '/account': typeof AccountRoute
   '/forgot': typeof ForgotRoute
+  '/friends': typeof FriendsRouteWithChildren
   '/reset': typeof ResetRoute
   '/signin': typeof SigninRoute
   '/wishlist': typeof WishlistRoute
+  '/$handle/wishlist': typeof HandleWishlistRoute
   '/copies/$copyId': typeof CopiesCopyIdRoute
+  '/friends/$handle': typeof FriendsHandleRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/$handle': typeof HandleRouteWithChildren
   '/account': typeof AccountRoute
   '/forgot': typeof ForgotRoute
+  '/friends': typeof FriendsRouteWithChildren
   '/reset': typeof ResetRoute
   '/signin': typeof SigninRoute
   '/wishlist': typeof WishlistRoute
+  '/$handle/wishlist': typeof HandleWishlistRoute
   '/copies/$copyId': typeof CopiesCopyIdRoute
+  '/friends/$handle': typeof FriendsHandleRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/$handle'
     | '/account'
     | '/forgot'
+    | '/friends'
     | '/reset'
     | '/signin'
     | '/wishlist'
+    | '/$handle/wishlist'
     | '/copies/$copyId'
+    | '/friends/$handle'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/$handle'
     | '/account'
     | '/forgot'
+    | '/friends'
     | '/reset'
     | '/signin'
     | '/wishlist'
+    | '/$handle/wishlist'
     | '/copies/$copyId'
+    | '/friends/$handle'
   id:
     | '__root__'
     | '/'
+    | '/$handle'
     | '/account'
     | '/forgot'
+    | '/friends'
     | '/reset'
     | '/signin'
     | '/wishlist'
+    | '/$handle/wishlist'
     | '/copies/$copyId'
+    | '/friends/$handle'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  HandleRoute: typeof HandleRouteWithChildren
   AccountRoute: typeof AccountRoute
   ForgotRoute: typeof ForgotRoute
+  FriendsRoute: typeof FriendsRouteWithChildren
   ResetRoute: typeof ResetRoute
   SigninRoute: typeof SigninRoute
   WishlistRoute: typeof WishlistRoute
@@ -130,6 +180,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$handle': {
+      id: '/$handle'
+      path: '/$handle'
+      fullPath: '/$handle'
+      preLoaderRoute: typeof HandleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/account': {
       id: '/account'
       path: '/account'
@@ -142,6 +199,13 @@ declare module '@tanstack/react-router' {
       path: '/forgot'
       fullPath: '/forgot'
       preLoaderRoute: typeof ForgotRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/friends': {
+      id: '/friends'
+      path: '/friends'
+      fullPath: '/friends'
+      preLoaderRoute: typeof FriendsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset': {
@@ -165,6 +229,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WishlistRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$handle/wishlist': {
+      id: '/$handle/wishlist'
+      path: '/wishlist'
+      fullPath: '/$handle/wishlist'
+      preLoaderRoute: typeof HandleWishlistRouteImport
+      parentRoute: typeof HandleRoute
+    }
     '/copies/$copyId': {
       id: '/copies/$copyId'
       path: '/copies/$copyId'
@@ -172,13 +243,44 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CopiesCopyIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/friends/$handle': {
+      id: '/friends/$handle'
+      path: '/$handle'
+      fullPath: '/friends/$handle'
+      preLoaderRoute: typeof FriendsHandleRouteImport
+      parentRoute: typeof FriendsRoute
+    }
   }
 }
 
+interface HandleRouteChildren {
+  HandleWishlistRoute: typeof HandleWishlistRoute
+}
+
+const HandleRouteChildren: HandleRouteChildren = {
+  HandleWishlistRoute: HandleWishlistRoute,
+}
+
+const HandleRouteWithChildren =
+  HandleRoute._addFileChildren(HandleRouteChildren)
+
+interface FriendsRouteChildren {
+  FriendsHandleRoute: typeof FriendsHandleRoute
+}
+
+const FriendsRouteChildren: FriendsRouteChildren = {
+  FriendsHandleRoute: FriendsHandleRoute,
+}
+
+const FriendsRouteWithChildren =
+  FriendsRoute._addFileChildren(FriendsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  HandleRoute: HandleRouteWithChildren,
   AccountRoute: AccountRoute,
   ForgotRoute: ForgotRoute,
+  FriendsRoute: FriendsRouteWithChildren,
   ResetRoute: ResetRoute,
   SigninRoute: SigninRoute,
   WishlistRoute: WishlistRoute,

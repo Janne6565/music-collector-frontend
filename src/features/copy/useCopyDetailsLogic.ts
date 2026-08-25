@@ -190,6 +190,27 @@ export function useCopyDetailsLogic(copyId: string, onSaved: () => void) {
     },
   });
 
+  /**
+   * Hiding is written straight through rather than waiting for Save.
+   *
+   * It is not an edit to the record's facts, it is a decision about who may see it, and a
+   * privacy switch that only takes effect if you remember to press Save afterwards is the
+   * wrong kind of switch. Still a stamped write like any other, so it reaches the other
+   * devices instead of losing every merge.
+   */
+  const setHidden = useMutation({
+    mutationFn: async (hidden: boolean) => {
+      const current = await store.getCopy(copyId);
+      if (current === undefined) return;
+      await store.putCopy(applyCopyPatch(current, { hidden }, clock));
+    },
+    onSuccess: async () => {
+      await Promise.all(
+        LOCAL_KEYS.map((key) => queryClient.invalidateQueries({ queryKey: [key] })),
+      );
+    },
+  });
+
   const set = useCallback(<K extends keyof DetailFields>(key: K, value: DetailFields[K]) => {
     setFields((current) => ({ ...current, [key]: value }));
     if (key === "price") setPriceInvalid(false);
@@ -226,5 +247,8 @@ export function useCopyDetailsLogic(copyId: string, onSaved: () => void) {
     },
     canSave: !manual || (fields.artist.trim() !== "" && fields.title.trim() !== ""),
     saving: save.isPending,
+    hidden: copy?.hidden ?? false,
+    toggleHidden: () => setHidden.mutate(!(copy?.hidden ?? false)),
+    hiding: setHidden.isPending,
   };
 }

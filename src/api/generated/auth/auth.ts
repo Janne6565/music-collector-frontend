@@ -11,10 +11,12 @@ for copies. The server participates only as a sync peer.
  */
 import type {
   AuthProviderDto,
+  AuthorizeParams,
   CallbackParams,
   CallbackPostedParams,
   ForgotPasswordRequest,
   LoginRequest,
+  OAuthExchangeRequest,
   RegisterRequest,
   ResetPasswordRequest,
   SessionDto,
@@ -66,7 +68,7 @@ export const refresh = (
       );
     }
   /**
- * Sets the refresh cookie and redirects into the app. No token ever appears in a URL.
+ * For a browser: sets the refresh cookie and redirects into the web app. For a native client: redirects to the app's URL scheme with a one-time handoff code. No token ever appears in a URL either way.
  * @summary Where the provider sends the person back
  */
 export const callback = (
@@ -90,6 +92,20 @@ export const callbackPosted = (
       return customInstance<unknown>(
       {url: `/api/v1/auth/oauth/${provider}/callback`, method: 'POST',
         params
+    },
+      );
+    }
+  /**
+ * The native half of the flow. The deep link carries only a one-time code, which the app redeems here over its own connection; the refresh token is returned in the body, as `X-Token-Mode: direct` would.
+ * @summary Trade a handoff code for a session
+ */
+export const exchange = (
+    oAuthExchangeRequest: OAuthExchangeRequest,
+ ) => {
+      return customInstance<SessionDto>(
+      {url: `/api/v1/auth/oauth/exchange`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: oAuthExchangeRequest
     },
       );
     }
@@ -134,30 +150,6 @@ export const forgotPassword = (
       );
     }
   /**
- * Only providers with credentials configured. Clients render a button per entry, so an unconfigured provider is absent rather than broken.
- * @summary Sign-in providers this server can actually use
- */
-export const providers = (
-    
- ) => {
-      return customInstance<AuthProviderDto[]>(
-      {url: `/api/v1/auth/providers`, method: 'GET'
-    },
-      );
-    }
-  /**
- * Redirects to the provider. Navigate to this, never fetch it.
- * @summary Begin an external sign-in
- */
-export const authorize = (
-    provider: string,
- ) => {
-      return customInstance<unknown>(
-      {url: `/api/v1/auth/oauth/${provider}/authorize`, method: 'GET'
-    },
-      );
-    }
-  /**
  * @summary The signed-in account
  */
 export const me = (
@@ -165,6 +157,18 @@ export const me = (
  ) => {
       return customInstance<UserDto>(
       {url: `/api/v1/auth/me`, method: 'GET'
+    },
+      );
+    }
+  /**
+ * Removes the server-side copy of the collection and every uploaded photo. The client's local collection is untouched -- it belongs to the device, not the account, and the app goes on working without one.
+ * @summary Delete the account and everything synced to it
+ */
+export const deleteAccount = (
+    
+ ) => {
+      return customInstance<void>(
+      {url: `/api/v1/auth/me`, method: 'DELETE'
     },
       );
     }
@@ -183,14 +187,28 @@ export const updateProfile = (
       );
     }
   /**
- * Removes the server-side copy of the collection and every uploaded photo. The client's local collection is untouched -- it belongs to the device, not the account, and the app goes on working without one.
- * @summary Delete the account and everything synced to it
+ * Only providers with credentials configured. Clients render a button per entry, so an unconfigured provider is absent rather than broken.
+ * @summary Sign-in providers this server can actually use
  */
-export const deleteAccount = (
+export const providers = (
     
  ) => {
-      return customInstance<void>(
-      {url: `/api/v1/auth/me`, method: 'DELETE'
+      return customInstance<AuthProviderDto[]>(
+      {url: `/api/v1/auth/providers`, method: 'GET'
+    },
+      );
+    }
+  /**
+ * Redirects to the provider. Navigate to this, never fetch it. `client=mobile` finishes the flow by reopening the native app with a one-time code instead of setting the browser's refresh cookie.
+ * @summary Begin an external sign-in
+ */
+export const authorize = (
+    provider: string,
+    params?: AuthorizeParams,
+ ) => {
+      return customInstance<unknown>(
+      {url: `/api/v1/auth/oauth/${provider}/authorize`, method: 'GET',
+        params
     },
       );
     }
@@ -199,11 +217,12 @@ export type RegisterResult = NonNullable<Awaited<ReturnType<typeof register>>>
 export type RefreshResult = NonNullable<Awaited<ReturnType<typeof refresh>>>
 export type CallbackResult = NonNullable<Awaited<ReturnType<typeof callback>>>
 export type CallbackPostedResult = NonNullable<Awaited<ReturnType<typeof callbackPosted>>>
+export type ExchangeResult = NonNullable<Awaited<ReturnType<typeof exchange>>>
 export type LogoutResult = NonNullable<Awaited<ReturnType<typeof logout>>>
 export type LoginResult = NonNullable<Awaited<ReturnType<typeof login>>>
 export type ForgotPasswordResult = NonNullable<Awaited<ReturnType<typeof forgotPassword>>>
+export type MeResult = NonNullable<Awaited<ReturnType<typeof me>>>
+export type DeleteAccountResult = NonNullable<Awaited<ReturnType<typeof deleteAccount>>>
+export type UpdateProfileResult = NonNullable<Awaited<ReturnType<typeof updateProfile>>>
 export type ProvidersResult = NonNullable<Awaited<ReturnType<typeof providers>>>
 export type AuthorizeResult = NonNullable<Awaited<ReturnType<typeof authorize>>>
-export type MeResult = NonNullable<Awaited<ReturnType<typeof me>>>
-export type UpdateProfileResult = NonNullable<Awaited<ReturnType<typeof updateProfile>>>
-export type DeleteAccountResult = NonNullable<Awaited<ReturnType<typeof deleteAccount>>>

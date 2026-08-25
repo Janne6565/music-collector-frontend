@@ -1,0 +1,360 @@
+import type {
+  FriendRequestDto,
+  ProfileSummaryDto,
+  SharingSettingsDtoCollectionVisibility,
+} from "@/api/generated/musicCollectorAPI.schemas";
+import { AppShell } from "@/components/layout/AppShell";
+import { Button, PulsingDots } from "@/components/ui";
+import { ActivityFeed } from "@/features/friends/ActivityFeed";
+import { Avatar } from "@/features/friends/Avatar";
+import { ClaimHandlePanel } from "@/features/friends/ClaimHandlePanel";
+import { useFriendsLogic } from "@/features/friends/useFriendsLogic";
+import { useCollectionStats } from "@/features/library/useLibraryLogic";
+import { cn } from "@/lib/utils";
+import { Link } from "@tanstack/react-router";
+import { Lock, Search, UserPlus } from "lucide-react";
+import { useTranslation } from "react-i18next";
+
+/**
+ * Screen 15g — activity in the main column, people in a rail, requests pinned.
+ *
+ * One page rather than two tabs, because on a wide screen there is room for both and the
+ * two halves answer each other: a request card at the top of the feed is about somebody
+ * who is not yet in the rail beside it.
+ */
+export function FriendsPage() {
+  const { t } = useTranslation();
+  const logic = useFriendsLogic();
+  const stats = useCollectionStats();
+
+  if (!logic.signedIn) {
+    return (
+      <AppShell stats={stats}>
+        <SignedOutNotice />
+      </AppShell>
+    );
+  }
+
+  // Waiting rather than guessing: flashing the claim form at somebody who already has a
+  // handle is worse than a moment of nothing.
+  if (logic.needsHandle === undefined) {
+    return (
+      <AppShell stats={stats}>
+        <div className="flex flex-1 items-center justify-center">
+          <PulsingDots />
+        </div>
+      </AppShell>
+    );
+  }
+
+  if (logic.needsHandle) {
+    return (
+      <AppShell stats={stats}>
+        <div className="flex flex-1 items-start justify-center px-7 pt-16">
+          <ClaimHandlePanel />
+        </div>
+      </AppShell>
+    );
+  }
+
+  return (
+    <AppShell stats={stats}>
+      <header className="flex flex-none items-center justify-between gap-4 px-7 pt-6 pb-4">
+        <h1 className="font-serif text-[26px] leading-none">{t("friends.title")}</h1>
+        <SearchField logic={logic} />
+      </header>
+
+      <div className="flex min-h-0 flex-1 gap-6 overflow-y-auto px-7 pb-8">
+        <main className="min-w-0 flex-1">
+          {logic.results.length > 0 && <Results logic={logic} />}
+          {logic.incoming.map((invite: FriendRequestDto) => (
+            <RequestCard
+              key={invite.id}
+              name={invite.from?.displayName ?? invite.from?.handle ?? ""}
+              handle={invite.from?.handle ?? ""}
+              copies={invite.from?.copyCount}
+              mutual={invite.mutualFriends ?? 0}
+              onAccept={() => logic.acceptRequest.mutate(invite.id ?? "")}
+              onDecline={() => logic.declineRequest.mutate(invite.id ?? "")}
+              busy={logic.acceptRequest.isPending || logic.declineRequest.isPending}
+            />
+          ))}
+          <ActivityFeed entries={logic.entries} loading={logic.loading} />
+          <p className="mt-6 text-[11.5px] leading-relaxed text-ink-subtle">
+            {t("friends.importsAreSilent")}
+          </p>
+        </main>
+
+        <aside className="w-64 flex-none">
+          <PeopleRail logic={logic} />
+        </aside>
+      </div>
+    </AppShell>
+  );
+}
+
+function SignedOutNotice() {
+  const { t } = useTranslation();
+  return (
+    <div className="flex flex-1 flex-col items-center justify-center gap-3 px-7 text-center">
+      <h1 className="font-serif text-[24px]">{t("friends.signedOut.title")}</h1>
+      <p className="max-w-sm text-[13px] leading-relaxed text-ink-muted">
+        {t("friends.signedOut.body")}
+      </p>
+      <Link to="/signin" className="mt-1">
+        <Button className="h-9 rounded-lg px-4 text-[13px]">{t("friends.signedOut.action")}</Button>
+      </Link>
+    </div>
+  );
+}
+
+type Logic = ReturnType<typeof useFriendsLogic>;
+
+function SearchField({ logic }: { readonly logic: Logic }) {
+  const { t } = useTranslation();
+  return (
+    <div className="relative w-72 flex-none">
+      <Search
+        size={14}
+        strokeWidth={1.75}
+        aria-hidden
+        className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-subtle"
+      />
+      <input
+        value={logic.query}
+        onChange={(event) => logic.setQuery(event.target.value)}
+        placeholder={t("friends.searchPlaceholder")}
+        aria-label={t("friends.searchPlaceholder")}
+        className="h-9 w-full rounded-lg border border-line bg-surface pl-8 pr-3 text-[12.5px] text-ink outline-none placeholder:text-ink-subtle focus:border-ink/25"
+      />
+    </div>
+  );
+}
+
+function Results({ logic }: { readonly logic: Logic }) {
+  const { t } = useTranslation();
+  return (
+    <section className="mb-5 rounded-xl border border-line bg-surface p-1.5">
+      <div className="px-2.5 py-2 font-mono text-[10px] uppercase tracking-[0.1em] text-ink-subtle">
+        {t("friends.results")}
+      </div>
+      {logic.results.map((person: ProfileSummaryDto) => (
+        <PersonRow key={person.id} person={person} logic={logic} />
+      ))}
+    </section>
+  );
+}
+
+function PersonRow({
+  person,
+  logic,
+}: { readonly person: ProfileSummaryDto; readonly logic: Logic }) {
+  const { t } = useTranslation();
+  return (
+    <div className="flex items-center gap-3 rounded-lg px-2.5 py-2 transition-colors duration-(--mc-quick) hover:bg-paper">
+      <Avatar name={person.displayName ?? person.handle ?? ""} />
+      <Link
+        to="/friends/$handle"
+        params={{ handle: person.handle ?? "" }}
+        className="min-w-0 flex-1 no-underline"
+      >
+        <div className="truncate text-[13px] font-semibold text-ink">
+          {person.displayName ?? person.handle}
+        </div>
+        <div className="flex items-center gap-1 truncate text-[11.5px] text-ink-muted">
+          {person.collectionPrivate && <Lock size={11} strokeWidth={2} aria-hidden />}@
+          {person.handle}
+          {person.copyCount !== undefined &&
+            ` · ${t("friends.copies", { count: person.copyCount })}`}
+        </div>
+      </Link>
+      <RelationshipButton person={person} logic={logic} />
+    </div>
+  );
+}
+
+/**
+ * One button with four states, driven entirely by the server's verdict. The client never
+ * works out the relationship for itself — it is a fact about two accounts, not about a
+ * page.
+ */
+function RelationshipButton({
+  person,
+  logic,
+}: { readonly person: ProfileSummaryDto; readonly logic: Logic }) {
+  const { t } = useTranslation();
+  const flat = "flex-none rounded-md px-2.5 py-1 text-[11.5px] font-medium";
+
+  switch (person.relationship) {
+    case "FRIENDS":
+      return <span className={cn(flat, "text-ink-subtle")}>{t("friends.state.friends")}</span>;
+    case "REQUEST_SENT":
+      return <span className={cn(flat, "text-ink-subtle")}>{t("friends.state.requested")}</span>;
+    case "SELF":
+      return <span className={cn(flat, "text-ink-subtle")}>{t("friends.state.you")}</span>;
+    default:
+      return (
+        <button
+          type="button"
+          onClick={() => logic.ask.mutate(person.handle ?? "")}
+          disabled={logic.ask.isPending}
+          className={cn(flat, "bg-ink text-paper disabled:opacity-50")}
+        >
+          {t("friends.state.add")}
+        </button>
+      );
+  }
+}
+
+interface RequestCardProps {
+  readonly name: string;
+  readonly handle: string;
+  readonly copies: number | undefined;
+  readonly mutual: number;
+  readonly onAccept: () => void;
+  readonly onDecline: () => void;
+  readonly busy: boolean;
+}
+
+/** Pinned above the feed, because a person waiting for an answer outranks any record. */
+function RequestCard({
+  name,
+  handle,
+  copies,
+  mutual,
+  onAccept,
+  onDecline,
+  busy,
+}: RequestCardProps) {
+  const { t } = useTranslation();
+  return (
+    <div className="mb-4 flex items-center gap-3 rounded-xl border border-accent/25 bg-accent/[0.06] px-4 py-3">
+      <Avatar name={name} />
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-[13px] font-semibold text-ink">
+          {t("friends.wantsToBeFriends", { name })}
+        </div>
+        <div className="truncate text-[11.5px] text-ink-muted">
+          @{handle}
+          {copies !== undefined && ` · ${t("friends.copies", { count: copies })}`}
+          {mutual > 0 && ` · ${t("friends.mutual", { count: mutual })}`}
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={onDecline}
+        disabled={busy}
+        className="flex-none px-2 py-1 text-[12px] text-ink-muted disabled:opacity-50"
+      >
+        {t("friends.decline")}
+      </button>
+      <Button
+        onClick={onAccept}
+        disabled={busy}
+        className="h-8 flex-none rounded-lg px-3 text-[12px]"
+      >
+        {t("friends.accept")}
+      </Button>
+    </div>
+  );
+}
+
+function PeopleRail({ logic }: { readonly logic: Logic }) {
+  const { t } = useTranslation();
+  return (
+    <div className="sticky top-0 flex flex-col gap-4">
+      <section className="rounded-xl border border-line bg-surface p-1.5">
+        <div className="px-2.5 py-2 font-mono text-[10px] uppercase tracking-[0.1em] text-ink-subtle">
+          {t("friends.people", { count: logic.friends.length })}
+        </div>
+        {logic.friends.length === 0 && (
+          <p className="px-2.5 pb-2.5 text-[12px] leading-relaxed text-ink-muted">
+            {t("friends.noneYet")}
+          </p>
+        )}
+        {logic.friends.map((person: ProfileSummaryDto) => (
+          <Link
+            key={person.id}
+            to="/friends/$handle"
+            params={{ handle: person.handle ?? "" }}
+            className="flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 no-underline transition-colors duration-(--mc-quick) hover:bg-paper"
+          >
+            <Avatar name={person.displayName ?? person.handle ?? ""} size={26} />
+            <div className="min-w-0">
+              <div className="truncate text-[12.5px] font-medium text-ink">
+                {person.displayName ?? person.handle}
+              </div>
+              <div className="flex items-center gap-1 truncate text-[11px] text-ink-subtle">
+                {person.collectionPrivate ? (
+                  <>
+                    <Lock size={10} strokeWidth={2} aria-hidden />
+                    {t("friends.private")}
+                  </>
+                ) : (
+                  t("friends.copies", { count: person.copyCount ?? 0 })
+                )}
+              </div>
+            </div>
+          </Link>
+        ))}
+      </section>
+
+      {logic.outgoing.length > 0 && (
+        <section className="rounded-xl border border-line bg-surface p-1.5">
+          <div className="px-2.5 py-2 font-mono text-[10px] uppercase tracking-[0.1em] text-ink-subtle">
+            {t("friends.awaitingReply")}
+          </div>
+          {logic.outgoing.map((person: ProfileSummaryDto) => (
+            <div key={person.id} className="flex items-center gap-2.5 px-2.5 py-1.5">
+              <UserPlus size={13} strokeWidth={1.75} aria-hidden className="text-ink-subtle" />
+              <span className="truncate text-[12px] text-ink-muted">@{person.handle}</span>
+            </div>
+          ))}
+        </section>
+      )}
+
+      <ShelfSummary logic={logic} />
+    </div>
+  );
+}
+
+/**
+ * Spelled out rather than assembled from the value: the translation keys are typed, and a
+ * key built by lowercasing an enum is one the compiler cannot check.
+ */
+const SHELF_KEYS = {
+  ONLY_ME: "friends.shelf.only_me",
+  FRIENDS: "friends.shelf.friends",
+  PUBLIC: "friends.shelf.public",
+} as const satisfies Record<SharingSettingsDtoCollectionVisibility, string>;
+
+const SHELF_WISHLIST_KEYS = {
+  ONLY_ME: "friends.shelf.wishlist.only_me",
+  FRIENDS: "friends.shelf.wishlist.friends",
+  PUBLIC: "friends.shelf.wishlist.public",
+} as const satisfies Record<SharingSettingsDtoCollectionVisibility, string>;
+
+/** The "your shelf is open to friends" card — the settings said back to you in a sentence. */
+function ShelfSummary({ logic }: { readonly logic: Logic }) {
+  const { t } = useTranslation();
+  const sharing = logic.sharing;
+  if (!sharing) return null;
+
+  return (
+    <section className="rounded-xl border border-line bg-surface px-3.5 py-3">
+      <div className="text-[12.5px] font-medium text-ink">
+        {t(SHELF_KEYS[sharing.collectionVisibility ?? "FRIENDS"])}
+      </div>
+      <div className="mt-1 text-[11.5px] leading-relaxed text-ink-muted">
+        {t(SHELF_WISHLIST_KEYS[sharing.wishlistVisibility ?? "FRIENDS"])}{" "}
+        {sharing.pricesPublic ? t("friends.shelf.pricesShown") : t("friends.shelf.pricesHidden")}
+      </div>
+      <Link
+        to="/account"
+        className="mt-2 inline-block text-[11.5px] font-medium text-accent no-underline hover:underline"
+      >
+        {t("friends.changeSharing")}
+      </Link>
+    </section>
+  );
+}

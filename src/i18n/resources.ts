@@ -6,6 +6,7 @@ const enCommon = {
   nav: {
     library: "Library",
     wishlist: "Wishlist",
+    friends: "Friends",
     artists: "Artists",
     settings: "Settings",
   },
@@ -16,6 +17,139 @@ const enCommon = {
     cassette: "Cassette",
     digital: "Digital",
     other: "Other",
+  },
+  friends: {
+    title: "Friends",
+    searchPlaceholder: "Find a collector by handle",
+    results: "Results",
+    people: "People · {{count}}",
+    noneYet: "Nobody yet. Search for a handle above.",
+    awaitingReply: "Waiting for a reply",
+    private: "private",
+    copies_one: "{{count}} copy",
+    copies_other: "{{count}} copies",
+    mutual_one: "{{count}} friend in common",
+    mutual_other: "{{count}} friends in common",
+    wantsToBeFriends: "{{name}} wants to be friends",
+    accept: "Accept",
+    decline: "Decline",
+    changeSharing: "Change sharing",
+    importsAreSilent: "Imports are silent. Only single adds and wishlist moves show up here.",
+    seeAll_one: "See it",
+    seeAll_other: "See all {{count}}",
+    state: {
+      add: "Add",
+      requested: "Requested",
+      friends: "Friends",
+      you: "You",
+    },
+    shelf: {
+      only_me: "Your shelf is closed",
+      friends: "Your shelf is open to friends",
+      public: "Your shelf is public",
+      wishlist: {
+        only_me: "Wishlist is private.",
+        friends: "Wishlist is open to friends.",
+        public: "Wishlist is public.",
+      },
+      pricesShown: "Prices shown.",
+      pricesHidden: "Prices hidden.",
+    },
+    line: {
+      added: "<person>{{name}}</person> added <title>{{title}}</title> to their collection",
+      addedMany: "<person>{{name}}</person> added {{count}} copies to their collection",
+      wishAdded: "<person>{{name}}</person> is looking for <title>{{title}}</title>",
+      wishFulfilled:
+        "<person>{{name}}</person> found <title>{{title}}</title> — off the wishlist, onto the shelf",
+      accepted: "<person>{{name}}</person> accepted your request",
+    },
+    feedEmpty: {
+      title: "Nothing yet",
+      body: "When the people you follow add a record by hand, it turns up here.",
+    },
+    signedOut: {
+      title: "Friends needs an account",
+      body: "Your collection works without one. Finding other collectors does not — there has to be something for them to find.",
+      action: "Sign in",
+    },
+    claim: {
+      title: "Pick a handle",
+      label: "Handle",
+      body: "This is how other collectors find you. Your name stays as it is — the handle is just for finding.",
+      rules: "Letters, numbers and dots. You can change it twice a year.",
+      action: "Claim @{{handle}}",
+      reason: {
+        malformed: "Letters, numbers and single dots only, three characters at least.",
+        taken: "Somebody already goes by that.",
+        reserved: "That one is spoken for by the app itself.",
+        ok: "Available.",
+      },
+    },
+  },
+  sharing: {
+    title: "Sharing",
+    copy: "Copy",
+    copied: "Copied",
+    perCopyNote:
+      "Single copies can be hidden one by one from the copy screen, whatever these settings say.",
+    findable: {
+      title: "Findable by handle",
+      body: "Appears in search when someone types your handle. Off means only a link you send yourself will reach your profile.",
+    },
+    collection: {
+      legend: "Who can see your collection",
+      friends: "Friends",
+    },
+    wishlist: {
+      legend: "Your wishlist",
+      note: "Set separately from the collection — most people share this one wider.",
+    },
+    prices: {
+      title: "Show prices and totals",
+      on: "On. What you paid travels with the copies anybody can already see.",
+      off: "Off. What you paid stays yours even on a public shelf.",
+    },
+    choice: {
+      only_me: {
+        title: "Only me",
+        body: "Friends see your name and nothing else.",
+      },
+      friends: {
+        title: "Friends",
+        body: "The ones you accepted, and nobody else.",
+      },
+      public: {
+        title: "Anyone with the link",
+        body: "A page anyone can open, no account needed.",
+      },
+    },
+  },
+  profile: {
+    ask: "Ask to be friends",
+    signInToAsk: "Sign in to ask",
+    collectingSince: "collecting since {{year}}",
+    readOnly: "read-only",
+    readOnlyNoPrices: "read-only · prices hidden by {{name}}",
+    emptyShelf: "Nothing on this shelf yet.",
+    emptyWishlist: "Nothing on this wishlist yet.",
+    truncated: "Showing the most recent copies.",
+    tab: {
+      collection: "Collection · {{count}}",
+      wishlist: "Wishlist · {{count}}",
+    },
+    locked: {
+      title: "This shelf is for friends",
+      body: "{{name}} keeps {{count}} copies here. Once they accept, the collection and wishlist open up.",
+    },
+    notFound: {
+      title: "No such collector",
+      body: "Nobody goes by @{{handle}}.",
+    },
+  },
+  public: {
+    signIn: "Sign in",
+    startYourOwn: "Start your own shelf",
+    footer: "Public page · condition, notes and prices are not shown",
   },
   library: {
     title: "Library",
@@ -63,7 +197,7 @@ const enCommon = {
     empty: "Nothing on the wishlist yet.",
     emptyTitle: "Nothing on the hunt yet",
     emptyLede:
-      "Records you want but don't own. No prices, no alerts \u2014 a list you keep so you remember at the shop.",
+      "Records you want but don't own. No prices, no alerts — a list you keep so you remember at the shop.",
     way: {
       search: "Search a release, tap the heart",
       artist: "Open an artist, mark the gaps",
@@ -218,6 +352,8 @@ const enCommon = {
     editTitle: "Edit copy",
     storageGuest: "Saved on this device, synced when you sign in",
     storageSignedIn: "Saved on this device and synced to your account",
+    hide: "Hide from others",
+    hidden: "Hidden from others",
   },
   grading: {
     help: "What the grades mean",
@@ -456,6 +592,7 @@ const deCommon: CommonSchema = {
   nav: {
     library: "Sammlung",
     wishlist: "Wunschliste",
+    friends: "Freunde",
     artists: "Künstler",
     settings: "Einstellungen",
   },
@@ -466,6 +603,139 @@ const deCommon: CommonSchema = {
     cassette: "Kassette",
     digital: "Digital",
     other: "Sonstige",
+  },
+  friends: {
+    title: "Freunde",
+    searchPlaceholder: "Sammler:in über Handle finden",
+    results: "Treffer",
+    people: "Leute · {{count}}",
+    noneYet: "Noch niemand. Such oben nach einem Handle.",
+    awaitingReply: "Wartet auf Antwort",
+    private: "privat",
+    copies_one: "{{count}} Exemplar",
+    copies_other: "{{count}} Exemplare",
+    mutual_one: "{{count}} gemeinsame:r Freund:in",
+    mutual_other: "{{count}} gemeinsame Freunde",
+    wantsToBeFriends: "{{name}} möchte befreundet sein",
+    accept: "Annehmen",
+    decline: "Ablehnen",
+    changeSharing: "Freigabe ändern",
+    importsAreSilent:
+      "Importe bleiben still. Hier erscheinen nur einzeln hinzugefügte Exemplare und Wunschlisten-Einträge.",
+    seeAll_one: "Ansehen",
+    seeAll_other: "Alle {{count}} ansehen",
+    state: {
+      add: "Hinzufügen",
+      requested: "Angefragt",
+      friends: "Befreundet",
+      you: "Du",
+    },
+    shelf: {
+      only_me: "Dein Regal ist geschlossen",
+      friends: "Dein Regal ist für Freunde offen",
+      public: "Dein Regal ist öffentlich",
+      wishlist: {
+        only_me: "Wunschliste ist privat.",
+        friends: "Wunschliste ist für Freunde offen.",
+        public: "Wunschliste ist öffentlich.",
+      },
+      pricesShown: "Preise sichtbar.",
+      pricesHidden: "Preise verborgen.",
+    },
+    line: {
+      added: "<person>{{name}}</person> hat <title>{{title}}</title> zur Sammlung gelegt",
+      addedMany: "<person>{{name}}</person> hat {{count}} Exemplare zur Sammlung gelegt",
+      wishAdded: "<person>{{name}}</person> sucht <title>{{title}}</title>",
+      wishFulfilled:
+        "<person>{{name}}</person> hat <title>{{title}}</title> gefunden — von der Wunschliste ins Regal",
+      accepted: "<person>{{name}}</person> hat deine Anfrage angenommen",
+    },
+    feedEmpty: {
+      title: "Noch nichts",
+      body: "Sobald deine Freunde eine Platte von Hand eintragen, steht sie hier.",
+    },
+    signedOut: {
+      title: "Für Freunde brauchst du ein Konto",
+      body: "Deine Sammlung funktioniert ohne. Andere Sammler:innen zu finden nicht — es muss ja etwas zu finden geben.",
+      action: "Anmelden",
+    },
+    claim: {
+      title: "Wähl einen Handle",
+      label: "Handle",
+      body: "So finden dich andere Sammler:innen. Dein Name bleibt, wie er ist — der Handle ist nur zum Finden da.",
+      rules: "Buchstaben, Zahlen und Punkte. Zweimal im Jahr änderbar.",
+      action: "@{{handle}} nehmen",
+      reason: {
+        malformed: "Nur Buchstaben, Zahlen und einzelne Punkte, mindestens drei Zeichen.",
+        taken: "Den hat schon jemand.",
+        reserved: "Den braucht die App selbst.",
+        ok: "Frei.",
+      },
+    },
+  },
+  sharing: {
+    title: "Freigabe",
+    copy: "Kopieren",
+    copied: "Kopiert",
+    perCopyNote: "Einzelne Exemplare lassen sich unabhängig davon im Exemplar-Fenster verbergen.",
+    findable: {
+      title: "Über Handle auffindbar",
+      body: "Taucht in der Suche auf, wenn jemand deinen Handle tippt. Aus heißt: nur ein Link, den du selbst verschickst, führt zu deinem Profil.",
+    },
+    collection: {
+      legend: "Wer deine Sammlung sehen darf",
+      friends: "Freunde",
+    },
+    wishlist: {
+      legend: "Deine Wunschliste",
+      note: "Getrennt von der Sammlung — die meisten geben diese weiter frei.",
+    },
+    prices: {
+      title: "Preise und Summen zeigen",
+      on: "An. Was du bezahlt hast, reist mit den Exemplaren mit, die ohnehin sichtbar sind.",
+      off: "Aus. Was du bezahlt hast, bleibt deine Sache — auch auf einem öffentlichen Regal.",
+    },
+    choice: {
+      only_me: {
+        title: "Nur ich",
+        body: "Freunde sehen deinen Namen und sonst nichts.",
+      },
+      friends: {
+        title: "Freunde",
+        body: "Die, die du angenommen hast, und sonst niemand.",
+      },
+      public: {
+        title: "Alle mit dem Link",
+        body: "Eine Seite, die jede:r öffnen kann, ganz ohne Konto.",
+      },
+    },
+  },
+  profile: {
+    ask: "Freundschaft anfragen",
+    signInToAsk: "Zum Anfragen anmelden",
+    collectingSince: "sammelt seit {{year}}",
+    readOnly: "nur lesen",
+    readOnlyNoPrices: "nur lesen · Preise von {{name}} verborgen",
+    emptyShelf: "Auf diesem Regal steht noch nichts.",
+    emptyWishlist: "Auf dieser Wunschliste steht noch nichts.",
+    truncated: "Zeigt die zuletzt hinzugefügten Exemplare.",
+    tab: {
+      collection: "Sammlung · {{count}}",
+      wishlist: "Wunschliste · {{count}}",
+    },
+    locked: {
+      title: "Dieses Regal ist für Freunde",
+      body: "{{name}} verwahrt hier {{count}} Exemplare. Sobald die Anfrage angenommen ist, öffnen sich Sammlung und Wunschliste.",
+    },
+    notFound: {
+      title: "Keine solche Sammlung",
+      body: "Niemand nennt sich @{{handle}}.",
+    },
+  },
+  public: {
+    signIn: "Anmelden",
+    startYourOwn: "Eigenes Regal anfangen",
+    footer: "Öffentliche Seite · Zustand, Notizen und Preise werden nicht gezeigt",
   },
   library: {
     title: "Sammlung",
@@ -673,6 +943,8 @@ const deCommon: CommonSchema = {
     editTitle: "Exemplar bearbeiten",
     storageGuest: "Auf diesem Gerät gespeichert, synchronisiert sobald du dich anmeldest",
     storageSignedIn: "Auf diesem Gerät gespeichert und mit deinem Konto synchronisiert",
+    hide: "Vor anderen verbergen",
+    hidden: "Vor anderen verborgen",
   },
   grading: {
     help: "Was die Zustandsstufen bedeuten",

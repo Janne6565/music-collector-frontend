@@ -65,6 +65,7 @@ class MusicCollectorDb extends Dexie {
   photos!: EntityTable<Photo, "id">;
   photoBytes!: EntityTable<PhotoBytesRow, "id">;
   meta!: EntityTable<MetaRow, "key">;
+  copyOrigins!: EntityTable<CopyOriginRow, "id">;
 
   constructor() {
     super("music-collector");
@@ -139,6 +140,16 @@ class MusicCollectorDb extends Dexie {
 
     // Dropped in its own version: a store cannot be read in the upgrade that deletes it.
     this.version(4).stores({ releases: null });
+
+    /**
+     * Why each not-yet-pushed copy exists.
+     *
+     * Local-only and deliberately outside the Copy itself: it is the reason for one push,
+     * not a fact about the record, and it stops mattering the moment the server has seen
+     * the row. Keeping it here rather than on the copy also means it never has to merge —
+     * two devices can never disagree about a question only one of them was asked.
+     */
+    this.version(5).stores({ copyOrigins: "id" });
   }
 }
 
@@ -149,11 +160,77 @@ class MusicCollectorDb extends Dexie {
  * only holds strings. A collection with a few hundred copies and cached cover metadata
  * passes that limit quickly.
  */
+/**
+ * A pending answer to "why does this copy exist", waiting for the next push.
+ *
+ * Only the device can answer it: an import of two hundred records and two hundred typed in
+ * over a fortnight reach the server in exactly the same shape.
+ */
+interface CopyOriginRow {
+  readonly id: string;
+  readonly origin: CopyOrigin;
+}
+
+export type CopyOrigin = "MANUAL" | "CSV_IMPORT" | "FIRST_SYNC";
+
+/**
+ * The part of the store the sync transport needs in order to say why a copy exists.
+ *
+ * A separate interface rather than the whole Dexie class, so an in-memory store in a test
+ * can leave it out entirely. A transport with nothing to read simply sends no origins,
+ * which the server reads as silence — the same safe default as an older client.
+ */
+export interface OriginJournal {
+  rememberOrigins(ids: readonly string[], origin: CopyOrigin): Promise<void>;
+  readOrigins(): Promise<Record<string, CopyOrigin>>;
+  forgetOrigins(ids: readonly string[]): Promise<void>;
+}
+
+/**
+ * Records an origin if this store keeps one.
+ *
+ * Callers hold a `LocalStore`, which is the contract shared with the mobile app and has no
+ * business knowing about feeds. Rather than widen it, the add paths ask politely and carry
+ * on when the answer is no.
+ */
+export async function rememberCopyOrigins(
+  store: unknown,
+  ids: readonly string[],
+  origin: CopyOrigin,
+): Promise<void> {
+  const journal = store as Partial<OriginJournal>;
+  if (typeof journal.rememberOrigins !== "function" || ids.length === 0) {
+    return;
+  }
+  await journal.rememberOrigins(ids, origin);
+}
+
 export class DexieLocalStore implements LocalStore {
   private readonly db = new MusicCollectorDb();
 
   async open(): Promise<void> {
     await this.db.open();
+  }
+
+  /** Records why some copies were created, for the next push to pass on. */
+  async rememberOrigins(ids: readonly string[], origin: CopyOrigin): Promise<void> {
+    await this.db.copyOrigins.bulkPut(ids.map((id) => ({ id, origin })));
+  }
+
+  async readOrigins(): Promise<Record<string, CopyOrigin>> {
+    const rows = await this.db.copyOrigins.toArray();
+    return Object.fromEntries(rows.map((row) => [row.id, row.origin]));
+  }
+
+  /**
+   * Forgets the answers the server has now been given.
+   *
+   * Cleared after the push rather than before it: a push that fails has to be able to say
+   * the same thing again, or a record added offline would go quiet purely because the
+   * first attempt was made on a train.
+   */
+  async forgetOrigins(ids: readonly string[]): Promise<void> {
+    await this.db.copyOrigins.bulkDelete([...ids]);
   }
 
   async listCopies(filter: LibraryFilter = {}): Promise<Copy[]> {

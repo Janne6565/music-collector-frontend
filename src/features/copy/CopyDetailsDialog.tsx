@@ -14,7 +14,7 @@ import { usePhotoStripLogic } from "@/features/photos/usePhotoStripLogic";
 import { cn } from "@/lib/utils";
 import type { Format } from "@janne6565/music-collector-shared";
 import { FORMAT_LABELS } from "@janne6565/music-collector-shared";
-import { Calendar, HardDrive, Star } from "lucide-react";
+import { Calendar, Eye, EyeOff, HardDrive, Star } from "lucide-react";
 import { useId } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -351,6 +351,9 @@ export function CopyDetailsDialog({
             {logic.signedIn ? t("copyDetails.storageSignedIn") : t("copyDetails.storageGuest")}
           </span>
         )}
+        {editing && logic.signedIn && (
+          <HideSwitch hidden={logic.hidden} busy={logic.hiding} onToggle={logic.toggleHidden} />
+        )}
         <DialogActions
           editing={editing}
           formId={`${titleId}-form`}
@@ -458,5 +461,37 @@ function FormatChips({
         );
       })}
     </div>
+  );
+}
+
+/**
+ * Keeps one record off every shelf but your own, whatever the sharing settings say.
+ *
+ * Only for signed-in accounts, because there is nothing to hide a copy *from* until the
+ * collection can be seen by somebody else at all. Saved the moment it is pressed rather
+ * than with the rest of the form — a privacy switch that waits for a Save button is one
+ * people will believe they have already flipped.
+ */
+function HideSwitch({
+  hidden,
+  busy,
+  onToggle,
+}: { readonly hidden: boolean; readonly busy: boolean; readonly onToggle: () => void }) {
+  const { t } = useTranslation();
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      disabled={busy}
+      aria-pressed={hidden}
+      className="flex items-center gap-1.5 rounded-md px-2 py-1 text-[11.5px] font-medium text-ink-muted transition-colors duration-(--mc-quick) hover:bg-canvas disabled:opacity-50"
+    >
+      {hidden ? (
+        <EyeOff size={14} strokeWidth={1.75} aria-hidden />
+      ) : (
+        <Eye size={14} strokeWidth={1.75} aria-hidden />
+      )}
+      {hidden ? t("copyDetails.hidden") : t("copyDetails.hide")}
+    </button>
   );
 }

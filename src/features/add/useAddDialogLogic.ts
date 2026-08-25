@@ -1,8 +1,8 @@
 import { lookupByBarcode, lookupRelease, searchReleases } from "@/api/releases";
 import { fromCsv } from "@/domain/csv";
-import { rememberCopyOrigins } from "@/local/dexieStore";
 import { useSatisfyWishes } from "@/features/wishlist/useSatisfyWishes";
 import { useStore } from "@/local/StoreProvider";
+import { rememberCopyOrigins } from "@/local/dexieStore";
 import { clearRecentSearches, readRecentSearches, rememberSearch } from "@/local/settings";
 import type {
   Artist,

@@ -5,6 +5,7 @@ import { Button, PulsingDots, Skeleton } from "@/components/ui";
 import { formatMoney } from "@/features/detail/DetailPage";
 import { Avatar } from "@/features/friends/Avatar";
 import { useProfileLogic } from "@/features/friends/useProfileLogic";
+import { useSharedCoverPhotos } from "@/features/friends/useSharedCoverPhotos";
 import { useCollectionStats } from "@/features/library/useLibraryLogic";
 import { FORMAT_LABELS } from "@janne6565/music-collector-shared";
 import { Link, useParams } from "@tanstack/react-router";
@@ -107,9 +108,14 @@ export function ProfileBody({
             {t("profile.tab.wishlist", { count: person.wishlistCount ?? 0 })}
           </TabButton>
         </div>
-        <span className="flex-none font-mono text-[10.5px] uppercase tracking-[0.08em] text-ink-subtle">
-          {person.pricesVisible ? t("profile.readOnly") : t("profile.readOnlyNoPrices", { name })}
-        </span>
+        {/* Nothing is said about being read-only: a page with no controls on it already
+            says so, and a label repeating it spends the line on the obvious. What is not
+            obvious is a column that is missing on purpose. */}
+        {person.pricesVisible === false && (
+          <span className="flex-none font-mono text-[10.5px] uppercase tracking-[0.08em] text-ink-subtle">
+            {t("profile.pricesHidden", { name })}
+          </span>
+        )}
       </div>
 
       {!showing ? (
@@ -222,6 +228,12 @@ function CollectionGrid({
   truncated,
 }: { readonly copies: readonly SharedCopyDto[]; readonly truncated: boolean }) {
   const { t } = useTranslation();
+  /*
+   * A hand-entered copy points at no catalogue and so can never have cover art — its
+   * picture is a photograph of the record, and without it every such tile on somebody
+   * else's shelf is a blank sleeve. Hooks run before the empty return below.
+   */
+  const photos = useSharedCoverPhotos(copies);
   if (copies.length === 0) {
     return <p className="mt-8 text-center text-[13px] text-ink-muted">{t("profile.emptyShelf")}</p>;
   }
@@ -238,6 +250,7 @@ function CollectionGrid({
               <ReleaseArt
                 release={{ coverArtUrl: copy.coverArtUrl ?? null, format: copy.format }}
                 format={copy.format}
+                previewSrc={copy.id === undefined ? null : (photos.get(copy.id) ?? null)}
                 loading="lazy"
               />
             </div>

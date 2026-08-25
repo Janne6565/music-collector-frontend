@@ -335,6 +335,7 @@ export interface SharedCopyDto {
   year?: number;
   format?: SharedCopyDtoFormat;
   coverArtUrl?: string;
+  previewPhotoId?: string;
   coverTheme?: CoverThemeDto;
   condition?: string;
   sleeveCondition?: string;

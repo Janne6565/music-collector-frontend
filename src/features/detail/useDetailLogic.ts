@@ -45,7 +45,7 @@ export function useDetailLogic(copyId: string) {
   });
 
   const release = detailQuery.data?.release;
-  useCoverThemeEnrichment(release);
+  useReleaseEnrichment(release);
 
   const invalidate = async () => {
     await queryClient.invalidateQueries({ queryKey: ["copy", copyId] });
@@ -85,25 +85,30 @@ export function useDetailLogic(copyId: string) {
 }
 
 /**
- * Fills in a release's cover theme in the background, once.
+ * Fills in what a release's search result did not carry, in the background, once.
  *
- * The palette is only sampled server-side on the detail lookup, so a release cached from a
- * search arrives without one. Fetching it costs a round trip and, on a cover the server has
- * never sampled, several seconds of image fetch and decode — which is why it happens beside
- * the page rather than in front of it. The page renders in its neutral paper chrome and
- * takes on the sleeve's colour when the answer lands.
+ * A search returns a summary; the label, catalogue number and country this page prints
+ * under the title come from the full lookup. `coverTheme === null` is the marker for
+ * "summary only" — the palette is sampled server-side on that lookup alone, so its absence
+ * is exactly the question "has this release ever been looked up properly". Web no longer
+ * draws the palette itself (see DetailPage), but it remains the cheapest signal there is,
+ * and the mobile app does draw it.
+ *
+ * Beside the page rather than in front of it: the round trip can take seconds on a cover
+ * the server has never sampled, and nothing it brings back is worth making a local-first
+ * page wait.
  *
  * `staleTime: Infinity` is what keeps it to once: a release whose cover genuinely has no
  * palette still comes back with a null theme, and without this every reopen would ask again.
  */
-export function useCoverThemeEnrichment(release: Release | undefined): void {
+export function useReleaseEnrichment(release: Release | undefined): void {
   const { store } = useStore();
   const queryClient = useQueryClient();
-  const needsTheme = release !== undefined && release.coverTheme === null;
+  const summaryOnly = release !== undefined && release.coverTheme === null;
 
   useQuery({
     queryKey: ["coverTheme", release?.id],
-    enabled: needsTheme,
+    enabled: summaryOnly,
     staleTime: Number.POSITIVE_INFINITY,
     gcTime: Number.POSITIVE_INFINITY,
     retry: false,

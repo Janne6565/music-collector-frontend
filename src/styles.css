@@ -4,6 +4,9 @@
  * Design tokens lifted from the Claude Design deck (project a1b6280a…).
  * Keep these in sync with the mobile app's token mirror — the two apps are meant to
  * read as one product.
+ *
+ * One deliberate exception: mobile also carries the dark `night-*` chrome for turn 3's
+ * cover-derived item detail, which web does not use. See the note on DetailPage.
  */
 @theme {
   --color-canvas: #efece6;
@@ -17,14 +20,6 @@
   --color-accent-hover: #7d3f27;
   /* The darker accent the deck reserves for destructive wording ("Delete account"). */
   --color-accent-strong: #8c4530;
-
-  /* Dark chrome — used by the cover-derived theme on item detail screens. */
-  --color-night: #141311;
-  --color-night-raised: #191713;
-  --color-night-ink: #ffffff;
-  --color-night-muted: rgba(255, 255, 255, 0.55);
-  --color-night-line: rgba(255, 255, 255, 0.09);
-  --color-accent-night: #d08a5f;
 
   --font-sans: "Manrope", system-ui, sans-serif;
   --font-serif: "Newsreader", Georgia, serif;

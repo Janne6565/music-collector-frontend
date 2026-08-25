@@ -1,4 +1,3 @@
-import type { DetailChrome } from "@/features/detail/theme";
 import type { PhotoStripLogic } from "@/features/photos/usePhotoStripLogic";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -12,22 +11,13 @@ import { useTranslation } from "react-i18next";
  * from being on screen, and fades in over the same tile when it gets there. Neither of
  * them changes the tile's size, so the strip does not reshuffle as photos arrive.
  */
-function PhotoTile({
-  src,
-  label,
-  chrome,
-}: {
-  readonly src: string | null;
-  readonly label: string;
-  readonly chrome: DetailChrome;
-}) {
+function PhotoTile({ src, label }: { readonly src: string | null; readonly label: string }) {
   const [loaded, setLoaded] = useState(false);
 
   return (
     <>
       <div
-        className={cn("absolute inset-0 rounded", src === null && "mc-pulse")}
-        style={{ background: chrome.surface }}
+        className={cn("absolute inset-0 rounded bg-surface", src === null && "mc-pulse")}
         aria-label={src === null ? label : undefined}
       />
       {src !== null && (
@@ -50,7 +40,6 @@ function PhotoTile({
 
 interface PhotoStripProps {
   readonly logic: PhotoStripLogic;
-  readonly chrome: DetailChrome;
   /** The catalogue's own artwork counts as one of the copy's images (turn 11). */
   readonly hasCatalog: boolean;
 }
@@ -63,7 +52,7 @@ interface PhotoStripProps {
  * the page reads, "Edit copy" writes. The caption is the pointer, and the first tile is
  * marked because the first image is the preview the rest of the app shows.
  */
-export function PhotoStrip({ logic, chrome, hasCatalog }: PhotoStripProps) {
+export function PhotoStrip({ logic, hasCatalog }: PhotoStripProps) {
   const { t } = useTranslation();
   const total = logic.tiles.length + (hasCatalog ? 1 : 0);
   if (total === 0) return null;
@@ -79,28 +68,24 @@ export function PhotoStrip({ logic, chrome, hasCatalog }: PhotoStripProps) {
               index === 0 && "ring-2 ring-accent",
             )}
           >
-            <PhotoTile src={src} label={t("photos.pending")} chrome={chrome} />
+            <PhotoTile src={src} label={t("photos.pending")} />
           </div>
         ))}
         {hasCatalog && (
           <div
             className={cn(
-              "relative h-13.5 w-13.5 overflow-hidden rounded",
+              "relative h-13.5 w-13.5 overflow-hidden rounded bg-surface",
               logic.tiles.length === 0 && "ring-2 ring-accent",
             )}
-            style={{ background: chrome.surface }}
           >
-            <span
-              className="absolute inset-x-0 bottom-0 py-0.5 text-center font-mono text-[7px] uppercase tracking-[0.06em]"
-              style={{ background: chrome.ink, color: chrome.background }}
-            >
+            <span className="absolute inset-x-0 bottom-0 bg-ink/70 py-0.5 text-center font-mono text-[7px] uppercase tracking-[0.06em] text-paper">
               {t("photos.catalog")}
             </span>
           </div>
         )}
       </div>
 
-      <p className="mt-2 font-mono text-[10px]" style={{ color: chrome.muted }}>
+      <p className="mt-2 font-mono text-[10px] text-ink-muted">
         {t("photos.manageIn", { count: total })}
       </p>
     </div>

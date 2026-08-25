@@ -6,25 +6,43 @@ import { formatMoney } from "@/features/detail/DetailPage";
 import { Avatar } from "@/features/friends/Avatar";
 import { useProfileLogic } from "@/features/friends/useProfileLogic";
 import { useSharedCoverPhotos } from "@/features/friends/useSharedCoverPhotos";
+import { useSharedWishCovers } from "@/features/friends/useSharedWishCovers";
 import { useCollectionStats } from "@/features/library/useLibraryLogic";
+import type { Format } from "@janne6565/music-collector-shared";
 import { FORMAT_LABELS } from "@janne6565/music-collector-shared";
-import { Link, useParams } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { ChevronLeft, Lock, UserCheck, UserPlus } from "lucide-react";
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
+
+/** Which half of a profile is on screen. Each half has its own address. */
+export type ProfileTab = "collection" | "wishlist";
 
 /**
  * Screen 15h — a friend's collection, the same grid as your own library with the owner
  * named, and 15d's locked shelf when it is not open to you.
  */
-export function ProfilePage() {
-  const { handle } = useParams({ from: "/friends/$handle" });
+export function ProfilePage({
+  handle,
+  tab,
+}: { readonly handle: string; readonly tab: ProfileTab }) {
   const stats = useCollectionStats();
   const logic = useProfileLogic(handle);
+  const navigate = useNavigate();
 
   return (
     <AppShell stats={stats}>
-      <ProfileBody logic={logic} backTo="/friends" />
+      <ProfileBody
+        logic={logic}
+        tab={tab}
+        onTab={(next) =>
+          void navigate(
+            next === "wishlist"
+              ? { to: "/friends/$handle/wishlist", params: { handle } }
+              : { to: "/friends/$handle", params: { handle } },
+          )
+        }
+        backTo="/friends"
+      />
     </AppShell>
   );
 }
@@ -38,10 +56,21 @@ type Logic = ReturnType<typeof useProfileLogic>;
  */
 export function ProfileBody({
   logic,
+  tab,
+  onTab,
   backTo,
-}: { readonly logic: Logic; readonly backTo?: string }) {
+}: {
+  readonly logic: Logic;
+  readonly tab: ProfileTab;
+  /**
+   * Switching tabs is a navigation, not a piece of local state: the wishlist is the half
+   * of the page people are sent a link to, and a tab that only lived in memory could not
+   * be linked to, reloaded, or opened in a second window.
+   */
+  readonly onTab: (tab: ProfileTab) => void;
+  readonly backTo?: string;
+}) {
   const { t } = useTranslation();
-  const [tab, setTab] = useState<"collection" | "wishlist">("collection");
   const person = logic.person;
 
   if (logic.loading) {
@@ -101,10 +130,10 @@ export function ProfileBody({
 
       <div className="mt-5 flex items-center justify-between gap-4 border-b border-line pb-2">
         <div className="flex gap-1">
-          <TabButton active={tab === "collection"} onClick={() => setTab("collection")}>
+          <TabButton active={tab === "collection"} onClick={() => onTab("collection")}>
             {t("profile.tab.collection", { count: person.copyCount ?? 0 })}
           </TabButton>
-          <TabButton active={tab === "wishlist"} onClick={() => setTab("wishlist")}>
+          <TabButton active={tab === "wishlist"} onClick={() => onTab("wishlist")}>
             {t("profile.tab.wishlist", { count: person.wishlistCount ?? 0 })}
           </TabButton>
         </div>
@@ -156,10 +185,7 @@ function TabButton({
 }
 
 /** 15d on the web: the shelf is described, not shown, and the number is the invitation. */
-function LockedShelf({
-  logic,
-  tab,
-}: { readonly logic: Logic; readonly tab: "collection" | "wishlist" }) {
+function LockedShelf({ logic, tab }: { readonly logic: Logic; readonly tab: ProfileTab }) {
   const { t } = useTranslation();
   const person = logic.person;
   const name = person?.displayName ?? person?.handle ?? "";
@@ -279,6 +305,11 @@ function CollectionGrid({
 
 function WishRows({ wishes }: { readonly wishes: readonly SharedWishDto[] }) {
   const { t } = useTranslation();
+  /*
+   * A wish names an album, and an album carries no artwork of its own — the picture is
+   * resolved rather than sent with the row. Hooks run before the empty return below.
+   */
+  const covers = useSharedWishCovers(wishes);
   if (wishes.length === 0) {
     return (
       <p className="mt-8 text-center text-[13px] text-ink-muted">{t("profile.emptyWishlist")}</p>
@@ -287,13 +318,22 @@ function WishRows({ wishes }: { readonly wishes: readonly SharedWishDto[] }) {
   return (
     <ul className="mt-4 flex list-none flex-col gap-1 p-0">
       {wishes.map((wish) => (
-        <li
-          key={wish.id}
-          className="flex items-baseline justify-between gap-4 rounded-lg px-3 py-2.5 odd:bg-surface"
-        >
-          <span className="min-w-0">
-            <span className="text-[13px] font-medium text-ink">{wish.title}</span>
-            <span className="ml-2 text-[12px] text-ink-muted">{wish.artistName}</span>
+        <li key={wish.id} className="flex items-center gap-3 rounded-lg px-3 py-2 odd:bg-surface">
+          {/* The wanted format is the silhouette, not the artwork: an entry for the vinyl
+              of a record they already have on CD should look like the thing being hunted.
+              Same 44px thumb as the owner's own list, so the two read as one screen. */}
+          <div className="h-11 w-11 flex-none">
+            <ReleaseArt
+              release={{
+                coverArtUrl: wish.albumId === undefined ? null : (covers.get(wish.albumId) ?? null),
+              }}
+              format={wishFormat(wish)}
+              loading="lazy"
+            />
+          </div>
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-[13px] font-medium text-ink">{wish.title}</span>
+            <span className="block truncate text-[12px] text-ink-muted">{wish.artistName}</span>
           </span>
           <span className="flex-none font-mono text-[11px] uppercase tracking-[0.08em] text-ink-subtle">
             {wish.desiredFormat ?? ""}
@@ -302,4 +342,16 @@ function WishRows({ wishes }: { readonly wishes: readonly SharedWishDto[] }) {
       ))}
     </ul>
   );
+}
+
+/**
+ * The silhouette to draw under a wish, when it named a format.
+ *
+ * Checked rather than cast: `desiredFormat` crosses the wire as a plain string, and a
+ * value the clients do not know must land on the generic sleeve instead of indexing the
+ * thumbnail table with nothing.
+ */
+function wishFormat(wish: SharedWishDto): Format {
+  const desired = wish.desiredFormat;
+  return desired !== undefined && desired in FORMAT_LABELS ? (desired as Format) : "OTHER";
 }

@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui";
+import type { ProfileTab } from "@/features/friends/ProfilePage";
 import { ProfileBody } from "@/features/friends/ProfilePage";
 import { useProfileLogic } from "@/features/friends/useProfileLogic";
 import { OPERATOR, OPERATOR_ONE_LINE } from "@janne6565/music-collector-shared";
-import { Link, useParams } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { ShieldCheck } from "lucide-react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
@@ -14,10 +15,13 @@ import { useTranslation } from "react-i18next";
  * behind it to navigate back to, and the only two things a visitor can do here are look and
  * start a shelf of their own.
  */
-export function PublicProfilePage() {
+export function PublicProfilePage({
+  handle,
+  tab,
+}: { readonly handle: string; readonly tab: ProfileTab }) {
   const { t } = useTranslation();
-  const { handle } = useParams({ from: "/$handle" });
   const logic = useProfileLogic(handle.replace(/^@/, ""));
+  const navigate = useNavigate();
 
   return (
     <div className="flex min-h-screen flex-col bg-paper text-ink">
@@ -48,7 +52,17 @@ export function PublicProfilePage() {
       </header>
 
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col">
-        <ProfileBody logic={logic} />
+        <ProfileBody
+          logic={logic}
+          tab={tab}
+          onTab={(next) =>
+            void navigate(
+              next === "wishlist"
+                ? { to: "/$handle/wishlist", params: { handle } }
+                : { to: "/$handle", params: { handle } },
+            )
+          }
+        />
       </main>
 
       <PublicFooter />

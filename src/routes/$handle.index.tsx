@@ -2,13 +2,13 @@ import { PublicProfilePage } from "@/features/friends/PublicProfilePage";
 import { requirePublicHandle } from "@/features/friends/publicHandle";
 import { createFileRoute } from "@tanstack/react-router";
 
-/** `/@somebody/wishlist` — the link the Sharing screen hands out. */
-export const Route = createFileRoute("/$handle/wishlist")({
+/** `/@somebody` — the shelf, which is what the link is usually handed out for. */
+export const Route = createFileRoute("/$handle/")({
   beforeLoad: ({ params }) => requirePublicHandle(params.handle),
-  component: PublicWishlist,
+  component: PublicCollection,
 });
 
-function PublicWishlist() {
+function PublicCollection() {
   const { handle } = Route.useParams();
-  return <PublicProfilePage handle={handle} tab="wishlist" />;
+  return <PublicProfilePage handle={handle} tab="collection" />;
 }

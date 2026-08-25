@@ -230,12 +230,17 @@ function CollectionGrid({
       <div className="mt-5 grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-4">
         {copies.map((copy) => (
           <article key={copy.id}>
-            <ReleaseArt
-              release={{ coverArtUrl: copy.coverArtUrl ?? null, format: copy.format }}
-              format={copy.format}
-              className="w-full"
-              loading="lazy"
-            />
+            {/* The square is the tile, not decoration: ReleaseArt fills its parent and
+                FormatThumb places every part of the sleeve in percentages, so a box with
+                no height collapses the artwork to a strip and the title lands on the row
+                below. Same wrapper the library grid and the skeleton above both use. */}
+            <div className="relative aspect-square">
+              <ReleaseArt
+                release={{ coverArtUrl: copy.coverArtUrl ?? null, format: copy.format }}
+                format={copy.format}
+                loading="lazy"
+              />
+            </div>
             <h3 className="mt-2 truncate text-[13px] font-medium text-ink">{copy.title}</h3>
             <p className="truncate text-[11.5px] text-ink-muted">
               {[

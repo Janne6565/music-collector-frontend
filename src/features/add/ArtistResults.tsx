@@ -1,7 +1,7 @@
 import { Skeleton } from "@/components/ui";
-import type { Artist } from "@/domain/types";
 import { useArtistImage } from "@/features/add/useArtistImage";
 import { artistMeta, type useArtistSearchLogic } from "@/features/add/useArtistSearchLogic";
+import type { Artist } from "@janne6565/music-collector-shared";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

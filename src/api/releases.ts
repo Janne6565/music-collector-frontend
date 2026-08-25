@@ -13,9 +13,8 @@ import type {
   CoverThemeDto,
   ReleaseDto,
 } from "@/api/generated/musicCollectorAPI.schemas";
-import type { Album, Artist, CoverTheme, Format, Release } from "@/domain/types";
-import { FORMATS } from "@/domain/types";
-
+import type { Album, Artist, CoverTheme, Format, Release } from "@janne6565/music-collector-shared";
+import { FORMATS } from "@janne6565/music-collector-shared";
 /**
  * The boundary between the generated client and the domain.
  *

@@ -1,6 +1,6 @@
-import type { CollectionStats } from "@/domain/types";
-import { FORMAT_LABELS } from "@/domain/types";
 import { SidebarAccount } from "@/features/auth/SidebarAccount";
+import type { CollectionStats } from "@janne6565/music-collector-shared";
+import { FORMAT_LABELS } from "@janne6565/music-collector-shared";
 import { Link } from "@tanstack/react-router";
 import { Heart, LibraryBig } from "lucide-react";
 import type { ReactNode } from "react";

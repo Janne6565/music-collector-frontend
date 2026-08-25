@@ -1,8 +1,7 @@
-import { parseIsoDate, parseMoneyToCents } from "@/domain/money";
-import type { Condition, Release } from "@/domain/types";
 import { useStore } from "@/local/StoreProvider";
-import { applyCopyPatch } from "@/local/copyWrites";
 import { useAppSelector } from "@/store/hooks";
+import type { Condition, Release } from "@janne6565/music-collector-shared";
+import { applyCopyPatch, parseIsoDate, parseMoneyToCents } from "@janne6565/music-collector-shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 

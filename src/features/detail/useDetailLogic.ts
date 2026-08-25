@@ -1,7 +1,7 @@
 import { lookupRelease } from "@/api/releases";
-import type { Copy, Release } from "@/domain/types";
 import { useStore } from "@/local/StoreProvider";
-import { type CopyDraft, applyCopyPatch, tombstoneCopy } from "@/local/copyWrites";
+import type { Copy, CopyDraft, Release } from "@janne6565/music-collector-shared";
+import { applyCopyPatch, tombstoneCopy } from "@janne6565/music-collector-shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 

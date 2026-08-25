@@ -1,5 +1,5 @@
-import type { Artist } from "@/domain/types";
 import { artistMeta } from "@/features/add/useArtistSearchLogic";
+import type { Artist } from "@janne6565/music-collector-shared";
 import { describe, expect, it } from "vitest";
 
 function artist(overrides: Partial<Artist> = {}): Artist {

@@ -1,10 +1,15 @@
 import { lookupByBarcode, lookupRelease, searchReleases } from "@/api/releases";
 import { fromCsv } from "@/domain/csv";
-import type { Artist, Format, Release } from "@/domain/types";
-import type { LocalStore } from "@/local/LocalStore";
 import { useStore } from "@/local/StoreProvider";
-import { type CopyDraft, createCopy } from "@/local/copyWrites";
 import { clearRecentSearches, readRecentSearches, rememberSearch } from "@/local/settings";
+import type {
+  Artist,
+  CopyDraft,
+  Format,
+  LocalStore,
+  Release,
+} from "@janne6565/music-collector-shared";
+import { createCopy } from "@janne6565/music-collector-shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 

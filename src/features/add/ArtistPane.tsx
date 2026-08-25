@@ -1,7 +1,5 @@
 import { ReleaseArt } from "@/components/ReleaseArt";
 import { Button, ModalClose, Skeleton } from "@/components/ui";
-import type { Album, Artist, Release } from "@/domain/types";
-import { FORMAT_LABELS } from "@/domain/types";
 import { ArtistAvatar } from "@/features/add/ArtistResults";
 import { artistMeta } from "@/features/add/useArtistSearchLogic";
 import {
@@ -10,6 +8,8 @@ import {
   useDiscographyLogic,
 } from "@/features/add/useDiscographyLogic";
 import { cn } from "@/lib/utils";
+import type { Album, Artist, Release } from "@janne6565/music-collector-shared";
+import { FORMAT_LABELS } from "@janne6565/music-collector-shared";
 import { ChevronDown, ChevronLeft, ChevronUp, Plus, Search } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

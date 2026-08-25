@@ -1,12 +1,12 @@
 import { ReleaseArt } from "@/components/ReleaseArt";
 import { Button, Modal, ModalClose } from "@/components/ui";
-import type { Format } from "@/domain/types";
-import { FORMAT_LABELS } from "@/domain/types";
 import { useCopyDetailsLogic } from "@/features/copy/useCopyDetailsLogic";
 import { ConditionScale } from "@/features/detail/ConditionScale";
 import { PhotoManager } from "@/features/photos/PhotoManager";
 import { usePhotoStripLogic } from "@/features/photos/usePhotoStripLogic";
 import { cn } from "@/lib/utils";
+import type { Format } from "@janne6565/music-collector-shared";
+import { FORMAT_LABELS } from "@janne6565/music-collector-shared";
 import { Calendar, HardDrive, Star } from "lucide-react";
 import { type ReactNode, useId } from "react";
 import { useTranslation } from "react-i18next";

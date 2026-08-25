@@ -32,3 +32,16 @@ bun run gen:api    # regenerate the Orval client (backend must be running)
 `src/styles.css` holds the palette and type scale taken from the Claude Design deck.
 The mobile app mirrors these — change them in both, or the two apps stop reading as one
 product.
+
+## The shared package
+
+The domain, the merge, the write path and the sync engine live in
+[`music-collector-shared`](https://github.com/Janne6565/music-collector-shared) and are
+installed from GitHub Packages, which authenticates reads even for a public package. Before
+`bun install`:
+
+```
+export NODE_AUTH_TOKEN=$(gh auth token)   # needs the read:packages scope
+```
+
+CI uses `secrets.GITHUB_TOKEN`; the Docker build takes the same token as a build secret.

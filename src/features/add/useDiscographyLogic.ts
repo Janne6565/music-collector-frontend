@@ -1,5 +1,5 @@
 import { type Discography, lookupDiscography, lookupPressings } from "@/api/releases";
-import type { Album, Artist, Release } from "@/domain/types";
+import type { Album, Artist, Release } from "@janne6565/music-collector-shared";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 

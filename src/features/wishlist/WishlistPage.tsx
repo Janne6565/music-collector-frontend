@@ -1,10 +1,10 @@
 import { FormatThumb } from "@/components/FormatThumb";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui";
-import type { WishlistItem } from "@/domain/types";
-import { FORMAT_LABELS } from "@/domain/types";
 import { useCollectionStats } from "@/features/library/useLibraryLogic";
 import { useWishlistLogic } from "@/features/wishlist/useWishlistLogic";
+import type { WishlistItem } from "@janne6565/music-collector-shared";
+import { FORMAT_LABELS } from "@janne6565/music-collector-shared";
 import { Check, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

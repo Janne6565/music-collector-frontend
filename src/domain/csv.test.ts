@@ -1,5 +1,5 @@
 import { fromCsv, parseCsv, toCsv } from "@/domain/csv";
-import type { Copy, Release } from "@/domain/types";
+import type { Copy, Release } from "@janne6565/music-collector-shared";
 import { describe, expect, it } from "vitest";
 
 const release: Release = {

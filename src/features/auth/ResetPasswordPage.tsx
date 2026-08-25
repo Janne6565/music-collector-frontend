@@ -1,12 +1,12 @@
 import { setAccessToken } from "@/api/axios-instance";
 import { resetPassword } from "@/api/generated/auth/auth";
 import { Button } from "@/components/ui";
-import { passwordLongEnough } from "@/domain/passwordStrength";
 import { AuthBrandPanel } from "@/features/auth/AuthBrandPanel";
 import { PasswordField } from "@/features/auth/PasswordField";
 import { Route } from "@/routes/reset";
 import { signedIn } from "@/store/authSlice";
 import { useAppDispatch } from "@/store/hooks";
+import { passwordLongEnough } from "@janne6565/music-collector-shared";
 import { useMutation } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";

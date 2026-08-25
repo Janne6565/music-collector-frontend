@@ -1,10 +1,17 @@
 import "fake-indexeddb/auto";
-import { hlcInitial, hlcTick } from "@/domain/hlc";
-import type { Release } from "@/domain/types";
-import { type ClockSource, createCopy, tombstoneCopy } from "@/local/copyWrites";
 import { DexieLocalStore } from "@/local/dexieStore";
-import { createPhoto, markUploaded, tombstonePhoto } from "@/local/photoWrites";
-import { createWishlistItem, tombstoneWishlistItem } from "@/local/wishWrites";
+import type { ClockSource, Release } from "@janne6565/music-collector-shared";
+import {
+  createCopy,
+  createPhoto,
+  createWishlistItem,
+  hlcInitial,
+  hlcTick,
+  markUploaded,
+  tombstoneCopy,
+  tombstonePhoto,
+  tombstoneWishlistItem,
+} from "@janne6565/music-collector-shared";
 import Dexie from "dexie";
 import { beforeEach, describe, expect, it } from "vitest";
 

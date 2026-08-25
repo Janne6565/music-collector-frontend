@@ -1,6 +1,6 @@
-import type { Condition } from "@/domain/types";
-import { CONDITION_SHORT } from "@/domain/types";
 import { cn } from "@/lib/utils";
+import type { Condition } from "@janne6565/music-collector-shared";
+import { CONDITION_SHORT } from "@janne6565/music-collector-shared";
 import { Info } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

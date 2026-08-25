@@ -1,5 +1,4 @@
-import type { LocalStore } from "@/local/LocalStore";
-
+import type { LocalStore } from "@janne6565/music-collector-shared";
 /**
  * The handful of device-local preferences the account screen exposes.
  *

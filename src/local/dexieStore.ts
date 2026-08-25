@@ -1,6 +1,14 @@
-import type { CollectionStats, Copy, Format, Photo, Release, WishlistItem } from "@/domain/types";
-import { FORMATS } from "@/domain/types";
-import type { LibraryFilter, LocalStore } from "@/local/LocalStore";
+import type {
+  CollectionStats,
+  Copy,
+  Format,
+  LibraryFilter,
+  LocalStore,
+  Photo,
+  Release,
+  WishlistItem,
+} from "@janne6565/music-collector-shared";
+import { FORMATS } from "@janne6565/music-collector-shared";
 import Dexie, { type EntityTable } from "dexie";
 
 const DEVICE_ID_KEY = "deviceId";

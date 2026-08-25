@@ -1,5 +1,5 @@
 import { FormatThumb } from "@/components/FormatThumb";
-import type { Format } from "@/domain/types";
+import type { Format } from "@janne6565/music-collector-shared";
 import { Disc3, Heart, Layers, ScanBarcode } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

@@ -1,6 +1,6 @@
 import { FormatThumb } from "@/components/FormatThumb";
-import type { Format } from "@/domain/types";
 import { cn } from "@/lib/utils";
+import type { Format } from "@janne6565/music-collector-shared";
 import { useState } from "react";
 
 /**

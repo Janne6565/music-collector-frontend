@@ -1,5 +1,5 @@
 import { findArtists } from "@/api/releases";
-import type { Artist } from "@/domain/types";
+import type { Artist } from "@janne6565/music-collector-shared";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 

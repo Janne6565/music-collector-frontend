@@ -4,7 +4,7 @@ import { useStore } from "@/local/StoreProvider";
 import { readSyncEnabled, writeLastSyncedAt } from "@/local/settings";
 import { signedIn, signedOut } from "@/store/authSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { SyncEngine } from "@/sync/syncEngine";
+import { createSyncEngine } from "@/sync/transport";
 import { useQueryClient } from "@tanstack/react-query";
 import { type ReactNode, useEffect, useRef } from "react";
 
@@ -68,7 +68,7 @@ export function SessionBootstrap({ children }: { readonly children: ReactNode })
   useEffect(() => {
     if (auth.status !== "signedIn" || auth.firstSyncPending) return;
 
-    const engine = new SyncEngine(store, clock);
+    const engine = createSyncEngine(store, clock);
     const run = async () => {
       // A slow sync must not stack up behind itself on a flaky connection.
       if (syncing.current) return;

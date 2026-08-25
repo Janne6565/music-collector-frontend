@@ -1,7 +1,7 @@
 import "fake-indexeddb/auto";
-import { type Hlc, hlcInitial, hlcTick } from "@/domain/hlc";
 import { DexieLocalStore } from "@/local/dexieStore";
-import { createPhoto } from "@/local/photoWrites";
+import type { Hlc } from "@janne6565/music-collector-shared";
+import { createPhoto, hlcInitial, hlcTick } from "@janne6565/music-collector-shared";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
 import Dexie from "dexie";

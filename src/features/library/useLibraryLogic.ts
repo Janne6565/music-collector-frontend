@@ -1,6 +1,12 @@
-import type { CollectionStats, Condition, Copy, Format, Release } from "@/domain/types";
-import type { LibraryFilter } from "@/local/LocalStore";
 import { useStore } from "@/local/StoreProvider";
+import type {
+  CollectionStats,
+  Condition,
+  Copy,
+  Format,
+  LibraryFilter,
+  Release,
+} from "@janne6565/music-collector-shared";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
 

@@ -3,7 +3,8 @@ import { toCsv } from "@/domain/csv";
 import { useStore } from "@/local/StoreProvider";
 import { firstSyncResolved } from "@/store/authSlice";
 import { useAppDispatch } from "@/store/hooks";
-import { type FirstSyncStrategy, SyncEngine, fromDto } from "@/sync/syncEngine";
+import { createSyncEngine, fromDto } from "@/sync/transport";
+import type { FirstSyncStrategy } from "@janne6565/music-collector-shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
@@ -67,7 +68,7 @@ export function useFirstSyncLogic() {
   });
 
   const confirm = useMutation({
-    mutationFn: async () => new SyncEngine(store, clock).firstSync(choice),
+    mutationFn: async () => createSyncEngine(store, clock).firstSync(choice),
     onSuccess: async () => {
       dispatch(firstSyncResolved());
       await queryClient.invalidateQueries();

@@ -1,7 +1,6 @@
-import { hlcDecode, hlcEncode, hlcInitial, hlcTick } from "@/domain/hlc";
-import type { LocalStore } from "@/local/LocalStore";
-import type { ClockSource } from "@/local/copyWrites";
 import { DexieLocalStore } from "@/local/dexieStore";
+import type { ClockSource, LocalStore } from "@janne6565/music-collector-shared";
+import { hlcDecode, hlcEncode, hlcInitial, hlcTick } from "@janne6565/music-collector-shared";
 import { type ReactNode, createContext, useContext, useEffect, useState } from "react";
 
 interface StoreContextValue {

@@ -1,8 +1,7 @@
 import { searchReleases } from "@/api/releases";
-import type { WishlistItem } from "@/domain/types";
 import { useStore } from "@/local/StoreProvider";
-import { createCopy } from "@/local/copyWrites";
-import { tombstoneWishlistItem } from "@/local/wishWrites";
+import type { WishlistItem } from "@janne6565/music-collector-shared";
+import { createCopy, tombstoneWishlistItem } from "@janne6565/music-collector-shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export function useWishlistLogic() {

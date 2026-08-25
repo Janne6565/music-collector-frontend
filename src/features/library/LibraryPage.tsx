@@ -1,8 +1,6 @@
 import { ReleaseArt } from "@/components/ReleaseArt";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button, Skeleton } from "@/components/ui";
-import type { Condition, Format } from "@/domain/types";
-import { CONDITION_LABELS, CONDITION_SHORT, FORMAT_LABELS } from "@/domain/types";
 import { AddDialog } from "@/features/add/AddDialog";
 import { CopyDetailsDialog } from "@/features/copy/CopyDetailsDialog";
 import {
@@ -12,6 +10,12 @@ import {
 } from "@/features/library/useLibraryLogic";
 import { useCoverPhotos } from "@/features/photos/useCoverPhotos";
 import { cn } from "@/lib/utils";
+import type { Condition, Format } from "@janne6565/music-collector-shared";
+import {
+  CONDITION_LABELS,
+  CONDITION_SHORT,
+  FORMAT_LABELS,
+} from "@janne6565/music-collector-shared";
 import { Link } from "@tanstack/react-router";
 import { ArrowDownNarrowWide, Search } from "lucide-react";
 import { useMemo, useState } from "react";

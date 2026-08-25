@@ -1,13 +1,13 @@
 import { ReleaseArt } from "@/components/ReleaseArt";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui";
-import type { Copy, Release } from "@/domain/types";
-import { CONDITION_SHORT, FORMAT_LABELS } from "@/domain/types";
 import { CopyDetailsDialog } from "@/features/copy/CopyDetailsDialog";
 import { useDetailLogic } from "@/features/detail/useDetailLogic";
 import { useCollectionStats } from "@/features/library/useLibraryLogic";
 import { PhotoStrip } from "@/features/photos/PhotoStrip";
 import { usePhotoStripLogic } from "@/features/photos/usePhotoStripLogic";
+import type { Copy, DetailChrome, Release } from "@janne6565/music-collector-shared";
+import { CONDITION_SHORT, FORMAT_LABELS, chromeFor } from "@janne6565/music-collector-shared";
 import { Link } from "@tanstack/react-router";
 import { PencilLine, Star } from "lucide-react";
 import { type ReactNode, useState } from "react";

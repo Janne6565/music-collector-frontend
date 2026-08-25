@@ -1,8 +1,6 @@
 import { releaseDisambiguation } from "@/api/releases";
 import { ReleaseArt } from "@/components/ReleaseArt";
 import { Button, FieldSpinner, Modal, ModalClose, PulsingDots, Skeleton } from "@/components/ui";
-import type { Format, Release } from "@/domain/types";
-import { FORMAT_LABELS } from "@/domain/types";
 import { ArtistPane } from "@/features/add/ArtistPane";
 import { ArtistResults } from "@/features/add/ArtistResults";
 import {
@@ -12,6 +10,8 @@ import {
 } from "@/features/add/useAddDialogLogic";
 import { useArtistSearchLogic } from "@/features/add/useArtistSearchLogic";
 import { cn } from "@/lib/utils";
+import type { Format, Release } from "@janne6565/music-collector-shared";
+import { FORMAT_LABELS } from "@janne6565/music-collector-shared";
 import {
   ArrowUpLeft,
   Clock,

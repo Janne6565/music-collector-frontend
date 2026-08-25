@@ -51,8 +51,13 @@ vi.mock("@/local/StoreProvider", () => ({
 
 const { useWishDialogLogic } = await import("@/features/wishlist/useWishDialogLogic");
 
-function harness(existing: WishlistItem | null, seed: Release | null = null) {
+function harness(
+  existing: WishlistItem | null,
+  seed: Release | null = null,
+  prime?: (client: QueryClient) => void,
+) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+  prime?.(client);
   return renderHook(() => useWishDialogLogic(existing, vi.fn(), seed), {
     wrapper: ({ children }) => createElement(QueryClientProvider, { client }, children),
   });
@@ -215,5 +220,20 @@ describe("a picture for a record no catalogue has", () => {
     expect(photos[1].wishId).toBe(entry.id);
     expect(photos[2].id).toBe(photos[0].id);
     expect(photos[2].deletedAt).not.toBeNull();
+  });
+
+  it("does not mistake the list's cache for a picture of its own", () => {
+    // The list's hook caches a Map of many under ["wish-photos", <ids>], and its key for
+    // an empty set is the same shape this sheet would use for an entry with no id. An
+    // empty Map is an object, so reading it back here once made the sheet believe it had
+    // a picture: no image drawn, and the button offering to *replace* nothing.
+    const { result } = harness(null, null, (client) =>
+      client.setQueryData(["wish-photos", ""], new Map()),
+    );
+
+    act(() => result.current.setTyped({ title: "Chapters Left Unread" }));
+    act(() => result.current.confirmManual());
+
+    expect(result.current.subjectPictureSrc).toBeNull();
   });
 });

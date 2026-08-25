@@ -119,9 +119,15 @@ export function useWishDialogLogic(
    * never finishes. Skipped entirely when the picked release already brought one, and for
    * a hand-typed album, which no catalogue can answer for.
    */
-  /** The picture already on a hand-entered entry the sheet was reopened on. */
+  /**
+   * The picture already on a hand-entered entry the sheet was reopened on.
+   *
+   * Keyed in the singular, and deliberately not under `wish-photos`: that key belongs to
+   * the list's hook, which caches a Map of many. Sharing it meant this query read back an
+   * empty Map — an object, therefore not null — and the sheet believed it had a picture.
+   */
   const ownPhoto = useQuery({
-    queryKey: ["wish-photos", existing?.id ?? ""],
+    queryKey: ["wish-photo", existing?.id ?? ""],
     enabled: existing !== null,
     queryFn: async () => {
       const photo = (await store.listWishPhotos([existing?.id ?? ""])).get(existing?.id ?? "");
@@ -244,6 +250,7 @@ export function useWishDialogLogic(
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["wishlist"] });
       await queryClient.invalidateQueries({ queryKey: ["wish-photos"] });
+      await queryClient.invalidateQueries({ queryKey: ["wish-photo"] });
       onDone();
     },
   });

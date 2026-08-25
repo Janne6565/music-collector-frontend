@@ -99,38 +99,46 @@ function Disc({ sleeve }: { readonly sleeve: ReactNode }) {
   return (
     <>
       {sleeve}
-      <div
-        className="absolute left-[13%] top-[19%] h-[62%] w-[62%] rounded-full"
-        style={{
-          background:
-            "radial-gradient(circle at 50% 50%,rgba(255,255,255,0) 44%,rgba(25,23,19,.07) 45% 46.5%,rgba(255,255,255,0) 47%),conic-gradient(from 200deg,#e9e5de,#f8f6f2,rgba(168,196,214,.75),#efece6,rgba(214,180,168,.7),#f8f6f2,#dedad2,#e9e5de)",
-          boxShadow: "inset 0 0 0 1px rgba(25,23,19,.16),0 1px 4px rgba(25,23,19,.18)",
-        }}
-      />
-      <div
-        className="absolute left-[37%] top-[43%] h-[14%] w-[14%] rounded-full"
-        style={{
-          background: "#faf8f5",
-          boxShadow: "0 0 0 1px rgba(25,23,19,.16),inset 0 0 0 2px rgba(255,255,255,.9)",
-        }}
-      />
-      {/* Jewel case front, catching the light. */}
-      <div
-        className="absolute left-[4%] top-[10%] h-[80%] w-[80%] rounded-[4px]"
-        style={{
-          background:
-            "linear-gradient(118deg,rgba(255,255,255,.5) 0 30%,rgba(255,255,255,.06) 30% 100%)",
-          boxShadow: "inset 0 0 0 1px rgba(25,23,19,.3),0 2px 6px rgba(25,23,19,.14)",
-        }}
-      />
-      <div
-        className="absolute left-[4%] top-[16%] h-[68%] w-[4%] rounded-[1px]"
-        style={{
-          background:
-            "repeating-linear-gradient(180deg,rgba(25,23,19,.22) 0 3px,rgba(25,23,19,0) 3px 8px)",
-          boxShadow: "inset -1px 0 0 rgba(25,23,19,.18)",
-        }}
-      />
+      {/*
+       * The disc and its case sit *in front of* the cover, unlike the vinyl, which peeks
+       * out beside it. Drawn opaque they hide most of the artwork, so the whole assembly
+       * is eased back a little: enough that a CD still reads as a CD, little enough that
+       * the cover behind it is still the thing you see first.
+       */}
+      <div className="absolute inset-0 opacity-80">
+        <div
+          className="absolute left-[13%] top-[19%] h-[62%] w-[62%] rounded-full"
+          style={{
+            background:
+              "radial-gradient(circle at 50% 50%,rgba(255,255,255,0) 44%,rgba(25,23,19,.07) 45% 46.5%,rgba(255,255,255,0) 47%),conic-gradient(from 200deg,#e9e5de,#f8f6f2,rgba(168,196,214,.75),#efece6,rgba(214,180,168,.7),#f8f6f2,#dedad2,#e9e5de)",
+            boxShadow: "inset 0 0 0 1px rgba(25,23,19,.16),0 1px 4px rgba(25,23,19,.18)",
+          }}
+        />
+        <div
+          className="absolute left-[37%] top-[43%] h-[14%] w-[14%] rounded-full"
+          style={{
+            background: "#faf8f5",
+            boxShadow: "0 0 0 1px rgba(25,23,19,.16),inset 0 0 0 2px rgba(255,255,255,.9)",
+          }}
+        />
+        {/* Jewel case front, catching the light. */}
+        <div
+          className="absolute left-[4%] top-[10%] h-[80%] w-[80%] rounded-[4px]"
+          style={{
+            background:
+              "linear-gradient(118deg,rgba(255,255,255,.5) 0 30%,rgba(255,255,255,.06) 30% 100%)",
+            boxShadow: "inset 0 0 0 1px rgba(25,23,19,.3),0 2px 6px rgba(25,23,19,.14)",
+          }}
+        />
+        <div
+          className="absolute left-[4%] top-[16%] h-[68%] w-[4%] rounded-[1px]"
+          style={{
+            background:
+              "repeating-linear-gradient(180deg,rgba(25,23,19,.22) 0 3px,rgba(25,23,19,0) 3px 8px)",
+            boxShadow: "inset -1px 0 0 rgba(25,23,19,.18)",
+          }}
+        />
+      </div>
     </>
   );
 }

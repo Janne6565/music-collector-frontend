@@ -3,8 +3,8 @@ import { Button, Toggle } from "@/components/ui";
 import { formatRelativeTime } from "@/domain/relativeTime";
 import { useAccountLogic } from "@/features/account/useAccountLogic";
 import { Navigate } from "@tanstack/react-router";
-import { FileDown, HardDrive, LogOut, RefreshCw } from "lucide-react";
-import type { ReactNode } from "react";
+import { FileDown, HardDrive, LogOut, RefreshCw, UserRound } from "lucide-react";
+import { type ReactNode, useId } from "react";
 import { useTranslation } from "react-i18next";
 
 /** Screen 7a — reached by clicking your name in the sidebar footer. */
@@ -60,6 +60,18 @@ export function AccountPage() {
               label={t("account.stat.average")}
             />
           </div>
+
+          <SectionTitle>{t("account.section.profile")}</SectionTitle>
+          <Card>
+            <NameRow
+              value={logic.nameDraft}
+              onChange={logic.editName}
+              onSave={logic.saveName}
+              changed={logic.nameChanged}
+              saving={logic.savingName}
+              failed={logic.renameFailed}
+            />
+          </Card>
 
           <SectionTitle>{t("account.section.signIn")}</SectionTitle>
           <Card>
@@ -144,6 +156,71 @@ export function AccountPage() {
         </div>
       </div>
     </AppShell>
+  );
+}
+
+interface NameRowProps {
+  readonly value: string;
+  readonly onChange: (next: string) => void;
+  readonly onSave: () => void;
+  readonly changed: boolean;
+  readonly saving: boolean;
+  readonly failed: boolean;
+}
+
+/**
+ * The one thing on this screen that is written back to the server.
+ *
+ * A row rather than a dialog: the name is a single short field, and the account screen is
+ * already the place it is read from. It is a real form, so Enter saves — the button beside
+ * it stays disabled until the name would actually change, which is also what says whether
+ * the last edit has been saved.
+ */
+function NameRow({ value, onChange, onSave, changed, saving, failed }: NameRowProps) {
+  const { t } = useTranslation();
+  const id = useId();
+  return (
+    <form
+      className="flex items-center justify-between gap-4 px-4 py-3.5"
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (changed) onSave();
+      }}
+    >
+      <div className="flex min-w-0 items-center gap-2.5">
+        <span className="flex-none text-ink-subtle">
+          <UserRound size={16} strokeWidth={1.75} aria-hidden />
+        </span>
+        <div className="min-w-0">
+          <label htmlFor={id} className="text-[13px] font-semibold">
+            {t("account.name.title")}
+          </label>
+          <div className={`text-[11.5px] ${failed ? "text-accent" : "text-ink-muted"}`}>
+            {failed ? t("account.name.failed") : t("account.name.body")}
+          </div>
+        </div>
+      </div>
+      <div className="flex flex-none items-center gap-2">
+        <input
+          id={id}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          maxLength={120}
+          autoComplete="name"
+          placeholder={t("account.name.placeholder")}
+          className="h-[30px] w-[180px] rounded-md border border-line bg-paper px-2.5 text-[12.5px] outline-none placeholder:text-ink-subtle focus:border-ink"
+        />
+        <Button
+          type="submit"
+          variant="secondary"
+          disabled={!changed}
+          loading={saving}
+          className="h-[30px] rounded-md px-3 text-xs"
+        >
+          {t("common.save")}
+        </Button>
+      </div>
+    </form>
   );
 }
 

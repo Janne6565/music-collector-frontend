@@ -2,7 +2,6 @@ import { useDebouncedSearch } from "@/lib/useDebouncedSearch";
 import { useStore } from "@/local/StoreProvider";
 import type {
   CollectionStats,
-  Condition,
   Copy,
   Format,
   LibraryFilter,
@@ -44,7 +43,6 @@ export function useCollectionStats(): CollectionStats | undefined {
 export function useLibraryLogic() {
   const { store } = useStore();
   const [format, setFormat] = useState<FormatFilter>("ALL");
-  const [condition, setCondition] = useState<Condition | null>(null);
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<SortKey>("ADDED_DESC");
 
@@ -54,9 +52,9 @@ export function useLibraryLogic() {
   const stats = useCollectionStats();
 
   const copiesQuery = useQuery({
-    queryKey: ["copies", format, condition, searchTerm, sort],
+    queryKey: ["copies", format, searchTerm, sort],
     queryFn: async () => {
-      const copies = await store.listCopies({ format, condition, search: searchTerm, sort });
+      const copies = await store.listCopies({ format, search: searchTerm, sort });
       const releases = await store.getReleases(copies.map((copy) => copy.releaseId));
       return copies.map((copy) => ({ copy, release: releases.get(copy.releaseId) }));
     },
@@ -65,12 +63,6 @@ export function useLibraryLogic() {
   const rows = useMemo<LibraryRow[]>(() => copiesQuery.data ?? [], [copiesQuery.data]);
 
   const handleFormat = useCallback((next: FormatFilter) => setFormat(next), []);
-  // Pressing the grade you are already on clears it: the rail has no "All" chip, so the
-  // chip itself has to be the way back out.
-  const handleCondition = useCallback(
-    (next: Condition) => setCondition((current) => (current === next ? null : next)),
-    [],
-  );
   const handleSearch = useCallback((next: string) => setSearch(next), []);
   const cycleSort = useCallback(() => {
     setSort((current) =>
@@ -90,11 +82,9 @@ export function useLibraryLogic() {
     /** True only when the collection itself is empty, not when a filter excludes everything. */
     collectionEmpty: stats !== undefined && stats.copyCount === 0,
     format,
-    condition,
     search,
     sort,
     handleFormat,
-    handleCondition,
     handleSearch,
     cycleSort,
   };

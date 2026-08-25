@@ -1,13 +1,13 @@
 import { setAccessToken } from "@/api/axios-instance";
-import { deleteAccount, logout } from "@/api/generated/auth/auth";
+import { deleteAccount, logout, updateProfile } from "@/api/generated/auth/auth";
 import { toCsv } from "@/domain/csv";
 import { useStore } from "@/local/StoreProvider";
 import { readLastSyncedAt, readSyncEnabled, writeSyncEnabled } from "@/local/settings";
-import { signedOut } from "@/store/authSlice";
+import { renamed, signedOut } from "@/store/authSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 
 /**
  * The account screen (7a on web, 8b on mobile).
@@ -24,6 +24,25 @@ export function useAccountLogic() {
   const auth = useAppSelector((state) => state.auth);
 
   const stats = useQuery({ queryKey: ["stats"], queryFn: () => store.stats() });
+
+  /**
+   * The name in the field, or null while it is still just showing the account's.
+   *
+   * Null rather than a copy of the current name, so the field follows the account until
+   * the moment somebody types in it — the silent refresh fills the user in after this
+   * screen has already mounted, and a draft seeded at mount would sit there empty.
+   */
+  const [nameDraft, setNameDraft] = useState<string | null>(null);
+  const accountName = auth.user?.displayName ?? "";
+
+  const rename = useMutation({
+    mutationFn: async (next: string) => updateProfile({ displayName: next.trim() }),
+    onSuccess: (user) => {
+      dispatch(renamed(user));
+      // Back to following the account, which now says what was just typed.
+      setNameDraft(null);
+    },
+  });
 
   const syncState = useQuery({
     queryKey: ["syncState"],
@@ -92,6 +111,14 @@ export function useAccountLogic() {
   return {
     status: auth.status,
     name: auth.user?.displayName ?? auth.user?.email ?? null,
+    /** What the name field shows, which is the account's own name until it is edited. */
+    nameDraft: nameDraft ?? accountName,
+    editName: useCallback((next: string) => setNameDraft(next), []),
+    /** A rename is only offered once it would actually change something. */
+    nameChanged: nameDraft !== null && nameDraft.trim() !== accountName,
+    saveName: () => rename.mutate(nameDraft ?? accountName),
+    savingName: rename.isPending,
+    renameFailed: rename.isError,
     email: auth.user?.email ?? null,
     memberSince: auth.user?.createdAt ?? null,
     stats: stats.data,

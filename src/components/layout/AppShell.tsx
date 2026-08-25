@@ -2,35 +2,26 @@ import { SidebarAccount } from "@/features/auth/SidebarAccount";
 import type { CollectionStats } from "@janne6565/music-collector-shared";
 import { FORMAT_LABELS } from "@janne6565/music-collector-shared";
 import { Link } from "@tanstack/react-router";
-import { Heart, LibraryBig } from "lucide-react";
+import { Heart, LibraryBig, Users } from "lucide-react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
 interface AppShellProps {
   readonly stats: CollectionStats | undefined;
-  /**
-   * Filters that belong to the page under the shell rather than to the shell itself — the
-   * grade rail screen 1f draws below the format counts. Only the library has one, which is
-   * exactly why it is passed in instead of living here.
-   */
-  readonly rail?: ReactNode;
   readonly children: ReactNode;
 }
 
 /** The sidebar layout from screen 1f, shared by the library and the item detail. */
-export function AppShell({ stats, rail, children }: AppShellProps) {
+export function AppShell({ stats, children }: AppShellProps) {
   return (
     <div className="flex h-screen bg-paper text-ink">
-      <Sidebar stats={stats} rail={rail} />
+      <Sidebar stats={stats} />
       <div className="flex min-w-0 flex-1 flex-col">{children}</div>
     </div>
   );
 }
 
-function Sidebar({
-  stats,
-  rail,
-}: { readonly stats: CollectionStats | undefined; readonly rail: ReactNode }) {
+function Sidebar({ stats }: { readonly stats: CollectionStats | undefined }) {
   const { t } = useTranslation();
   return (
     /*
@@ -52,11 +43,13 @@ function Sidebar({
         <SidebarLink to="/wishlist" icon={<Heart size={15} strokeWidth={1.75} aria-hidden />}>
           {t("nav.wishlist")}
         </SidebarLink>
+        <SidebarLink to="/friends" icon={<Users size={15} strokeWidth={1.75} aria-hidden />}>
+          {t("nav.friends")}
+        </SidebarLink>
         {/* Artists and Settings from screen 1f are not built yet. A link to a route that
             does not exist is worse than no link, so they appear when they work. */}
       </div>
       {stats !== undefined && <FormatCounts stats={stats} />}
-      {rail}
       <SidebarAccount copyCount={stats?.copyCount} />
     </nav>
   );

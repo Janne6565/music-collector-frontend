@@ -18,6 +18,7 @@ import type {
   RegisterRequest,
   ResetPasswordRequest,
   SessionDto,
+  UpdateProfileRequest,
   UserDto
 } from '../musicCollectorAPI.schemas';
 
@@ -168,6 +169,20 @@ export const me = (
       );
     }
   /**
+ * The name the app greets you by and the one friends see. A blank name clears it; the e-mail then stands in for it as before.
+ * @summary Change the account's display name
+ */
+export const updateProfile = (
+    updateProfileRequest: UpdateProfileRequest,
+ ) => {
+      return customInstance<UserDto>(
+      {url: `/api/v1/auth/me`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: updateProfileRequest
+    },
+      );
+    }
+  /**
  * Removes the server-side copy of the collection and every uploaded photo. The client's local collection is untouched -- it belongs to the device, not the account, and the app goes on working without one.
  * @summary Delete the account and everything synced to it
  */
@@ -190,4 +205,5 @@ export type ForgotPasswordResult = NonNullable<Awaited<ReturnType<typeof forgotP
 export type ProvidersResult = NonNullable<Awaited<ReturnType<typeof providers>>>
 export type AuthorizeResult = NonNullable<Awaited<ReturnType<typeof authorize>>>
 export type MeResult = NonNullable<Awaited<ReturnType<typeof me>>>
+export type UpdateProfileResult = NonNullable<Awaited<ReturnType<typeof updateProfile>>>
 export type DeleteAccountResult = NonNullable<Awaited<ReturnType<typeof deleteAccount>>>

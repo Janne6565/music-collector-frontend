@@ -138,6 +138,14 @@ export interface RegisterRequest {
   displayName?: string;
 }
 
+export interface UpdateProfileRequest {
+  /**
+   * @minLength 0
+   * @maxLength 120
+   */
+  displayName?: string;
+}
+
 export interface LoginRequest {
   /** @minLength 1 */
   email: string;

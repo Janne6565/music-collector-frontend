@@ -20,7 +20,6 @@ const enCommon = {
   library: {
     title: "Library",
     formats: "Formats",
-    condition: "Condition",
     counts: "{{copies}} copies · {{releases}} releases",
     searchPlaceholder: "Search artist, title, catalog number",
     addItem: "Add item",
@@ -308,8 +307,15 @@ const enCommon = {
       average: "average per copy",
     },
     section: {
+      profile: "Profile",
       signIn: "Sign-in",
       storage: "Storage and sync",
+    },
+    name: {
+      title: "Display name",
+      body: "What the app calls you. Leave it empty to go by your e-mail.",
+      placeholder: "Your name",
+      failed: "That name could not be saved. Try again in a moment.",
     },
     sync: {
       title: "Sync across devices",
@@ -418,7 +424,6 @@ const deCommon: CommonSchema = {
   library: {
     title: "Sammlung",
     formats: "Formate",
-    condition: "Zustand",
     counts: "{{copies}} Exemplare · {{releases}} Veröffentlichungen",
     searchPlaceholder: "Künstler, Titel, Katalognummer suchen",
     addItem: "Hinzufügen",
@@ -712,8 +717,15 @@ const deCommon: CommonSchema = {
       average: "im Schnitt pro Exemplar",
     },
     section: {
+      profile: "Profil",
       signIn: "Anmeldung",
       storage: "Speicher und Sync",
+    },
+    name: {
+      title: "Anzeigename",
+      body: "Wie die App dich nennt. Leer lassen, dann steht deine E-Mail dort.",
+      placeholder: "Dein Name",
+      failed: "Der Name konnte nicht gespeichert werden. Versuche es gleich noch einmal.",
     },
     sync: {
       title: "Zwischen Geräten synchronisieren",

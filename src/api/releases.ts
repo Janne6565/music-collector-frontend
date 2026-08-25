@@ -1,4 +1,5 @@
 import {
+  albumCovers,
   albumsOfArtist,
   artistImage,
   findByBarcode,
@@ -185,4 +186,31 @@ export function artistSubtitle(artist: Artist): string {
   return [artist.type, artist.country, years]
     .filter((part): part is string => typeof part === "string" && part.trim() !== "")
     .join(" · ");
+}
+
+/** The server caps one request at a hundred ids, so a long wishlist asks in pages. */
+const COVER_BATCH = 100;
+
+/**
+ * The artwork for a set of albums, keyed by the id it was asked for.
+ *
+ * A wishlist entry names an album rather than a pressing, so it carries no cover of its
+ * own and the server resolves one from the pressings it has mirrored. Ids it cannot answer
+ * for — hand-entered `local:` albums among them — are simply absent from the map, which is
+ * the same thing as a null cover to every caller: `ReleaseArt` draws the format silhouette.
+ */
+export async function lookupAlbumCovers(
+  albumIds: readonly string[],
+): Promise<ReadonlyMap<string, string | null>> {
+  const batches: string[][] = [];
+  for (let start = 0; start < albumIds.length; start += COVER_BATCH) {
+    batches.push(albumIds.slice(start, start + COVER_BATCH));
+  }
+
+  const pages = await Promise.all(batches.map((albumId) => albumCovers({ albumId })));
+  const covers = new Map<string, string | null>();
+  for (const dto of pages.flat()) {
+    if (dto.albumId !== undefined) covers.set(dto.albumId, dto.coverArtUrl ?? null);
+  }
+  return covers;
 }

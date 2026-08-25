@@ -1,6 +1,9 @@
 import type { ReleaseDto } from "@/api/generated/musicCollectorAPI.schemas";
-import { releaseDisambiguation, toRelease, toReleases } from "@/api/releases";
-import { describe, expect, it } from "vitest";
+import { lookupAlbumCovers, releaseDisambiguation, toRelease, toReleases } from "@/api/releases";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const albumCovers = vi.hoisted(() => vi.fn());
+vi.mock("@/api/generated/metadata/metadata", () => ({ albumCovers }));
 
 const complete: ReleaseDto = {
   id: "musicbrainz:release-1",
@@ -91,5 +94,42 @@ describe("releaseDisambiguation", () => {
 
     const sparse = toRelease({ ...complete, catalogNumber: undefined, country: undefined }, 0);
     expect(sparse && releaseDisambiguation(sparse)).toBe("Sire");
+  });
+});
+
+describe("lookupAlbumCovers", () => {
+  beforeEach(() => {
+    albumCovers.mockReset();
+  });
+
+  it("keys the answers by the id they were asked for", async () => {
+    albumCovers.mockResolvedValue([
+      { albumId: "discogs:1", coverArtUrl: "https://covers.example/1.jpg" },
+      // An album with nothing behind it still answers, and answers null.
+      { albumId: "musicbrainz:2" },
+    ]);
+
+    const covers = await lookupAlbumCovers(["discogs:1", "musicbrainz:2"]);
+
+    expect(covers.get("discogs:1")).toBe("https://covers.example/1.jpg");
+    expect(covers.get("musicbrainz:2")).toBeNull();
+    // Absent rather than null: the caller cannot tell, and does not need to.
+    expect(covers.has("local:3")).toBe(false);
+  });
+
+  it("asks in pages, because the endpoint takes a hundred at a time", async () => {
+    albumCovers.mockResolvedValue([]);
+    const ids = Array.from({ length: 150 }, (_, index) => `discogs:${index}`);
+
+    await lookupAlbumCovers(ids);
+
+    expect(albumCovers).toHaveBeenCalledTimes(2);
+    expect(albumCovers.mock.calls[0][0].albumId).toHaveLength(100);
+    expect(albumCovers.mock.calls[1][0].albumId).toHaveLength(50);
+  });
+
+  it("asks nothing when there is nothing to ask about", async () => {
+    expect(await lookupAlbumCovers([])).toEqual(new Map());
+    expect(albumCovers).not.toHaveBeenCalled();
   });
 });

@@ -6,7 +6,14 @@ import Axios, { type AxiosRequestConfig } from "axios";
  * The base URL stays relative: in production Traefik path-routes /api to the backend on
  * the same host, and Vite proxies it in development, so the client never needs an origin.
  */
-export const axiosInstance = Axios.create({ baseURL: "/", withCredentials: true });
+export const axiosInstance = Axios.create({
+  baseURL: "/",
+  withCredentials: true,
+  // Repeated keys rather than axios' default `albumId[]=`: Spring binds a list from
+  // `?albumId=a&albumId=b`, and the bracketed form arrives as a parameter it has never
+  // heard of — an empty list rather than an error, which is the worst of both.
+  paramsSerializer: { indexes: null },
+});
 
 /**
  * The access token lives in a module variable rather than localStorage.

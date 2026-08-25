@@ -10,10 +10,13 @@ for copies. The server participates only as a sync peer.
  * OpenAPI spec version: v1
  */
 import type {
+  AlbumCoverDto,
+  AlbumCoversParams,
   AlbumsOfArtistParams,
   ArtistDto,
   ArtistImageDto,
   DiscographyDto,
+  GetReleasesParams,
   ReleaseDto,
   ReleasesInGroupParams,
   SearchArtistsParams,
@@ -33,6 +36,19 @@ export const search = (
  ) => {
       return customInstance<ReleaseDto[]>(
       {url: `/api/v1/metadata/search`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * What a device that has just signed in needs: its copies arrive over sync as release *references*, and the metadata behind them is a shared cache that travels separately. Answered from the local mirror and never from a catalogue — a collection of two hundred records must not become two hundred upstream lookups — so an id the mirror has never seen is simply absent from the response rather than a 404. Hand-entered `local:` releases are left out too: they are derived from the copy itself and were never in any catalogue.
+ * @summary A set of releases, from the mirror only
+ */
+export const getReleases = (
+    params: GetReleasesParams,
+ ) => {
+      return customInstance<ReleaseDto[]>(
+      {url: `/api/v1/metadata/releases`, method: 'GET',
         params
     },
       );
@@ -114,10 +130,25 @@ export const releasesInGroup = (
     },
       );
     }
+  /**
+ * For screens that hold albums rather than pressings — a wishlist entry names an album, so it carries no cover of its own. Answered from the local mirror, never from a catalogue: a list of thirty rows is one request, not thirty upstream lookups. `coverArtUrl` is null where nothing known has a cover, and the URL may still 404, so clients keep their placeholder either way. Ids are echoed back exactly as they were asked for; hand-entered `local:` albums are left out of the response entirely.
+ * @summary The artwork for a set of albums
+ */
+export const albumCovers = (
+    params: AlbumCoversParams,
+ ) => {
+      return customInstance<AlbumCoverDto[]>(
+      {url: `/api/v1/metadata/albums/covers`, method: 'GET',
+        params
+    },
+      );
+    }
   export type SearchResult = NonNullable<Awaited<ReturnType<typeof search>>>
+export type GetReleasesResult = NonNullable<Awaited<ReturnType<typeof getReleases>>>
 export type GetReleaseResult = NonNullable<Awaited<ReturnType<typeof getRelease>>>
 export type FindByBarcodeResult = NonNullable<Awaited<ReturnType<typeof findByBarcode>>>
 export type SearchArtistsResult = NonNullable<Awaited<ReturnType<typeof searchArtists>>>
 export type ArtistImageResult = NonNullable<Awaited<ReturnType<typeof artistImage>>>
 export type AlbumsOfArtistResult = NonNullable<Awaited<ReturnType<typeof albumsOfArtist>>>
 export type ReleasesInGroupResult = NonNullable<Awaited<ReturnType<typeof releasesInGroup>>>
+export type AlbumCoversResult = NonNullable<Awaited<ReturnType<typeof albumCovers>>>

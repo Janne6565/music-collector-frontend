@@ -1,9 +1,11 @@
+import { lookupAlbumCovers } from "@/api/releases";
 import { useStore } from "@/local/StoreProvider";
 import { readWishlistSort, writeWishlistSort } from "@/local/settings";
 import type { WishPatch, WishSort, WishlistItem } from "@janne6565/music-collector-shared";
 import {
   applyWishPatch,
   hasManualOrder,
+  isManualReleaseId,
   manualOrderWrites,
   moveWish,
   sortWishlist,
@@ -37,6 +39,34 @@ export function useWishlistLogic() {
 
   const items = wishlist.data ?? [];
   const ordered = useMemo(() => sortWishlist(items, sort), [items, sort]);
+
+  /**
+   * The albums on the list, sorted and de-duplicated so the query key is the *set* rather
+   * than the order it happens to be shown in — reordering a list must not refetch it.
+   */
+  const albumIds = useMemo(
+    () =>
+      [...new Set(items.map((item) => item.albumId))]
+        .filter((albumId) => !isManualReleaseId(albumId))
+        .sort(),
+    [items],
+  );
+
+  /**
+   * The artwork, which an entry does not carry.
+   *
+   * A wish is for an album, and an album is an id and a title — the cover belongs to a
+   * pressing of it, so the server resolves one. Kept out of the local store deliberately:
+   * it is a fact about a catalogue that any client may re-ask for, not part of the
+   * collection, and a device offline simply draws the format silhouette instead.
+   */
+  const covers = useQuery({
+    queryKey: ["albumCovers", albumIds],
+    enabled: albumIds.length > 0,
+    // The mirror's answer for an album does not move while a list is open.
+    staleTime: 60 * 60 * 1000,
+    queryFn: () => lookupAlbumCovers(albumIds),
+  });
 
   const invalidate = async () => {
     await queryClient.invalidateQueries({ queryKey: ["wishlist"] });
@@ -88,6 +118,8 @@ export function useWishlistLogic() {
   return {
     items: ordered,
     count: items.length,
+    /** Null both while the answer is on its way and when there is none to have. */
+    coverOf: (albumId: string): string | null => covers.data?.get(albumId) ?? null,
     loading: wishlist.isLoading,
     sort,
     /** "Your order" is only a thing the menu names once a drag has produced one. */

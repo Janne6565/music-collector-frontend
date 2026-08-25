@@ -405,6 +405,11 @@ export interface DiscographyDto {
   total?: number;
 }
 
+export interface AlbumCoverDto {
+  albumId?: string;
+  coverArtUrl?: string;
+}
+
 export interface HealthDto {
   status?: string;
   version?: string;
@@ -584,6 +589,14 @@ q: string;
 limit?: number;
 };
 
+export type GetReleasesParams = {
+/**
+ * @minItems 1
+ * @maxItems 100
+ */
+releaseId: string[];
+};
+
 export type SearchArtistsParams = {
 /**
  * @minLength 0
@@ -616,6 +629,14 @@ export type ReleasesInGroupParams = {
  * @maximum 100
  */
 limit?: number;
+};
+
+export type AlbumCoversParams = {
+/**
+ * @minItems 1
+ * @maxItems 100
+ */
+albumId: string[];
 };
 
 export type AvailabilityParams = {

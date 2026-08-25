@@ -1,4 +1,4 @@
-import { FormatThumb } from "@/components/FormatThumb";
+import { ReleaseArt } from "@/components/ReleaseArt";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui";
 import { formatRelativeTime } from "@/domain/relativeTime";
@@ -6,6 +6,7 @@ import { AddDialog } from "@/features/add/AddDialog";
 import { CopyDetailsDialog } from "@/features/copy/CopyDetailsDialog";
 import { useCollectionStats } from "@/features/library/useLibraryLogic";
 import { WishDialog } from "@/features/wishlist/WishDialog";
+import { useRowDrag } from "@/features/wishlist/useRowDrag";
 import { useWishlistLogic } from "@/features/wishlist/useWishlistLogic";
 import { cn } from "@/lib/utils";
 import type { WishSort, WishlistItem } from "@janne6565/music-collector-shared";
@@ -48,7 +49,7 @@ export function WishlistPage() {
    */
   const [hunting, setHunting] = useState<WishlistItem | null>(null);
   const [detailsFor, setDetailsFor] = useState<string | null>(null);
-  const [dragging, setDragging] = useState<number | null>(null);
+  const drag = useRowDrag(logic.reorder);
 
   return (
     <AppShell stats={stats}>
@@ -90,14 +91,13 @@ export function WishlistPage() {
               <Row
                 key={item.id}
                 item={item}
-                index={index}
-                dragging={dragging}
-                onDragStart={() => setDragging(index)}
-                onDragEnd={() => setDragging(null)}
-                onDrop={() => {
-                  if (dragging !== null) logic.reorder(dragging, index);
-                  setDragging(null);
-                }}
+                coverArtUrl={logic.coverOf(item.albumId)}
+                draggable={drag.isDraggable(index)}
+                lifted={drag.isLifted(index)}
+                onArm={() => drag.arm(index)}
+                onLift={() => drag.lift(index)}
+                onDragEnd={drag.putDown}
+                onDrop={() => drag.dropOn(index)}
                 onFound={() => setHunting(item)}
                 onEdit={() => setSheet(item)}
                 onRemove={() => logic.remove(item)}
@@ -185,9 +185,12 @@ function SortMenu({ logic }: { readonly logic: ReturnType<typeof useWishlistLogi
 
 interface RowProps {
   readonly item: WishlistItem;
-  readonly index: number;
-  readonly dragging: number | null;
-  readonly onDragStart: () => void;
+  /** The album's artwork, or null while it is on its way and when there is none. */
+  readonly coverArtUrl: string | null;
+  readonly draggable: boolean;
+  readonly lifted: boolean;
+  readonly onArm: () => void;
+  readonly onLift: () => void;
   readonly onDragEnd: () => void;
   readonly onDrop: () => void;
   readonly onFound: () => void;
@@ -199,9 +202,11 @@ interface RowProps {
 
 function Row({
   item,
-  index,
-  dragging,
-  onDragStart,
+  coverArtUrl,
+  draggable,
+  lifted,
+  onArm,
+  onLift,
   onDragEnd,
   onDrop,
   onFound,
@@ -211,13 +216,18 @@ function Row({
   language,
 }: RowProps) {
   const { t } = useTranslation();
-  const lifted = dragging === index;
 
   return (
     // Draggable on the row, but only *started* by the handle: a row that lifts wherever
     // you happen to press makes selecting the note impossible.
     <div
-      draggable={dragging !== null}
+      draggable={draggable}
+      onDragStart={(event) => {
+        // Firefox starts no drag at all for a dragstart that carries no data, so the row
+        // would arm and then simply never lift.
+        event.dataTransfer.setData("text/plain", item.id);
+        onLift();
+      }}
       onDragOver={(event) => event.preventDefault()}
       onDrop={onDrop}
       onDragEnd={onDragEnd}
@@ -231,7 +241,7 @@ function Row({
         type="button"
         // Mouse-down rather than a click: the drag has to be armed before the browser's
         // own dragstart fires, and dragstart never waits for a click to complete.
-        onMouseDown={onDragStart}
+        onMouseDown={onArm}
         aria-label={t("wishlist.reorder")}
         className="cursor-grab text-ink-subtle opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
       >
@@ -239,7 +249,13 @@ function Row({
       </button>
 
       <div className="h-11 w-11">
-        <FormatThumb format={item.desiredFormat ?? "OTHER"} />
+        {/* The wanted format is the silhouette, not the artwork: an entry for the vinyl of
+            a record you already have on CD should look like the thing you are hunting. */}
+        <ReleaseArt
+          release={{ coverArtUrl }}
+          format={item.desiredFormat ?? "OTHER"}
+          loading="lazy"
+        />
       </div>
 
       <div className="min-w-0">

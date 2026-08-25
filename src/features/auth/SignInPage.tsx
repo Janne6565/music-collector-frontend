@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui";
+import { Button, buttonClassName } from "@/components/ui";
 import { AuthBrandPanel } from "@/features/auth/AuthBrandPanel";
 import { FirstSyncPrompt } from "@/features/auth/FirstSyncPrompt";
 import { PasswordField } from "@/features/auth/PasswordField";
@@ -136,7 +136,28 @@ export function SignInPage() {
             </>
           )}
 
-          <p className="mt-6 text-[13px] text-ink-muted">
+          {/* The no-account path is a real control, not a footnote: it sits with the other
+              ways in, at the same size as the OAuth buttons and above the sign-in/register
+              switch. The app is fully usable without an account, and burying that would be
+              a lie about what signing in is for. The darker border is the one thing that
+              separates it from a provider button — it is a destination, not a handoff. */}
+          <div className="mt-5 border-t border-line pt-5">
+            <Link
+              to="/"
+              className={buttonClassName(
+                "secondary",
+                "h-[46px] w-full rounded-[9px] border-ink/40 text-[13.5px] hover:border-ink",
+              )}
+            >
+              <HardDrive size={16} strokeWidth={1.75} className="text-ink-subtle" aria-hidden />
+              {t("auth.continueWithout")}
+            </Link>
+            <p className="mt-2 text-center text-[11.5px] leading-relaxed text-ink-subtle">
+              {t("auth.continueWithoutBody")}
+            </p>
+          </div>
+
+          <p className="mt-6 text-center text-[13px] text-ink-muted">
             {registering ? t("auth.haveAccountPrefix") : t("auth.needAccountPrefix")}{" "}
             <button
               type="button"
@@ -146,19 +167,6 @@ export function SignInPage() {
               {registering ? t("auth.signIn") : t("auth.create")}
             </button>
           </p>
-
-          {/* The no-account path, given the same weight as the form above it: the app is
-              fully usable without an account, and burying that would be a lie about what
-              signing in is for. */}
-          <div className="mt-5 border-t border-line pt-5">
-            <Link to="/" className="flex items-center gap-2 text-[13px] font-semibold text-ink">
-              <HardDrive size={16} strokeWidth={1.75} className="text-ink-subtle" aria-hidden />
-              {t("auth.continueWithout")}
-            </Link>
-            <p className="mt-1.5 text-[11.5px] leading-relaxed text-ink-subtle">
-              {t("auth.continueWithoutBody")}
-            </p>
-          </div>
         </div>
       </main>
     </div>

@@ -1,5 +1,10 @@
 import { ReleaseArt } from "@/components/ReleaseArt";
-import { type ShownImage, isPreview, resolveShown } from "@/features/photos/shownImage";
+import {
+  type ShownImage,
+  previewImage,
+  resolveShown,
+  sameImage,
+} from "@/features/photos/shownImage";
 import type { PhotoStripLogic } from "@/features/photos/usePhotoStripLogic";
 import { cn } from "@/lib/utils";
 import type { Release } from "@janne6565/music-collector-shared";
@@ -34,11 +39,12 @@ export function PhotoManager({ logic, release }: PhotoManagerProps) {
 
   const hasCatalog = release?.coverArtUrl != null && release.coverArtUrl !== "";
   // Shared with the detail page's strip, so the two views resolve a selection the same way.
-  const current = resolveShown(shown, logic.tiles, hasCatalog);
+  const current = resolveShown(shown, logic.tiles, hasCatalog, logic.preferCatalogArt);
+  const preview = previewImage(logic.tiles, logic.preferCatalogArt);
 
   const shownTile =
     current.kind === "PHOTO" ? logic.tiles.find((tile) => tile.photo.id === current.id) : undefined;
-  const showingPreview = isPreview(current, logic.tiles);
+  const showingPreview = sameImage(current, preview);
 
   useEffect(() => {
     if (shown?.kind === "CATALOG" && !hasCatalog) setShown(null);
@@ -67,18 +73,15 @@ export function PhotoManager({ logic, release }: PhotoManagerProps) {
             {t("photos.preview")}
           </span>
         ) : (
-          current.kind === "PHOTO" &&
-          shownTile !== undefined && (
-            <button
-              type="button"
-              onClick={() => logic.setPreview(shownTile.photo)}
-              disabled={logic.reordering}
-              className="absolute top-2 left-2 flex items-center gap-1.5 rounded-[5px] bg-ink/70 px-1.75 py-1 font-mono text-[8px] uppercase tracking-[0.07em] text-paper hover:bg-ink"
-            >
-              <Star size={9} strokeWidth={2.4} aria-hidden />
-              {t("photos.makePreview")}
-            </button>
-          )
+          <button
+            type="button"
+            onClick={() => logic.setPreview(current)}
+            disabled={logic.reordering}
+            className="absolute top-2 left-2 flex items-center gap-1.5 rounded-[5px] bg-ink/70 px-1.75 py-1 font-mono text-[8px] uppercase tracking-[0.07em] text-paper hover:bg-ink"
+          >
+            <Star size={9} strokeWidth={2.4} aria-hidden />
+            {t("photos.makePreview")}
+          </button>
         )}
       </div>
 
@@ -119,30 +122,13 @@ export function PhotoManager({ logic, release }: PhotoManagerProps) {
                 <img src={src} alt="" className="h-full w-full object-cover" />
               )}
             </button>
-            {/* The preview marker, on the tiles rather than only on the large frame: the
-                large frame only offers it once you have already clicked the right
-                thumbnail, which hides the whole choice behind a step nobody takes. The
-                first tile wears a filled star because it *is* the preview — see `move`. */}
-            {index === 0 ? (
-              <span
-                title={t("photos.preview")}
-                className="pointer-events-none absolute top-0.75 left-0.75 flex h-3.75 w-3.75 items-center justify-center rounded-full bg-accent text-paper shadow-[0_1px_3px_rgba(25,23,19,.28)]"
-              >
-                <Star size={9} strokeWidth={2.4} fill="currentColor" aria-hidden />
-                <span className="sr-only">{t("photos.preview")}</span>
-              </span>
-            ) : (
-              <button
-                type="button"
-                onClick={() => logic.setPreview(photo)}
-                disabled={logic.reordering}
-                aria-label={t("photos.makePreview")}
-                title={t("photos.makePreview")}
-                className="absolute top-0.75 left-0.75 hidden h-3.75 w-3.75 items-center justify-center rounded-full bg-paper text-ink shadow-[0_1px_3px_rgba(25,23,19,.28)] hover:bg-accent hover:text-paper group-hover:flex disabled:opacity-50"
-              >
-                <Star size={9} strokeWidth={2.4} aria-hidden />
-              </button>
-            )}
+            <StarBadge
+              isPreview={sameImage(preview, { kind: "PHOTO", id: photo.id })}
+              disabled={logic.reordering}
+              onStar={() => logic.setPreview({ kind: "PHOTO", id: photo.id })}
+              previewLabel={t("photos.preview")}
+              starLabel={t("photos.makePreview")}
+            />
             <button
               type="button"
               onClick={() => logic.remove(photo)}
@@ -156,29 +142,29 @@ export function PhotoManager({ logic, release }: PhotoManagerProps) {
         ))}
 
         {hasCatalog && (
-          <button
-            type="button"
-            onClick={() => setShown({ kind: "CATALOG" })}
-            aria-current={current.kind === "CATALOG" ? "true" : undefined}
-            className={cn(
-              "relative aspect-square overflow-hidden rounded-[5px] bg-canvas",
-              current.kind === "CATALOG" ? "ring-2 ring-accent" : "ring-1 ring-line",
-            )}
-          >
-            <ReleaseArt release={release} variant="bleed" />
-            {logic.tiles.length === 0 && (
-              <span
-                title={t("photos.preview")}
-                className="pointer-events-none absolute top-0.75 left-0.75 flex h-3.75 w-3.75 items-center justify-center rounded-full bg-accent text-paper shadow-[0_1px_3px_rgba(25,23,19,.28)]"
-              >
-                <Star size={9} strokeWidth={2.4} fill="currentColor" aria-hidden />
-                <span className="sr-only">{t("photos.preview")}</span>
+          <div className="group relative aspect-square">
+            <StarBadge
+              isPreview={preview.kind === "CATALOG"}
+              disabled={logic.reordering}
+              onStar={() => logic.setPreview({ kind: "CATALOG" })}
+              previewLabel={t("photos.preview")}
+              starLabel={t("photos.makePreview")}
+            />
+            <button
+              type="button"
+              onClick={() => setShown({ kind: "CATALOG" })}
+              aria-current={current.kind === "CATALOG" ? "true" : undefined}
+              className={cn(
+                "absolute inset-0 overflow-hidden rounded-[5px] bg-canvas",
+                current.kind === "CATALOG" ? "ring-2 ring-accent" : "ring-1 ring-line",
+              )}
+            >
+              <ReleaseArt release={release} variant="bleed" />
+              <span className="absolute inset-x-0 bottom-0 bg-ink/70 py-0.5 text-center font-mono text-[7px] uppercase tracking-[0.06em] text-paper">
+                {t("photos.catalog")}
               </span>
-            )}
-            <span className="absolute inset-x-0 bottom-0 bg-ink/70 py-0.5 text-center font-mono text-[7px] uppercase tracking-[0.06em] text-paper">
-              {t("photos.catalog")}
-            </span>
-          </button>
+            </button>
+          </div>
         )}
 
         <button
@@ -213,5 +199,49 @@ export function PhotoManager({ logic, release }: PhotoManagerProps) {
         }}
       />
     </div>
+  );
+}
+
+interface StarBadgeProps {
+  readonly isPreview: boolean;
+  readonly disabled: boolean;
+  readonly onStar: () => void;
+  readonly previewLabel: string;
+  readonly starLabel: string;
+}
+
+/**
+ * The corner star: filled and lit on the preview, offered on hover everywhere else.
+ *
+ * On the tiles rather than only on the large frame, because the large frame only offers
+ * the choice once you have already clicked the right thumbnail — which hides it behind a
+ * step nobody takes. The catalogue tile wears the same badge as a photo does: it is one of
+ * the things a copy can be shown as, and which of them is the preview should not depend on
+ * where the picture came from.
+ */
+function StarBadge({ isPreview, disabled, onStar, previewLabel, starLabel }: StarBadgeProps) {
+  if (isPreview) {
+    return (
+      <span
+        title={previewLabel}
+        className="pointer-events-none absolute top-0.75 left-0.75 z-10 flex h-3.75 w-3.75 items-center justify-center rounded-full bg-accent text-paper shadow-[0_1px_3px_rgba(25,23,19,.28)]"
+      >
+        <Star size={9} strokeWidth={2.4} fill="currentColor" aria-hidden />
+        <span className="sr-only">{previewLabel}</span>
+      </span>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onStar}
+      disabled={disabled}
+      aria-label={starLabel}
+      title={starLabel}
+      className="absolute top-0.75 left-0.75 z-10 hidden h-3.75 w-3.75 items-center justify-center rounded-full bg-paper text-ink shadow-[0_1px_3px_rgba(25,23,19,.28)] hover:bg-accent hover:text-paper group-hover:flex disabled:opacity-50"
+    >
+      <Star size={9} strokeWidth={2.4} aria-hidden />
+    </button>
   );
 }

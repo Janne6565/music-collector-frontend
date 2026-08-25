@@ -1,7 +1,8 @@
 import "fake-indexeddb/auto";
 import { DexieLocalStore } from "@/local/dexieStore";
 import type { Hlc } from "@janne6565/music-collector-shared";
-import { createPhoto, hlcInitial, hlcTick } from "@janne6565/music-collector-shared";
+import type { Release } from "@janne6565/music-collector-shared";
+import { createCopy, createPhoto, hlcInitial, hlcTick } from "@janne6565/music-collector-shared";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
 import Dexie from "dexie";
@@ -41,6 +42,25 @@ function harness(copyId = "copy-1") {
   });
 }
 
+const release: Release = {
+  id: "musicbrainz:r-1",
+  albumId: "musicbrainz:a-1",
+  title: "Bitches Brew",
+  artistName: "Miles Davis",
+  year: 1970,
+  format: "VINYL",
+  label: null,
+  catalogNumber: null,
+  country: null,
+  barcode: null,
+  releaseDate: null,
+  trackCount: null,
+  discCount: null,
+  coverArtUrl: "https://example.test/cover.jpg",
+  coverTheme: null,
+  cachedAt: 0,
+};
+
 /** The ids of this copy's photos, in the order the rest of the app reads them. */
 async function order(copyId = "copy-1") {
   return (await store.listPhotos(copyId)).map((photo) => photo.id);
@@ -51,6 +71,26 @@ describe("usePhotoStripLogic", () => {
     await Dexie.delete("music-collector");
     store = new DexieLocalStore();
     await store.open();
+    await store.cacheReleases([release]);
+    await store.putCopy(
+      createCopy(
+        release,
+        {
+          condition: null,
+          sleeveCondition: null,
+          preferCatalogArt: false,
+          pricePaidCents: null,
+          currency: "EUR",
+          purchasedOn: null,
+          purchasedAt: null,
+          notes: null,
+          rating: null,
+        },
+        clock,
+        1000,
+        "copy-1",
+      ),
+    );
 
     for (const [index, id] of ["p-a", "p-b", "p-c"].entries()) {
       await store.putPhoto(
@@ -72,7 +112,7 @@ describe("usePhotoStripLogic", () => {
 
     const third = result.current.tiles[2];
     if (third === undefined) throw new Error("expected three tiles");
-    result.current.setPreview(third.photo);
+    result.current.setPreview({ kind: "PHOTO", id: third.photo.id });
 
     await waitFor(async () => expect(await order()).toEqual(["p-c", "p-a", "p-b"]));
   });
@@ -106,5 +146,35 @@ describe("usePhotoStripLogic", () => {
     expect(await stamped("p-c")).toBe(before);
     expect(await stamped("p-a")).not.toBe(undefined);
     expect(await stamped("p-b")).not.toBe(before);
+  });
+
+  it("stars the catalogue's artwork without disturbing the photo order", async () => {
+    // The catalogue cover has no place in the photo list to be moved to, so this is the
+    // one preview choice that is a flag rather than a move. It must not quietly reorder
+    // the photos on its way past them.
+    const { result } = harness();
+    await waitFor(() => expect(result.current.tiles).toHaveLength(3));
+
+    result.current.setPreview({ kind: "CATALOG" });
+
+    await waitFor(() => expect(result.current.preferCatalogArt).toBe(true));
+    // Null means "fall through to the release's own cover art" — see copyPreviewSrc.
+    expect(result.current.previewSrc).toBeNull();
+    expect(await order()).toEqual(["p-a", "p-b", "p-c"]);
+  });
+
+  it("starring a photo takes the copy back off the catalogue", async () => {
+    // Both halves of one answer: a copy that prefers the catalogue while a photo sits at
+    // the front of its list is a state the two gestures drift into, not one anyone chose.
+    const { result } = harness();
+    await waitFor(() => expect(result.current.tiles).toHaveLength(3));
+
+    result.current.setPreview({ kind: "CATALOG" });
+    await waitFor(() => expect(result.current.preferCatalogArt).toBe(true));
+
+    result.current.setPreview({ kind: "PHOTO", id: "p-c" });
+
+    await waitFor(() => expect(result.current.preferCatalogArt).toBe(false));
+    expect(await order()).toEqual(["p-c", "p-a", "p-b"]);
   });
 });

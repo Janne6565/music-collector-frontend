@@ -108,6 +108,9 @@ function toDto(copy: Copy): SyncCopyDto {
     releaseId: copy.releaseId,
     condition: copy.condition ?? undefined,
     sleeveCondition: copy.sleeveCondition ?? undefined,
+    // Always sent, unlike the nullable fields: false is a real answer here, and dropping
+    // it would leave a server that had been told `true` never hearing it undone.
+    preferCatalogArt: copy.preferCatalogArt,
     pricePaidCents: copy.pricePaidCents ?? undefined,
     currency: copy.currency,
     purchasedOn: copy.purchasedOn ?? undefined,
@@ -140,6 +143,8 @@ export function fromDto(dto: SyncCopyDto): Copy | null {
     releaseId: dto.releaseId,
     condition: (dto.condition ?? null) as Copy["condition"],
     sleeveCondition: (dto.sleeveCondition ?? null) as Copy["sleeveCondition"],
+    // Absent means a server older than the field, which is the same as not preferring it.
+    preferCatalogArt: dto.preferCatalogArt ?? false,
     pricePaidCents: dto.pricePaidCents ?? null,
     currency: dto.currency,
     purchasedOn: dto.purchasedOn ?? null,

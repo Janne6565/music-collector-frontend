@@ -43,6 +43,7 @@ export function useWishlistLogic() {
           {
             condition: null,
             sleeveCondition: null,
+            preferCatalogArt: false,
             pricePaidCents: null,
             currency: "EUR",
             purchasedOn: null,

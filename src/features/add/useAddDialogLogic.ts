@@ -33,6 +33,7 @@ const MIN_TERM_LENGTH = 2;
 const EMPTY_DRAFT: CopyDraft = {
   condition: null,
   sleeveCondition: null,
+  preferCatalogArt: false,
   pricePaidCents: null,
   currency: "EUR",
   purchasedOn: null,
@@ -176,6 +177,7 @@ export function useAddDialogLogic(onClose: () => void, onAdded: (copyId: string)
             {
               condition: row.mediaCondition,
               sleeveCondition: row.sleeveCondition,
+              preferCatalogArt: false,
               pricePaidCents: row.pricePaidCents,
               currency: row.currency,
               purchasedOn: row.purchasedOn,

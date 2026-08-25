@@ -1,6 +1,13 @@
+import type { ShownImage } from "@/features/photos/shownImage";
 import { useStore } from "@/local/StoreProvider";
 import type { Photo } from "@janne6565/music-collector-shared";
-import { createPhoto, reorderPhoto, tombstonePhoto } from "@janne6565/music-collector-shared";
+import {
+  applyCopyPatch,
+  copyPreviewSrc,
+  createPhoto,
+  reorderPhoto,
+  tombstonePhoto,
+} from "@janne6565/music-collector-shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
@@ -23,6 +30,13 @@ export function usePhotoStripLogic(copyId: string) {
   const photos = useQuery({
     queryKey: ["photos", copyId],
     queryFn: () => store.listPhotos(copyId),
+  });
+
+  // The copy itself, for the one preview choice its photo order cannot express.
+  const copy = useQuery({
+    queryKey: ["copy", copyId],
+    // Null rather than undefined: react-query rejects undefined as a query result.
+    queryFn: async () => (await store.getCopy(copyId)) ?? null,
   });
 
   const [tiles, setTiles] = useState<PhotoTile[]>([]);
@@ -121,6 +135,28 @@ export function usePhotoStripLogic(copyId: string) {
     },
   });
 
+  /**
+   * Starring the catalogue, or starring away from it.
+   *
+   * Kept as one mutation with `move` rather than two independent writes, because they are
+   * two halves of the same answer: a copy that prefers the catalogue while a photo sits at
+   * the front of its list is not a state anyone chose, it is a state the two gestures drift
+   * into. Every star writes both sides.
+   */
+  const preferCatalog = useMutation({
+    mutationFn: async (prefer: boolean) => {
+      const current = await store.getCopy(copyId);
+      if (current === undefined) return;
+      // applyCopyPatch restamps nothing when the value is unchanged, so starring the tile
+      // that is already the preview does not start winning merges against real edits.
+      await store.putCopy(applyCopyPatch(current, { preferCatalogArt: prefer }, clock));
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["copy", copyId] });
+      await queryClient.invalidateQueries({ queryKey: ["copies"] });
+    },
+  });
+
   const remove = useMutation({
     mutationFn: async (photo: Photo) => {
       await store.putPhoto(tombstonePhoto(photo, clock, Date.now()));
@@ -132,16 +168,20 @@ export function usePhotoStripLogic(copyId: string) {
     },
   });
 
+  /**
+   * The first photo whose bytes are already on the device.
+   *
+   * First, because order is what the star sets (see `move`). "Already on the device"
+   * because a copy pulled down from another account has its photo records before it has
+   * their bytes, and a hero pointed at a blob that is not there yet shows nothing at all.
+   */
+  const firstSrc = tiles.find((tile) => tile.src !== null)?.src ?? null;
+  const preferCatalogArt = copy.data?.preferCatalogArt ?? false;
+
   return {
     tiles,
-    /**
-     * The preview — the first photo whose bytes are already on the device.
-     *
-     * First, because order is what the star sets (see `move`). "Already on the device"
-     * because a copy pulled down from another account has its photo records before it has
-     * their bytes, and a hero pointed at a blob that is not there yet shows nothing at all.
-     */
-    firstSrc: tiles.find((tile) => tile.src !== null)?.src ?? null,
+    /** The image every other screen draws for this copy — null means the catalogue's own. */
+    previewSrc: copyPreviewSrc({ preferCatalogArt }, firstSrc),
     loading: photos.isLoading,
     accept: ACCEPTED.join(","),
     add: (file: File) => add.mutate(file),
@@ -149,10 +189,20 @@ export function usePhotoStripLogic(copyId: string) {
     rejected,
     remove: (photo: Photo) => remove.mutate(photo),
     removing: remove.isPending ? remove.variables?.id : undefined,
-    /** Star — the photo becomes the one every other screen shows for this copy. */
-    setPreview: (photo: Photo) => move.mutate({ photoId: photo.id, to: 0 }),
+    /** False until the catalogue's own artwork has been starred for this copy. */
+    preferCatalogArt,
+    /** Star — this image becomes the one every other screen shows for this copy. */
+    setPreview: (shown: ShownImage) => {
+      if (shown.kind === "CATALOG") {
+        preferCatalog.mutate(true);
+        return;
+      }
+      // Both halves: to the front of the list, and off the catalogue. See `preferCatalog`.
+      move.mutate({ photoId: shown.id, to: 0 });
+      preferCatalog.mutate(false);
+    },
     /** Drag — the same write, to wherever it was dropped. */
     moveTo: (photoId: string, index: number) => move.mutate({ photoId, to: index }),
-    reordering: move.isPending,
+    reordering: move.isPending || preferCatalog.isPending,
   };
 }

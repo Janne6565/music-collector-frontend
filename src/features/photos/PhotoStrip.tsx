@@ -1,5 +1,5 @@
 import { ReleaseArt } from "@/components/ReleaseArt";
-import type { ShownImage } from "@/features/photos/shownImage";
+import { type ShownImage, previewImage, sameImage } from "@/features/photos/shownImage";
 import type { PhotoStripLogic } from "@/features/photos/usePhotoStripLogic";
 import { cn } from "@/lib/utils";
 import type { Release } from "@janne6565/music-collector-shared";
@@ -80,13 +80,14 @@ interface PhotoStripProps {
 export function PhotoStrip({ logic, release, shown, onShow }: PhotoStripProps) {
   const { t } = useTranslation();
   const hasCatalog = release?.coverArtUrl != null && release.coverArtUrl !== "";
+  const preview = previewImage(logic.tiles, logic.preferCatalogArt);
   const total = logic.tiles.length + (hasCatalog ? 1 : 0);
   if (total === 0) return null;
 
   return (
     <div className="mt-3">
       <div className="flex flex-wrap gap-2">
-        {logic.tiles.map(({ photo, src }, index) => {
+        {logic.tiles.map(({ photo, src }) => {
           const current = shown.kind === "PHOTO" && shown.id === photo.id;
           return (
             <button
@@ -101,7 +102,9 @@ export function PhotoStrip({ logic, release, shown, onShow }: PhotoStripProps) {
               )}
             >
               <PhotoTile src={src} label={t("photos.pending")} />
-              {index === 0 && <PreviewStar label={t("photos.preview")} />}
+              {sameImage(preview, { kind: "PHOTO", id: photo.id }) && (
+                <PreviewStar label={t("photos.preview")} />
+              )}
             </button>
           );
         })}
@@ -119,7 +122,7 @@ export function PhotoStrip({ logic, release, shown, onShow }: PhotoStripProps) {
             )}
           >
             <ReleaseArt release={release} variant="bleed" />
-            {logic.tiles.length === 0 && <PreviewStar label={t("photos.preview")} />}
+            {preview.kind === "CATALOG" && <PreviewStar label={t("photos.preview")} />}
             <span className="absolute inset-x-0 bottom-0 bg-ink/70 py-0.5 text-center font-mono text-[7px] uppercase tracking-[0.06em] text-paper">
               {t("photos.catalog")}
             </span>

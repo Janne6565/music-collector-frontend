@@ -65,9 +65,10 @@ export function DetailPage({ copyId }: { readonly copyId: string }) {
     shown,
     photos.tiles,
     release?.coverArtUrl != null && release.coverArtUrl !== "",
+    photos.preferCatalogArt,
   );
   /**
-   * `firstSrc` while nothing is picked, not the resolved tile's source: it is the first
+   * `previewSrc` while nothing is picked, not the resolved tile's source: it is the first
    * photo whose *bytes are already here*, so a copy pulled down from another account
    * shows artwork rather than an empty frame while its images are still arriving. Once
    * you have picked a tile the answer is that tile, and null — the catalogue — for the
@@ -75,7 +76,7 @@ export function DetailPage({ copyId }: { readonly copyId: string }) {
    */
   const heroSrc =
     shown === null
-      ? photos.firstSrc
+      ? photos.previewSrc
       : currentImage.kind === "PHOTO"
         ? (photos.tiles.find((tile) => tile.photo.id === currentImage.id)?.src ?? null)
         : null;

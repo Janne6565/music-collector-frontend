@@ -13,28 +13,47 @@ export type ShownImage =
   | { readonly kind: "CATALOG" };
 
 /**
+ * Which image is this copy's preview — the one the grid and the hero draw.
+ *
+ * Two rules, because the catalogue's artwork is not in the photo order and cannot be:
+ * starring it sets a flag, and starring a photo moves it to the front and clears that
+ * flag. With neither, the front photo wins, and the catalogue stands in only where there
+ * are no photos at all.
+ */
+export function previewImage(tiles: readonly PhotoTile[], preferCatalogArt: boolean): ShownImage {
+  const first = tiles[0];
+  return preferCatalogArt || first === undefined
+    ? { kind: "CATALOG" }
+    : { kind: "PHOTO", id: first.photo.id };
+}
+
+/**
  * A selection, corrected against the list it points into.
  *
  * Nothing is selected until you click something, and a selection is dropped the moment
  * the image behind it goes away: a remembered id would outlive the photo it named and
  * strand the frame on a blank tile. With no valid selection the frame falls back to the
- * preview — the first photo, or the catalogue art when there are none.
+ * preview.
  */
 export function resolveShown(
   shown: ShownImage | null,
   tiles: readonly PhotoTile[],
   hasCatalog: boolean,
+  preferCatalogArt: boolean,
 ): ShownImage {
   const stillThere =
     shown !== null &&
     (shown.kind === "CATALOG" ? hasCatalog : tiles.some((tile) => tile.photo.id === shown.id));
   if (stillThere) return shown;
 
-  const first = tiles[0];
-  return first !== undefined ? { kind: "PHOTO", id: first.photo.id } : { kind: "CATALOG" };
+  const preview = previewImage(tiles, preferCatalogArt);
+  // The catalogue is only a place to fall back to when there is artwork behind it.
+  return preview.kind === "CATALOG" && !hasCatalog && tiles[0] !== undefined
+    ? { kind: "PHOTO", id: tiles[0].photo.id }
+    : preview;
 }
 
-/** Whether a resolved selection is the preview — the image every other screen shows. */
-export function isPreview(shown: ShownImage, tiles: readonly PhotoTile[]): boolean {
-  return shown.kind === "PHOTO" ? tiles[0]?.photo.id === shown.id : tiles.length === 0;
+/** Whether two selections name the same image. */
+export function sameImage(a: ShownImage, b: ShownImage): boolean {
+  return a.kind === "CATALOG" ? b.kind === "CATALOG" : b.kind === "PHOTO" && a.id === b.id;
 }

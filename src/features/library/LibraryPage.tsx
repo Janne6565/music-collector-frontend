@@ -11,6 +11,7 @@ import {
 import { useCoverPhotos } from "@/features/photos/useCoverPhotos";
 import { cn } from "@/lib/utils";
 import type { Condition, Format } from "@janne6565/music-collector-shared";
+import { copyPreviewSrc } from "@janne6565/music-collector-shared";
 import {
   CONDITION_LABELS,
   CONDITION_SHORT,
@@ -217,7 +218,11 @@ function LibraryGrid({ rows }: { readonly rows: readonly LibraryRow[] }) {
   return (
     <div className={GRID_CLASS}>
       {rows.map((row) => (
-        <GridItem key={row.copy.id} row={row} previewSrc={covers.get(row.copy.id) ?? null} />
+        <GridItem
+          key={row.copy.id}
+          row={row}
+          previewSrc={copyPreviewSrc(row.copy, covers.get(row.copy.id) ?? null)}
+        />
       ))}
     </div>
   );

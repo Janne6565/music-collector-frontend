@@ -175,8 +175,36 @@ export interface ReleaseDto {
   catalogNumber?: string;
   country?: string;
   barcode?: string;
+  releaseDate?: string;
+  trackCount?: number;
+  discCount?: number;
   coverArtUrl?: string;
   coverTheme?: CoverThemeDto;
+}
+
+export interface ArtistDto {
+  mbid?: string;
+  name?: string;
+  disambiguation?: string;
+  type?: string;
+  country?: string;
+  beganIn?: string;
+  endedIn?: string;
+  score?: number;
+}
+
+export interface AlbumDto {
+  releaseGroupMbid?: string;
+  title?: string;
+  artistName?: string;
+  year?: number;
+  primaryType?: string;
+  coverArtUrl?: string;
+}
+
+export interface DiscographyDto {
+  albums?: AlbumDto[];
+  total?: number;
 }
 
 export interface HealthDto {
@@ -207,6 +235,19 @@ export type UploadBody = {
   file: Blob;
 };
 
+export type CallbackParams = {
+code?: string;
+state?: string;
+error?: string;
+};
+
+export type CallbackPostedParams = {
+code?: string;
+state?: string;
+error?: string;
+user?: string;
+};
+
 export type SearchParams = {
 /**
  * @minLength 0
@@ -220,9 +261,37 @@ q: string;
 limit?: number;
 };
 
-export type CallbackParams = {
-code?: string;
-state?: string;
-error?: string;
+export type ReleasesInGroupParams = {
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+limit?: number;
+};
+
+export type SearchArtistsParams = {
+/**
+ * @minLength 0
+ * @maxLength 200
+ */
+q: string;
+/**
+ * @minimum 1
+ * @maximum 25
+ */
+limit?: number;
+};
+
+export type AlbumsOfArtistParams = {
+/**
+ * @minLength 0
+ * @maxLength 30
+ */
+type?: string;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+limit?: number;
 };
 

@@ -1,6 +1,18 @@
-import { findByBarcode, getRelease, search } from "@/api/generated/metadata/metadata";
-import type { CoverThemeDto, ReleaseDto } from "@/api/generated/musicCollectorAPI.schemas";
-import type { CoverTheme, Format, Release } from "@/domain/types";
+import {
+  albumsOfArtist,
+  findByBarcode,
+  getRelease,
+  releasesInGroup,
+  search,
+  searchArtists,
+} from "@/api/generated/metadata/metadata";
+import type {
+  AlbumDto,
+  ArtistDto,
+  CoverThemeDto,
+  ReleaseDto,
+} from "@/api/generated/musicCollectorAPI.schemas";
+import type { Album, Artist, CoverTheme, Format, Release } from "@/domain/types";
 import { FORMATS } from "@/domain/types";
 
 /**
@@ -54,6 +66,9 @@ export function toRelease(dto: ReleaseDto, now: number): Release | null {
     catalogNumber: dto.catalogNumber ?? null,
     country: dto.country ?? null,
     barcode: dto.barcode ?? null,
+    releaseDate: dto.releaseDate ?? null,
+    trackCount: dto.trackCount ?? null,
+    discCount: dto.discCount ?? null,
     coverArtUrl: dto.coverArtUrl ?? null,
     coverTheme: toCoverTheme(dto.coverTheme),
     cachedAt: now,
@@ -83,4 +98,81 @@ export async function lookupByBarcode(barcode: string): Promise<Release[]> {
 
 export async function lookupRelease(mbid: string): Promise<Release | null> {
   return toRelease(await getRelease(mbid), Date.now());
+}
+
+/** Every pressing of one album. Bitches Brew has 47, so this is paged, not exhaustive. */
+export async function lookupPressings(releaseGroupMbid: string, limit = 25): Promise<Release[]> {
+  return toReleases(await releasesInGroup(releaseGroupMbid, { limit }), Date.now());
+}
+
+function toArtist(dto: ArtistDto): Artist | null {
+  // Without these two there is nothing to show and nothing to open a discography with.
+  if (dto.mbid === undefined || dto.name === undefined) return null;
+  return {
+    mbid: dto.mbid,
+    name: dto.name,
+    disambiguation: dto.disambiguation ?? "",
+    type: dto.type ?? null,
+    country: dto.country ?? null,
+    beganIn: dto.beganIn ?? null,
+    endedIn: dto.endedIn ?? null,
+    score: dto.score ?? null,
+  };
+}
+
+export async function findArtists(query: string, limit = 5): Promise<Artist[]> {
+  return (await searchArtists({ q: query, limit }))
+    .map(toArtist)
+    .filter((artist): artist is Artist => artist !== null);
+}
+
+function toAlbum(dto: AlbumDto): Album | null {
+  if (dto.releaseGroupMbid === undefined || dto.title === undefined) return null;
+  return {
+    releaseGroupMbid: dto.releaseGroupMbid,
+    title: dto.title,
+    artistName: dto.artistName ?? "",
+    year: dto.year ?? null,
+    primaryType: dto.primaryType ?? null,
+    coverArtUrl: dto.coverArtUrl ?? null,
+  };
+}
+
+export interface Discography {
+  readonly albums: Album[];
+  /**
+   * How many the query matched upstream, not how many arrived. A chip reading "Albums 51"
+   * is telling the truth on a page of 25.
+   */
+  readonly total: number;
+}
+
+export async function lookupDiscography(
+  artistMbid: string,
+  primaryType: string | null,
+  limit = 25,
+): Promise<Discography> {
+  const dto = await albumsOfArtist(artistMbid, {
+    ...(primaryType === null ? {} : { type: primaryType }),
+    limit,
+  });
+  return {
+    albums: (dto.albums ?? []).map(toAlbum).filter((album): album is Album => album !== null),
+    total: dto.total ?? 0,
+  };
+}
+
+/**
+ * The line under an artist's name: "Group · GB · 2010–present".
+ *
+ * Built here rather than in the component so the mobile app can mirror it exactly.
+ */
+export function artistSubtitle(artist: Artist): string {
+  const years =
+    artist.beganIn === null
+      ? null
+      : `${artist.beganIn.slice(0, 4)}–${artist.endedIn === null ? "" : artist.endedIn.slice(0, 4)}`;
+  return [artist.type, artist.country, years]
+    .filter((part): part is string => typeof part === "string" && part.trim() !== "")
+    .join(" · ");
 }

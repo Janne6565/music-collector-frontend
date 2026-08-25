@@ -1,10 +1,22 @@
 import { FormatThumb } from "@/components/FormatThumb";
-import type { Release } from "@/domain/types";
+import type { Format } from "@/domain/types";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 
+/**
+ * Everything the art actually needs: a URL to try, and a format to fall back to.
+ *
+ * Structural rather than `Release`, because an album (a release group) has a cover too and
+ * has no format of its own — its placeholder is the generic sleeve. Widening the prop is
+ * cheaper than casting an album into a shape it is not.
+ */
+export interface CoverSubject {
+  readonly coverArtUrl: string | null;
+  readonly format?: Format;
+}
+
 interface ReleaseArtProps {
-  readonly release: Release | undefined;
+  readonly release: CoverSubject | undefined;
   readonly className?: string;
   readonly loading?: "lazy" | "eager";
   /**

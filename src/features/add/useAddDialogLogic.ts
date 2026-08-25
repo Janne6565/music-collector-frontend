@@ -1,6 +1,6 @@
 import { lookupByBarcode, lookupRelease, searchReleases } from "@/api/releases";
 import { fromCsv } from "@/domain/csv";
-import type { Format, Release } from "@/domain/types";
+import type { Artist, Format, Release } from "@/domain/types";
 import { useStore } from "@/local/StoreProvider";
 import { type CopyDraft, createCopy } from "@/local/copyWrites";
 import { clearRecentSearches, readRecentSearches, rememberSearch } from "@/local/settings";
@@ -56,6 +56,12 @@ export function useAddDialogLogic(onClose: () => void) {
   const [submitted, setSubmitted] = useState("");
   const [format, setFormat] = useState<AddFormatFilter>("ALL");
   const [selectedMbid, setSelectedMbid] = useState<string | null>(null);
+  /**
+   * The artist whose discography is open over the results, if any (screen 10d). A pane
+   * rather than a route: opening an artist is a detour inside adding a record, and the
+   * search underneath is exactly what you come back to.
+   */
+  const [openArtist, setOpenArtist] = useState<Artist | null>(null);
 
   const resultsQuery = useQuery({
     queryKey: ["releaseSearch", submitted],
@@ -161,6 +167,8 @@ export function useAddDialogLogic(onClose: () => void) {
   const search = useCallback((next: string) => {
     setSubmitted(next);
     setSelectedMbid(null);
+    // A new search invalidates the discography that was opened from the old one.
+    setOpenArtist(null);
   }, []);
 
   /**
@@ -257,6 +265,11 @@ export function useAddDialogLogic(onClose: () => void) {
       const copy = await add.mutateAsync(release);
       return copy.id;
     },
+    /** Artists are only worth asking about for a title search — no artist is named 602537. */
+    artistQuery: tab === "BARCODE" ? "" : submitted,
+    openArtist,
+    showArtist: setOpenArtist,
+    closeArtist: () => setOpenArtist(null),
     recentSearches: recent.data ?? [],
     repeatSearch: (term: string) => {
       setTerm(term);

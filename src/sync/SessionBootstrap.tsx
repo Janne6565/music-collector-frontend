@@ -80,7 +80,10 @@ export function SessionBootstrap({ children }: { readonly children: ReactNode })
       try {
         const result = await engine.sync();
         await writeLastSyncedAt(store, Date.now());
-        if (result.pulled > 0 || result.pushed > 0) {
+        // `releases` counts separately on purpose: a tab that pulled its collection before
+        // the client fetched any catalogue has nothing new to pull and a whole shelf of
+        // untitled placeholders to redraw.
+        if (result.pulled > 0 || result.pushed > 0 || result.releases > 0) {
           await queryClient.invalidateQueries();
         }
       } catch {

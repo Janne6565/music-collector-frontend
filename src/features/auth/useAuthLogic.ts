@@ -23,7 +23,15 @@ export function useAuthLogic() {
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [rememberMe, setRememberMe] = useState(true);
+  /**
+   * Two ticks, neither pre-checked (screen 17a).
+   *
+   * Separate booleans rather than one, because they are two statements: agreeing to the
+   * terms is a contract, confirming an age is a declaration of fact, and a single box that
+   * bundled them would let somebody agree to one by accepting the other.
+   */
   const [agreed, setAgreed] = useState(false);
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [failed, setFailed] = useState<AuthError | null>(null);
 
   // Only providers the server can actually complete a flow with, so an unconfigured one
@@ -34,7 +42,13 @@ export function useAuthLogic() {
     mutationFn: async () => {
       const session =
         mode === "REGISTER"
-          ? await register({ email: email.trim(), password, displayName: displayName.trim() })
+          ? await register({
+              email: email.trim(),
+              password,
+              displayName: displayName.trim(),
+              acceptedTerms: agreed,
+              confirmedAge: ageConfirmed,
+            })
           : await login({ email: email.trim(), password, rememberMe });
       if (session.accessToken === undefined || session.user === undefined) {
         throw new Error("The server did not return a session");
@@ -89,11 +103,17 @@ export function useAuthLogic() {
     setRememberMe,
     agreed,
     setAgreed,
+    ageConfirmed,
+    setAgeConfirmed,
     availableProviders: providerQuery.data ?? [],
     // Completeness only — the server validates the address and password properly, and a
-    // dead button that will not say why is worse than a rejected submit. The terms box is
-    // the exception: it is a required acknowledgement, not a format rule.
-    canSubmit: email.trim().length > 0 && password.length > 0 && (mode === "SIGN_IN" || agreed),
+    // dead button that will not say why is worse than a rejected submit. The two consent
+    // boxes are the exception: they are required acknowledgements, not format rules, and
+    // the server refuses a registration without them anyway.
+    canSubmit:
+      email.trim().length > 0 &&
+      password.length > 0 &&
+      (mode === "SIGN_IN" || (agreed && ageConfirmed)),
     submit: () => submit.mutate(),
     submitting: submit.isPending,
     failed,

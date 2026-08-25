@@ -1,10 +1,19 @@
 import { AppShell } from "@/components/layout/AppShell";
-import { Button, Toggle } from "@/components/ui";
+import { Button, Toggle, buttonClassName } from "@/components/ui";
 import { formatRelativeTime } from "@/domain/relativeTime";
 import { useAccountLogic } from "@/features/account/useAccountLogic";
 import { SharingPanel } from "@/features/friends/SharingPanel";
-import { Navigate } from "@tanstack/react-router";
-import { FileDown, HardDrive, LogOut, RefreshCw, UserRound } from "lucide-react";
+import { Link, Navigate } from "@tanstack/react-router";
+import {
+  ChevronRight,
+  FileDown,
+  FileText,
+  HardDrive,
+  LogOut,
+  RefreshCw,
+  ShieldCheck,
+  UserRound,
+} from "lucide-react";
 import { type ReactNode, useId } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -139,27 +148,42 @@ export function AccountPage() {
             <SharingPanel />
           </div>
 
+          <SectionTitle>{t("account.section.legal")}</SectionTitle>
+          <Card>
+            <LinkRow
+              to="/legal/data"
+              icon={<ShieldCheck size={16} strokeWidth={1.75} aria-hidden />}
+              title={t("legal.yourData")}
+              body={t("account.legal.dataBody")}
+            />
+            <LinkRow
+              to="/legal/$doc"
+              params={{ doc: "datenschutz" }}
+              icon={<FileText size={16} strokeWidth={1.75} aria-hidden />}
+              title={t("legal.privacy")}
+              body={t("account.legal.documentsBody")}
+            />
+          </Card>
+
+          {/* Deletion lives on Your data with the rest of the DSGVO actions and behind the
+              typed confirmation. Two ways to delete an account is one too many, and the one
+              that asked less would be the one somebody hit by accident. */}
           <div className="mt-7 flex items-center justify-between gap-4 rounded-xl border border-accent/30 bg-accent/5 p-4">
             <div>
               <div className="text-[13px] font-semibold text-accent-strong">
                 {t("account.delete.title")}
               </div>
               <p className="mt-0.5 text-[11.5px] text-ink-muted">{t("account.delete.body")}</p>
-              {logic.deleteFailed && (
-                <p className="mt-1.5 text-[11.5px] text-accent">{t("account.delete.failed")}</p>
-              )}
             </div>
-            <Button
-              variant="secondary"
-              onClick={() => {
-                // Irreversible on the server, so it asks — the one confirm in the app.
-                if (window.confirm(t("account.delete.confirm"))) logic.deleteAccount();
-              }}
-              loading={logic.deleting}
-              className="h-[30px] flex-none rounded-md border-accent/40 bg-transparent px-3 text-xs text-accent-strong"
+            <Link
+              to="/legal/data"
+              className={buttonClassName(
+                "secondary",
+                "h-[30px] flex-none rounded-md border-accent/40 bg-transparent px-3 text-xs text-accent-strong",
+              )}
             >
               {t("account.delete.action")}
-            </Button>
+            </Link>
           </div>
         </div>
       </div>
@@ -267,6 +291,39 @@ function Row({ icon, title, body, trailing }: RowProps) {
       </div>
       {trailing}
     </div>
+  );
+}
+
+interface LinkRowProps {
+  readonly to: string;
+  readonly params?: Record<string, string>;
+  readonly icon: ReactNode;
+  readonly title: string;
+  readonly body: string;
+}
+
+/** A {@link Row} that goes somewhere, so the whole row is the target rather than a word in it. */
+function LinkRow({ to, params, icon, title, body }: LinkRowProps) {
+  return (
+    <Link
+      to={to}
+      params={params}
+      className="flex items-center justify-between gap-4 border-b border-line px-4 py-3.5 no-underline transition-colors duration-(--mc-quick) last:border-b-0 hover:bg-canvas"
+    >
+      <div className="flex min-w-0 items-center gap-2.5">
+        <span className="flex-none text-ink-subtle">{icon}</span>
+        <div className="min-w-0">
+          <div className="text-[13px] font-semibold">{title}</div>
+          <div className="truncate text-[11.5px] text-ink-muted">{body}</div>
+        </div>
+      </div>
+      <ChevronRight
+        size={16}
+        strokeWidth={1.75}
+        aria-hidden
+        className="flex-none text-ink-subtle"
+      />
+    </Link>
   );
 }
 

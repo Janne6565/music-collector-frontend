@@ -1,4 +1,4 @@
-import type { LocalStore } from "@janne6565/music-collector-shared";
+import type { LegalLanguage, LocalStore } from "@janne6565/music-collector-shared";
 import type { WishSort } from "@janne6565/music-collector-shared";
 import { parseWishSort } from "@janne6565/music-collector-shared";
 /**
@@ -22,6 +22,16 @@ const RECENT_SEARCH_LIMIT = 6;
  * about the screen in front of you; where you dragged a row to is a fact about the list.
  */
 const WISHLIST_SORT = "wishlistSort";
+
+/**
+ * Which language the legal documents are read in.
+ *
+ * Separate from the app's UI language on purpose: which version of a document binds you is
+ * a legal question, and which language the menus are in is a preference. Somebody reading
+ * an English interface may still want the German original, because that is the one that
+ * counts in a dispute.
+ */
+const DOCUMENT_LANGUAGE = "documentLanguage";
 
 /** Defaults to on: someone who signed in asked for sync, and asked for it silently. */
 export async function readSyncEnabled(store: LocalStore): Promise<boolean> {
@@ -80,4 +90,26 @@ export async function readWishlistSort(store: LocalStore): Promise<WishSort> {
 
 export async function writeWishlistSort(store: LocalStore, sort: WishSort): Promise<void> {
   await store.writeSetting(WISHLIST_SORT, sort);
+}
+
+/**
+ * Defaults to the language the app itself is in, and to German when that is neither.
+ *
+ * German rather than English as the fallback: it is the binding original, so a reader who
+ * has expressed no preference is better served by the text that actually applies to them.
+ */
+export async function readDocumentLanguage(
+  store: LocalStore,
+  uiLanguage: string,
+): Promise<LegalLanguage> {
+  const stored = await store.readSetting(DOCUMENT_LANGUAGE);
+  if (stored === "de" || stored === "en") return stored;
+  return uiLanguage.startsWith("en") ? "en" : "de";
+}
+
+export async function writeDocumentLanguage(
+  store: LocalStore,
+  language: LegalLanguage,
+): Promise<void> {
+  await store.writeSetting(DOCUMENT_LANGUAGE, language);
 }

@@ -210,6 +210,8 @@ export interface RegisterRequest {
    * @maxLength 120
    */
   displayName?: string;
+  acceptedTerms: boolean;
+  confirmedAge: boolean;
 }
 
 export interface OAuthExchangeRequest {
@@ -491,6 +493,49 @@ export interface ActivityFeedDto {
 export interface AuthProviderDto {
   id?: string;
   displayName?: string;
+}
+
+export interface AccountDto {
+  id?: string;
+  email?: string;
+  displayName?: string;
+  handle?: string;
+  createdAt?: string;
+}
+
+export interface AccountExportDto {
+  exportedAt?: string;
+  account?: AccountDto;
+  consents?: ConsentDto[];
+  sharing?: SharingSettingsDto;
+  copies?: SyncCopyDto[];
+  wishes?: SyncWishDto[];
+  photos?: SyncPhotoDto[];
+  friends?: FriendExportDto[];
+  providers?: string[];
+}
+
+export type ConsentDtoDocument = typeof ConsentDtoDocument[keyof typeof ConsentDtoDocument];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ConsentDtoDocument = {
+  TERMS: 'TERMS',
+  PRIVACY: 'PRIVACY',
+  AGE: 'AGE',
+} as const;
+
+export interface ConsentDto {
+  document?: ConsentDtoDocument;
+  version?: string;
+  acceptedAt?: string;
+}
+
+export interface FriendExportDto {
+  handle?: string;
+  displayName?: string;
+  status?: string;
+  since?: string;
 }
 
 export type PullParams = {

@@ -1,7 +1,10 @@
 import { Button } from "@/components/ui";
 import { ProfileBody } from "@/features/friends/ProfilePage";
 import { useProfileLogic } from "@/features/friends/useProfileLogic";
+import { OPERATOR, OPERATOR_ONE_LINE } from "@janne6565/music-collector-shared";
 import { Link, useParams } from "@tanstack/react-router";
+import { ShieldCheck } from "lucide-react";
+import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
 /**
@@ -48,9 +51,54 @@ export function PublicProfilePage() {
         <ProfileBody logic={logic} />
       </main>
 
-      <footer className="flex-none border-t border-line px-7 py-3 text-center text-[11px] text-ink-subtle">
-        {t("public.footer")}
-      </footer>
+      <PublicFooter />
     </div>
+  );
+}
+
+/**
+ * Screen 17j — the signed-out shell, where the legal row is the whole footer.
+ *
+ * A visitor with no account is the one person who cannot reach the sidebar's links, and is
+ * also the one the Impressum obligation is actually about: § 5 DDG asks for it to be easily
+ * recognisable and directly reachable from every page a stranger can land on.
+ */
+function PublicFooter() {
+  const { t } = useTranslation();
+  return (
+    <footer className="mx-auto flex w-full max-w-5xl flex-none flex-wrap items-end justify-between gap-8 border-t border-line px-7 py-5">
+      <div className="flex flex-col gap-2">
+        <div className="flex flex-wrap gap-x-5 gap-y-2 text-[12.5px] font-medium">
+          <FooterLink doc="impressum">{t("legal.impressum")}</FooterLink>
+          <FooterLink doc="datenschutz">{t("legal.privacy")}</FooterLink>
+          <FooterLink doc="nutzungsbedingungen">{t("legal.terms")}</FooterLink>
+          <a
+            href={`mailto:${OPERATOR.email}`}
+            className="border-b border-ink/20 pb-px text-ink no-underline hover:border-ink/40"
+          >
+            {t("legal.contact")}
+          </a>
+        </div>
+        <div className="text-[11.5px] text-ink-subtle">{OPERATOR_ONE_LINE}</div>
+      </div>
+      <div className="flex flex-none items-center gap-2 rounded-[9px] border border-line bg-surface px-3 py-2">
+        <ShieldCheck size={14} strokeWidth={1.75} aria-hidden className="text-ink-subtle" />
+        <span className="max-w-[190px] text-[11px] leading-[1.5] text-ink-muted">
+          {t("legal.noCookiesHere")}
+        </span>
+      </div>
+    </footer>
+  );
+}
+
+function FooterLink({ doc, children }: { readonly doc: string; readonly children: ReactNode }) {
+  return (
+    <Link
+      to="/legal/$doc"
+      params={{ doc }}
+      className="border-b border-ink/20 pb-px text-ink no-underline hover:border-ink/40"
+    >
+      {children}
+    </Link>
   );
 }

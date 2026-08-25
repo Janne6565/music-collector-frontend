@@ -20,6 +20,8 @@ import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as HandleWishlistRouteImport } from './routes/$handle.wishlist'
 import { Route as CopiesCopyIdRouteImport } from './routes/copies.$copyId'
 import { Route as FriendsHandleRouteImport } from './routes/friends.$handle'
+import { Route as LegalDocRouteImport } from './routes/legal.$doc'
+import { Route as LegalDataRouteImport } from './routes/legal.data'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -76,6 +78,16 @@ const FriendsHandleRoute = FriendsHandleRouteImport.update({
   path: '/$handle',
   getParentRoute: () => FriendsRoute,
 } as any)
+const LegalDocRoute = LegalDocRouteImport.update({
+  id: '/legal/$doc',
+  path: '/legal/$doc',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalDataRoute = LegalDataRouteImport.update({
+  id: '/legal/data',
+  path: '/legal/data',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -89,6 +101,8 @@ export interface FileRoutesByFullPath {
   '/$handle/wishlist': typeof HandleWishlistRoute
   '/copies/$copyId': typeof CopiesCopyIdRoute
   '/friends/$handle': typeof FriendsHandleRoute
+  '/legal/$doc': typeof LegalDocRoute
+  '/legal/data': typeof LegalDataRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -102,6 +116,8 @@ export interface FileRoutesByTo {
   '/$handle/wishlist': typeof HandleWishlistRoute
   '/copies/$copyId': typeof CopiesCopyIdRoute
   '/friends/$handle': typeof FriendsHandleRoute
+  '/legal/$doc': typeof LegalDocRoute
+  '/legal/data': typeof LegalDataRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -116,6 +132,8 @@ export interface FileRoutesById {
   '/$handle/wishlist': typeof HandleWishlistRoute
   '/copies/$copyId': typeof CopiesCopyIdRoute
   '/friends/$handle': typeof FriendsHandleRoute
+  '/legal/$doc': typeof LegalDocRoute
+  '/legal/data': typeof LegalDataRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -131,6 +149,8 @@ export interface FileRouteTypes {
     | '/$handle/wishlist'
     | '/copies/$copyId'
     | '/friends/$handle'
+    | '/legal/$doc'
+    | '/legal/data'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -144,6 +164,8 @@ export interface FileRouteTypes {
     | '/$handle/wishlist'
     | '/copies/$copyId'
     | '/friends/$handle'
+    | '/legal/$doc'
+    | '/legal/data'
   id:
     | '__root__'
     | '/'
@@ -157,6 +179,8 @@ export interface FileRouteTypes {
     | '/$handle/wishlist'
     | '/copies/$copyId'
     | '/friends/$handle'
+    | '/legal/$doc'
+    | '/legal/data'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -169,6 +193,8 @@ export interface RootRouteChildren {
   SigninRoute: typeof SigninRoute
   WishlistRoute: typeof WishlistRoute
   CopiesCopyIdRoute: typeof CopiesCopyIdRoute
+  LegalDocRoute: typeof LegalDocRoute
+  LegalDataRoute: typeof LegalDataRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -250,6 +276,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FriendsHandleRouteImport
       parentRoute: typeof FriendsRoute
     }
+    '/legal/$doc': {
+      id: '/legal/$doc'
+      path: '/legal/$doc'
+      fullPath: '/legal/$doc'
+      preLoaderRoute: typeof LegalDocRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/data': {
+      id: '/legal/data'
+      path: '/legal/data'
+      fullPath: '/legal/data'
+      preLoaderRoute: typeof LegalDataRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -285,6 +325,8 @@ const rootRouteChildren: RootRouteChildren = {
   SigninRoute: SigninRoute,
   WishlistRoute: WishlistRoute,
   CopiesCopyIdRoute: CopiesCopyIdRoute,
+  LegalDocRoute: LegalDocRoute,
+  LegalDataRoute: LegalDataRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

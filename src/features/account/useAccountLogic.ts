@@ -1,5 +1,5 @@
 import { setAccessToken } from "@/api/axios-instance";
-import { deleteAccount, logout, updateProfile } from "@/api/generated/auth/auth";
+import { logout, updateProfile } from "@/api/generated/auth/auth";
 import { toCsv } from "@/domain/csv";
 import { useStore } from "@/local/StoreProvider";
 import { readLastSyncedAt, readSyncEnabled, writeSyncEnabled } from "@/local/settings";
@@ -13,8 +13,11 @@ import { useCallback, useState } from "react";
  * The account screen (7a on web, 8b on mobile).
  *
  * Everything destructive here is scoped as narrowly as the wording promises: signing out
- * and deleting the account both leave the local collection alone. The collection belongs
- * to the device, and an account is only ever a way to copy it to other devices.
+ * leaves the local collection alone. The collection belongs to the device, and an account is
+ * only ever a way to copy it to other devices.
+ *
+ * Deleting the account is not here at all -- it lives on Your data (17g) behind the typed
+ * confirmation, with the rest of the DSGVO actions.
  */
 export function useAccountLogic() {
   const { store } = useStore();
@@ -92,22 +95,6 @@ export function useAccountLogic() {
     },
   });
 
-  const remove = useMutation({
-    mutationFn: async () => {
-      await deleteAccount();
-      setAccessToken(null);
-    },
-    onSuccess: async () => {
-      dispatch(signedOut());
-      // The local collection is deliberately untouched, but the sync cursor is not: it
-      // points into a change log that no longer exists, and leaving it would make a later
-      // sign-in believe it had already pulled everything.
-      await store.writeSyncCursor(0);
-      await queryClient.invalidateQueries();
-      void navigate({ to: "/" });
-    },
-  });
-
   return {
     status: auth.status,
     name: auth.user?.displayName ?? auth.user?.email ?? null,
@@ -132,8 +119,5 @@ export function useAccountLogic() {
     exporting: exportCsv.isPending,
     signOut: () => signOut.mutate(),
     signingOut: signOut.isPending,
-    deleteAccount: () => remove.mutate(),
-    deleting: remove.isPending,
-    deleteFailed: remove.isError,
   };
 }

@@ -414,7 +414,11 @@ const enCommon = {
     or: "or",
     forgot: "Forgot?",
     rememberMe: "Keep me signed in",
-    agreeTerms: "I agree to the terms and privacy policy.",
+    agreeTerms:
+      "I accept the <terms>Nutzungsbedingungen</terms> and have read the <privacy>Datenschutzerklärung</privacy>.",
+    confirmAge: "I am 16 or older.",
+    providerConsent:
+      "Continuing with a provider also accepts the <terms>Nutzungsbedingungen</terms> and the <privacy>Datenschutzerklärung</privacy>, and confirms you are 16 or older.",
     showPassword: "Show password",
     hidePassword: "Hide password",
     passwordHint: "Ten characters minimum. A passphrase beats a password.",
@@ -485,6 +489,7 @@ const enCommon = {
       average: "average per copy",
     },
     section: {
+      legal: "Legal & privacy",
       profile: "Profile",
       signIn: "Sign-in",
       storage: "Storage and sync",
@@ -509,6 +514,10 @@ const enCommon = {
       title: "Export collection",
       body: "CSV, one row per copy",
       action: "Export",
+    },
+    legal: {
+      dataBody: "Export, correct, withdraw consent or delete — the DSGVO actions in one place.",
+      documentsBody: "Impressum, privacy policy and terms, in German or English.",
     },
     delete: {
       title: "Delete account",
@@ -567,6 +576,72 @@ const enCommon = {
     wishSatisfied: "Off the wishlist",
     wishSince: "{{title}} · wanted since {{since}}",
     keepIt: "Keep it",
+  },
+  legal: {
+    impressum: "Impressum",
+    privacy: "Datenschutzerklärung",
+    privacyShort: "Datenschutz",
+    terms: "Nutzungsbedingungen",
+    termsShort: "AGB",
+    contact: "Contact",
+    documents: "Legal documents",
+    documentLanguage: "Document language",
+    yourData: "Your data",
+    copyright: "© {{year}} {{name}} · Berlin",
+    effective: "Effective {{date}} · version {{version}}",
+    translationNotice:
+      "Translation for convenience. In case of dispute the German {{title}} apply.",
+    bindingNotice: "The German version is the binding one; English is a courtesy translation.",
+    noTracking:
+      "No tracking, no advertising, no cookie choices — only technically necessary data is processed.",
+    noCookiesHere: "This page sets no analytics or advertising cookies.",
+    data: {
+      lede: "Everything the DSGVO entitles you to, without writing an e-mail.",
+      ledeLocal:
+        "There is no account, so we hold nothing about you. What follows is built from this device's own storage.",
+      export: {
+        title: "Export everything",
+        body: "Account details, all copies, photos, notes and your wishlist.",
+        bodyLocal: "Everything on this device: copies, releases and your wishlist.",
+        hint: "JSON is the complete record; CSV is the copies in a spreadsheet.",
+        failed: "The export failed. Try again in a moment.",
+      },
+      correct: {
+        title: "Correct my details",
+        body: "Name, e-mail and handle can be changed directly in Account.",
+        action: "Open account",
+      },
+      withdraw: {
+        title: "Withdraw sharing consent",
+        body: "Turns off the public link, handle search and friend access in one step. Your lists stay, they just go private.",
+        action: "Make everything private",
+        alreadyPrivate: "Nothing is shared at the moment.",
+      },
+      delete: {
+        title: "Delete account",
+        body: "Deletes the account, all copies and all photos. Backups clear within 30 days. Export first if you want to keep the shelf.",
+        action: "Delete my account",
+        failed: "That did not work. Try again in a moment.",
+      },
+      otherRequests:
+        "Requests we cannot handle automatically are answered within one month, per Art. 12 (3) DSGVO. Complaints go to the Berliner Beauftragte für Datenschutz und Informationsfreiheit.",
+    },
+    delete: {
+      title: "Delete everything?",
+      body_one:
+        "{{count}} copy and your wishlist go with the account. Friends lose access immediately; backups are cleared within 30 days.",
+      body_other:
+        "{{count}} copies and your wishlist go with the account. Friends lose access immediately; backups are cleared within 30 days.",
+      bodyWithHandle_one:
+        "{{count}} copy, your wishlist and your handle {{handle}} go with the account. Friends lose access immediately; backups are cleared within 30 days.",
+      bodyWithHandle_other:
+        "{{count}} copies, your wishlist and your handle {{handle}} go with the account. Friends lose access immediately; backups are cleared within 30 days.",
+      exportFirst: "Export a copy first",
+      exportAction: "Export",
+      typeToConfirm: "Type LÖSCHEN to confirm",
+      confirm: "Delete account permanently",
+      keep: "Keep my account",
+    },
   },
   common: {
     unknownYear: "Year unknown",
@@ -1004,7 +1079,11 @@ const deCommon: CommonSchema = {
     or: "oder",
     forgot: "Vergessen?",
     rememberMe: "Angemeldet bleiben",
-    agreeTerms: "Ich stimme den Bedingungen und der Datenschutzerklärung zu.",
+    agreeTerms:
+      "Ich akzeptiere die <terms>Nutzungsbedingungen</terms> und habe die <privacy>Datenschutzerklärung</privacy> gelesen.",
+    confirmAge: "Ich bin 16 Jahre oder älter.",
+    providerConsent:
+      "Mit der Anmeldung über einen Anbieter akzeptierst du ebenfalls die <terms>Nutzungsbedingungen</terms> und die <privacy>Datenschutzerklärung</privacy> und bestätigst, dass du 16 Jahre oder älter bist.",
     showPassword: "Passwort anzeigen",
     hidePassword: "Passwort verbergen",
     passwordHint: "Mindestens zehn Zeichen. Eine Passphrase schlägt ein Passwort.",
@@ -1077,6 +1156,7 @@ const deCommon: CommonSchema = {
       average: "im Schnitt pro Exemplar",
     },
     section: {
+      legal: "Rechtliches & Datenschutz",
       profile: "Profil",
       signIn: "Anmeldung",
       storage: "Speicher und Sync",
@@ -1101,6 +1181,11 @@ const deCommon: CommonSchema = {
       title: "Sammlung exportieren",
       body: "CSV, eine Zeile pro Exemplar",
       action: "Exportieren",
+    },
+    legal: {
+      dataBody:
+        "Exportieren, berichtigen, widerrufen oder löschen — die DSGVO-Aktionen an einem Ort.",
+      documentsBody: "Impressum, Datenschutzerklärung und AGB, auf Deutsch oder Englisch.",
     },
     delete: {
       title: "Konto löschen",
@@ -1160,6 +1245,73 @@ const deCommon: CommonSchema = {
     wishSatisfied: "Von der Wunschliste",
     wishSince: "{{title}} · gesucht seit {{since}}",
     keepIt: "Behalten",
+  },
+  legal: {
+    impressum: "Impressum",
+    privacy: "Datenschutzerklärung",
+    privacyShort: "Datenschutz",
+    terms: "Nutzungsbedingungen",
+    termsShort: "AGB",
+    contact: "Kontakt",
+    documents: "Rechtliches",
+    documentLanguage: "Sprache der Dokumente",
+    yourData: "Deine Daten",
+    copyright: "© {{year}} {{name}} · Berlin",
+    effective: "Stand: {{date}} · Version {{version}}",
+    translationNotice:
+      "Übersetzung zur Information. Im Streitfall gilt die deutsche Originalfassung.",
+    bindingNotice:
+      "Die deutsche Fassung ist die verbindliche; Englisch ist eine Übersetzung zur Information.",
+    noTracking:
+      "Kein Tracking, keine Werbung, keine Cookie-Auswahl — es werden nur technisch notwendige Daten verarbeitet.",
+    noCookiesHere: "Diese Seite setzt keine Analyse- oder Werbe-Cookies.",
+    data: {
+      lede: "Alles, worauf dir die DSGVO ein Recht gibt — ohne eine E-Mail zu schreiben.",
+      ledeLocal:
+        "Es gibt kein Konto, also liegt bei uns nichts über dich. Was folgt, entsteht aus dem Speicher dieses Geräts.",
+      export: {
+        title: "Alles exportieren",
+        body: "Kontodaten, alle Exemplare, Fotos, Notizen und deine Wunschliste.",
+        bodyLocal: "Alles auf diesem Gerät: Exemplare, Releases und deine Wunschliste.",
+        hint: "JSON ist der vollständige Datensatz, CSV sind die Exemplare für eine Tabelle.",
+        failed: "Der Export hat nicht geklappt. Versuch es gleich noch einmal.",
+      },
+      correct: {
+        title: "Meine Angaben berichtigen",
+        body: "Name, E-Mail und Handle änderst du direkt im Konto.",
+        action: "Konto öffnen",
+      },
+      withdraw: {
+        title: "Einwilligung zum Teilen widerrufen",
+        body: "Schaltet öffentlichen Link, Handle-Suche und Freundeszugriff in einem Schritt ab. Deine Listen bleiben, sie werden nur privat.",
+        action: "Alles privat schalten",
+        alreadyPrivate: "Derzeit ist nichts freigegeben.",
+      },
+      delete: {
+        title: "Konto löschen",
+        body: "Löscht das Konto, alle Exemplare und alle Fotos. Backups sind binnen 30 Tagen bereinigt. Exportiere vorher, wenn du die Sammlung behalten willst.",
+        action: "Mein Konto löschen",
+        failed: "Das hat nicht geklappt. Versuch es gleich noch einmal.",
+      },
+      otherRequests:
+        "Anfragen, die wir nicht automatisch erledigen können, beantworten wir innerhalb eines Monats nach Art. 12 Abs. 3 DSGVO. Beschwerden gehen an die Berliner Beauftragte für Datenschutz und Informationsfreiheit.",
+    },
+    delete: {
+      title: "Wirklich alles löschen?",
+      body_one:
+        "{{count}} Exemplar und deine Wunschliste gehen mit dem Konto. Freunde verlieren sofort den Zugriff; Backups sind binnen 30 Tagen bereinigt.",
+      body_other:
+        "{{count}} Exemplare und deine Wunschliste gehen mit dem Konto. Freunde verlieren sofort den Zugriff; Backups sind binnen 30 Tagen bereinigt.",
+      bodyWithHandle_one:
+        "{{count}} Exemplar, deine Wunschliste und dein Handle {{handle}} gehen mit dem Konto. Freunde verlieren sofort den Zugriff; Backups sind binnen 30 Tagen bereinigt.",
+      bodyWithHandle_other:
+        "{{count}} Exemplare, deine Wunschliste und dein Handle {{handle}} gehen mit dem Konto. Freunde verlieren sofort den Zugriff; Backups sind binnen 30 Tagen bereinigt.",
+      exportFirst: "Vorher eine Kopie exportieren",
+      exportAction: "Exportieren",
+      typeToConfirm: "Zum Bestätigen LÖSCHEN eingeben",
+      confirm: "Konto endgültig löschen",
+      keep: "Konto behalten",
+    },
   },
   common: {
     unknownYear: "Jahr unbekannt",

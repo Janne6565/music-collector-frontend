@@ -6,8 +6,9 @@ import type { AuthError } from "@/features/auth/useAuthLogic";
 import { useAuthLogic } from "@/features/auth/useAuthLogic";
 import { Link } from "@tanstack/react-router";
 import { ChevronLeft, HardDrive, Mail, User } from "lucide-react";
+import type { ReactNode } from "react";
 import { useId } from "react";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 
 /** Screens 4c and 4d: a dark brand panel beside the form. */
 export function SignInPage() {
@@ -90,9 +91,20 @@ export function SignInPage() {
             />
 
             {registering ? (
-              <Checkbox checked={logic.agreed} onChange={logic.setAgreed}>
-                {t("auth.agreeTerms")}
-              </Checkbox>
+              <div className="flex flex-col gap-3.5">
+                <Checkbox checked={logic.agreed} onChange={logic.setAgreed}>
+                  <Trans
+                    i18nKey="auth.agreeTerms"
+                    components={{
+                      terms: <LegalTextLink doc="nutzungsbedingungen" />,
+                      privacy: <LegalTextLink doc="datenschutz" />,
+                    }}
+                  />
+                </Checkbox>
+                <Checkbox checked={logic.ageConfirmed} onChange={logic.setAgeConfirmed}>
+                  {t("auth.confirmAge")}
+                </Checkbox>
+              </div>
             ) : (
               <Checkbox checked={logic.rememberMe} onChange={logic.setRememberMe}>
                 {t("auth.rememberMe")}
@@ -120,6 +132,20 @@ export function SignInPage() {
                 </span>
                 <div className="h-px flex-1 bg-line" />
               </div>
+              {registering && (
+                /* The provider buttons have no form to put tick boxes in, so the agreement
+                   is stated beside them instead. The account they create records the same
+                   consent a password sign-up does. */
+                <p className="mb-3 text-[11px] leading-[1.55] text-ink-subtle">
+                  <Trans
+                    i18nKey="auth.providerConsent"
+                    components={{
+                      terms: <LegalTextLink doc="nutzungsbedingungen" />,
+                      privacy: <LegalTextLink doc="datenschutz" />,
+                    }}
+                  />
+                </p>
+              )}
               <div className="flex gap-2.5">
                 {logic.availableProviders.map((provider) => (
                   <a
@@ -167,9 +193,47 @@ export function SignInPage() {
               {registering ? t("auth.signIn") : t("auth.create")}
             </button>
           </p>
+
+          <SignInLegalFooter />
         </div>
       </main>
     </div>
+  );
+}
+
+/**
+ * The three links at the foot of screen 17a.
+ *
+ * The sign-in screen is outside the app shell, so it does not inherit the sidebar's legal
+ * row -- and it is the one screen where somebody is about to agree to two of the three.
+ */
+function SignInLegalFooter() {
+  const { t } = useTranslation();
+  return (
+    <div className="mt-9 flex justify-center gap-4 text-[11px] text-ink-subtle">
+      <LegalTextLink doc="impressum">{t("legal.impressum")}</LegalTextLink>
+      <LegalTextLink doc="datenschutz">{t("legal.privacyShort")}</LegalTextLink>
+      <LegalTextLink doc="nutzungsbedingungen">{t("legal.termsShort")}</LegalTextLink>
+    </div>
+  );
+}
+
+/**
+ * A legal document link inside running text.
+ *
+ * Its children come from `<Trans>` when it is used inside a sentence, which is why they are
+ * optional: the interpolated element carries the text, and only the standalone uses below
+ * pass their own.
+ */
+function LegalTextLink({ doc, children }: { readonly doc: string; readonly children?: ReactNode }) {
+  return (
+    <Link
+      to="/legal/$doc"
+      params={{ doc }}
+      className="border-b border-accent/35 font-semibold text-accent no-underline hover:border-accent"
+    >
+      {children}
+    </Link>
   );
 }
 

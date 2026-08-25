@@ -43,6 +43,9 @@ describe("toRelease", () => {
       catalogNumber: null,
       country: null,
       barcode: null,
+      releaseDate: null,
+      trackCount: null,
+      discCount: null,
       coverArtUrl: null,
       coverTheme: null,
     });

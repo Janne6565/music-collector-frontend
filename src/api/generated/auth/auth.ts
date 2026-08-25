@@ -12,6 +12,7 @@ for copies. The server participates only as a sync peer.
 import type {
   AuthProviderDto,
   CallbackParams,
+  CallbackPostedParams,
   ForgotPasswordRequest,
   LoginRequest,
   RegisterRequest,
@@ -60,6 +61,34 @@ export const refresh = (
  ) => {
       return customInstance<SessionDto>(
       {url: `/api/v1/auth/refresh`, method: 'POST'
+    },
+      );
+    }
+  /**
+ * Sets the refresh cookie and redirects into the app. No token ever appears in a URL.
+ * @summary Where the provider sends the person back
+ */
+export const callback = (
+    provider: string,
+    params?: CallbackParams,
+ ) => {
+      return customInstance<unknown>(
+      {url: `/api/v1/auth/oauth/${provider}/callback`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * Apple answers with a cross-site form POST rather than a redirect whenever name or e-mail scope was requested, and sends the name in a `user` field that appears on the first authorization only.
+ * @summary The same callback, for a provider that posts it back
+ */
+export const callbackPosted = (
+    provider: string,
+    params?: CallbackPostedParams,
+ ) => {
+      return customInstance<unknown>(
+      {url: `/api/v1/auth/oauth/${provider}/callback`, method: 'POST',
+        params
     },
       );
     }
@@ -116,20 +145,6 @@ export const providers = (
       );
     }
   /**
- * Sets the refresh cookie and redirects into the app. No token ever appears in a URL.
- * @summary Where the provider sends the person back
- */
-export const callback = (
-    provider: string,
-    params?: CallbackParams,
- ) => {
-      return customInstance<unknown>(
-      {url: `/api/v1/auth/oauth/${provider}/callback`, method: 'GET',
-        params
-    },
-      );
-    }
-  /**
  * Redirects to the provider. Navigate to this, never fetch it.
  * @summary Begin an external sign-in
  */
@@ -164,14 +179,15 @@ export const deleteAccount = (
     },
       );
     }
-  export type DeleteAccountResult = NonNullable<Awaited<ReturnType<typeof deleteAccount>>>
-export type ResetPasswordResult = NonNullable<Awaited<ReturnType<typeof resetPassword>>>
+  export type ResetPasswordResult = NonNullable<Awaited<ReturnType<typeof resetPassword>>>
 export type RegisterResult = NonNullable<Awaited<ReturnType<typeof register>>>
 export type RefreshResult = NonNullable<Awaited<ReturnType<typeof refresh>>>
+export type CallbackResult = NonNullable<Awaited<ReturnType<typeof callback>>>
+export type CallbackPostedResult = NonNullable<Awaited<ReturnType<typeof callbackPosted>>>
 export type LogoutResult = NonNullable<Awaited<ReturnType<typeof logout>>>
 export type LoginResult = NonNullable<Awaited<ReturnType<typeof login>>>
 export type ForgotPasswordResult = NonNullable<Awaited<ReturnType<typeof forgotPassword>>>
 export type ProvidersResult = NonNullable<Awaited<ReturnType<typeof providers>>>
-export type CallbackResult = NonNullable<Awaited<ReturnType<typeof callback>>>
 export type AuthorizeResult = NonNullable<Awaited<ReturnType<typeof authorize>>>
 export type MeResult = NonNullable<Awaited<ReturnType<typeof me>>>
+export type DeleteAccountResult = NonNullable<Awaited<ReturnType<typeof deleteAccount>>>

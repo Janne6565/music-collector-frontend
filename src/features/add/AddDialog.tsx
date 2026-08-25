@@ -3,11 +3,14 @@ import { ReleaseArt } from "@/components/ReleaseArt";
 import { Button, FieldSpinner, Modal, ModalClose, PulsingDots, Skeleton } from "@/components/ui";
 import type { Format, Release } from "@/domain/types";
 import { FORMAT_LABELS } from "@/domain/types";
+import { ArtistPane } from "@/features/add/ArtistPane";
+import { ArtistResults } from "@/features/add/ArtistResults";
 import {
   type AddFormatFilter,
   type AddTab,
   useAddDialogLogic,
 } from "@/features/add/useAddDialogLogic";
+import { useArtistSearchLogic } from "@/features/add/useArtistSearchLogic";
 import { cn } from "@/lib/utils";
 import {
   ArrowUpLeft,
@@ -54,7 +57,7 @@ export function AddDialog({ onClose, onEditDetails }: AddDialogProps) {
   return (
     <Modal onClose={onClose} labelledBy={titleId} width="660px">
       <div className="flex flex-none items-start justify-between gap-4 px-6 pt-5.5">
-        <div>
+        <div className={cn(logic.openArtist !== null && "sr-only")}>
           <h2 id={titleId} className="font-serif text-2xl leading-[1.1]">
             {t("addDialog.title")}
           </h2>
@@ -63,7 +66,14 @@ export function AddDialog({ onClose, onEditDetails }: AddDialogProps) {
         <ModalClose onClose={onClose} label={t("common.close")} />
       </div>
 
-      <div className="flex flex-none gap-5 border-b border-line px-6 pt-5">
+      {/* The tab strip goes away with the search: an open discography is not a fifth tab,
+          and leaving them live would strand you on "Barcode" with an artist still open. */}
+      <div
+        className={cn(
+          "flex flex-none gap-5 border-b border-line px-6 pt-5",
+          logic.openArtist !== null && "hidden",
+        )}
+      >
         {TABS.map((tab) => (
           <button
             key={tab}
@@ -98,6 +108,15 @@ export function AddDialog({ onClose, onEditDetails }: AddDialogProps) {
 
       {logic.tab === "CSV" ? (
         <CsvTab logic={logic} />
+      ) : logic.openArtist !== null ? (
+        <ArtistPane
+          artist={logic.openArtist}
+          fromQuery={logic.submittedTerm}
+          onBack={logic.closeArtist}
+          onAdd={logic.addRelease}
+          addingMbid={logic.addingMbid}
+          isOwned={logic.isOwned}
+        />
       ) : (
         <SearchTab logic={logic} onEditDetails={onEditDetails} />
       )}
@@ -224,20 +243,51 @@ function SearchTab({
 
 function Results({ logic }: { readonly logic: Logic }) {
   const { t } = useTranslation();
+  /**
+   * Artists are a second request, a second behind the releases one — MusicBrainz allows
+   * us one per second. Rendered as soon as they land rather than held back until both
+   * halves are in, so the list fills from the top instead of appearing all at once.
+   */
+  const artists = useArtistSearchLogic(logic.artistQuery, logic.artistQuery !== "");
 
-  if (logic.searching) return <SearchingRows />;
-  if (logic.failed) return <p className="pt-4 text-sm text-ink-muted">{t("add.failed")}</p>;
   if (!logic.hasSearched) return <RecentSearches logic={logic} />;
-  if (logic.results.length === 0) return <NoMatches logic={logic} />;
+
+  const noReleases = !logic.searching && !logic.failed && logic.results.length === 0;
+  // Only a dead end if neither half found anything. An artist match with no title match is
+  // the normal shape of searching a band name, and 9b would be a lie there.
+  if (noReleases && artists.total === 0 && !artists.loading) return <NoMatches logic={logic} />;
 
   return (
     <>
-      <p className="pt-2.5 pb-1 font-mono text-[10px] uppercase tracking-[0.12em] text-ink-subtle">
-        {t("addDialog.matchCount", { count: logic.results.length })}
-      </p>
-      {logic.results.map((release) => (
-        <ResultRow key={release.mbid} release={release} logic={logic} />
-      ))}
+      <ArtistResults logic={artists} onOpen={logic.showArtist} />
+
+      {logic.searching ? (
+        <SearchingRows />
+      ) : logic.failed ? (
+        <p className="pt-4 text-sm text-ink-muted">{t("add.failed")}</p>
+      ) : (
+        <section>
+          <div className="flex items-center justify-between pt-4.5 pb-1">
+            <h3 className="font-mono text-[10px] uppercase tracking-[0.12em] text-ink-subtle">
+              {t("addDialog.matchCount", { count: logic.results.length })}
+            </h3>
+            {logic.results.length > 0 && (
+              <span className="text-[11.5px] font-medium text-ink-subtle">
+                {t("artists.sortedBy")}
+              </span>
+            )}
+          </div>
+          {logic.results.length === 0 ? (
+            <p className="py-3 text-[12.5px] text-ink-muted">
+              {t("addDialog.noReleasesButArtists")}
+            </p>
+          ) : (
+            logic.results.map((release) => (
+              <ResultRow key={release.mbid} release={release} logic={logic} />
+            ))
+          )}
+        </section>
+      )}
     </>
   );
 }

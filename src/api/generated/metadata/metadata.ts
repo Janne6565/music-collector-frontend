@@ -10,7 +10,12 @@ for copies. The server participates only as a sync peer.
  * OpenAPI spec version: v1
  */
 import type {
+  AlbumsOfArtistParams,
+  ArtistDto,
+  DiscographyDto,
   ReleaseDto,
+  ReleasesInGroupParams,
+  SearchArtistsParams,
   SearchParams
 } from '../musicCollectorAPI.schemas';
 
@@ -44,6 +49,20 @@ export const getRelease = (
       );
     }
   /**
+ * Bitches Brew has 47, so this pages rather than pretending the list is short.
+ * @summary Every pressing of one album
+ */
+export const releasesInGroup = (
+    mbid: string,
+    params?: ReleasesInGroupParams,
+ ) => {
+      return customInstance<ReleaseDto[]>(
+      {url: `/api/v1/metadata/release-groups/${mbid}/releases`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
  * Answered from the local mirror when the barcode has been seen before.
  * @summary Look up releases by barcode
  */
@@ -55,6 +74,36 @@ export const findByBarcode = (
     },
       );
     }
+  /**
+ * Separate from /search on purpose. The release index matches on title, so a bare band name there returns records *called* that name and nothing by the band. Results carry MusicBrainz's own match score, highest first.
+ * @summary Search artists by name
+ */
+export const searchArtists = (
+    params: SearchArtistsParams,
+ ) => {
+      return customInstance<ArtistDto[]>(
+      {url: `/api/v1/metadata/artists`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * `total` is how many the query matched upstream, not the size of this page — a client showing "Albums 51" is telling the truth on a page of 25. Omit `type` for everything.
+ * @summary One artist's discography, by primary type
+ */
+export const albumsOfArtist = (
+    mbid: string,
+    params?: AlbumsOfArtistParams,
+ ) => {
+      return customInstance<DiscographyDto>(
+      {url: `/api/v1/metadata/artists/${mbid}/albums`, method: 'GET',
+        params
+    },
+      );
+    }
   export type SearchResult = NonNullable<Awaited<ReturnType<typeof search>>>
 export type GetReleaseResult = NonNullable<Awaited<ReturnType<typeof getRelease>>>
+export type ReleasesInGroupResult = NonNullable<Awaited<ReturnType<typeof releasesInGroup>>>
 export type FindByBarcodeResult = NonNullable<Awaited<ReturnType<typeof findByBarcode>>>
+export type SearchArtistsResult = NonNullable<Awaited<ReturnType<typeof searchArtists>>>
+export type AlbumsOfArtistResult = NonNullable<Awaited<ReturnType<typeof albumsOfArtist>>>

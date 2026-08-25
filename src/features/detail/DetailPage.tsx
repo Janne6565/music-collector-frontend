@@ -1,6 +1,6 @@
 import { ReleaseArt } from "@/components/ReleaseArt";
 import { AppShell } from "@/components/layout/AppShell";
-import { Button } from "@/components/ui";
+import { Button, buttonClassName } from "@/components/ui";
 import { CopyDetailsDialog } from "@/features/copy/CopyDetailsDialog";
 import { useDetailLogic } from "@/features/detail/useDetailLogic";
 import { useCollectionStats } from "@/features/library/useLibraryLogic";
@@ -10,7 +10,7 @@ import { usePhotoStripLogic } from "@/features/photos/usePhotoStripLogic";
 import type { Copy, Release } from "@janne6565/music-collector-shared";
 import { CONDITION_SHORT, FORMAT_LABELS } from "@janne6565/music-collector-shared";
 import { Link } from "@tanstack/react-router";
-import { PencilLine, Star } from "lucide-react";
+import { ArrowLeft, PencilLine, Star } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -83,7 +83,22 @@ export function DetailPage({ copyId }: { readonly copyId: string }) {
   return (
     <AppShell stats={stats}>
       <header className="flex flex-none items-center justify-between gap-4 border-b border-line bg-paper px-8 py-4">
-        <Breadcrumb release={release} />
+        <div className="flex min-w-0 items-center gap-3.5">
+          {/* 12a leads with the way out, spelled: an arrow and the word, not a bare
+              chevron sitting in front of the trail. The breadcrumb that follows is the
+              record, not the route. */}
+          <Link
+            to="/"
+            className={buttonClassName(
+              "secondary",
+              "h-[34px] flex-none gap-1.5 rounded-lg pr-3.5 pl-2.5 text-[12.5px] shadow-[0_1px_2px_rgba(25,23,19,.06)]",
+            )}
+          >
+            <ArrowLeft size={15} strokeWidth={2} aria-hidden />
+            {t("detail.back")}
+          </Link>
+          <Breadcrumb release={release} />
+        </div>
         {/* 12a's one header action, and no Save beside it: saving belongs to the modal
             that does the editing. */}
         <Button
@@ -128,24 +143,23 @@ export function DetailPage({ copyId }: { readonly copyId: string }) {
   );
 }
 
-/** "Library / Miles Davis / Bitches Brew" — the trail the deck puts above the sleeve. */
+/**
+ * "Miles Davis / Bitches Brew" — the trail the deck puts beside the back button. Library
+ * is not a segment here: the button next to it goes there, and 12a does not say it twice.
+ */
 function Breadcrumb({ release }: { readonly release: Release | undefined }) {
   const { t } = useTranslation();
   const trail = [release?.artistName, release?.title].filter(
     (part): part is string => typeof part === "string" && part !== "",
   );
+  if (trail.length === 0) return null;
 
   return (
     <nav
       aria-label={t("detail.breadcrumb")}
       className="min-w-0 truncate text-[12.5px] font-medium text-ink-muted"
     >
-      <Link to="/" className="hover:underline">
-        {t("nav.library")}
-      </Link>
-      {trail.map((part) => (
-        <span key={part}> / {part}</span>
-      ))}
+      {trail.join(" / ")}
     </nav>
   );
 }

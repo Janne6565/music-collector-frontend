@@ -117,6 +117,19 @@ describe("DexieLocalStore", () => {
     expect(await store.listCopies({ format: "ALL" })).toHaveLength(2);
   });
 
+  it("filters a copy by the format it was given, not the one the archive lists", async () => {
+    // The tape of a record MusicBrainz only knows as vinyl belongs under Cassette.
+    const vinyl = release("r-vinyl", { format: "VINYL" });
+    await store.cacheReleases([vinyl]);
+    const tape = createCopy(vinyl, draft, clock, 1, "c-tape");
+    await store.putCopy(applyCopyPatch(tape, { manualFormat: "CASSETTE" }, clock));
+    await store.putCopy(createCopy(vinyl, draft, clock, 2, "c-vinyl"));
+
+    expect((await store.listCopies({ format: "CASSETTE" })).map((c) => c.id)).toEqual(["c-tape"]);
+    expect((await store.listCopies({ format: "VINYL" })).map((c) => c.id)).toEqual(["c-vinyl"]);
+    expect(await store.stats()).toMatchObject({ byFormat: { CASSETTE: 1, VINYL: 1 } });
+  });
+
   it("searches across title, artist and catalog number", async () => {
     const vinyl = release("r-vinyl");
     await store.cacheReleases([vinyl]);

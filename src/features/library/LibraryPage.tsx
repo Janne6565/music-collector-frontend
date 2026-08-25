@@ -13,7 +13,7 @@ import { useCoverPhotos } from "@/features/photos/useCoverPhotos";
 import { useMark, useSettle } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import type { Condition, Format } from "@janne6565/music-collector-shared";
-import { catalogArtShown, copyPreviewSrc } from "@janne6565/music-collector-shared";
+import { catalogArtShown, copyFormat, copyPreviewSrc } from "@janne6565/music-collector-shared";
 import {
   CONDITION_LABELS,
   CONDITION_SHORT,
@@ -338,6 +338,7 @@ function GridItem({
       <div className="relative aspect-square">
         <ReleaseArt
           release={row.release}
+          format={copyFormat(row.copy, row.release)}
           previewSrc={previewSrc}
           allowCatalogArt={allowCatalogArt}
         />

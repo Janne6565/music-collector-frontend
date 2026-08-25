@@ -10,6 +10,7 @@ import type {
 } from "@janne6565/music-collector-shared";
 import {
   FORMATS,
+  copyFormat,
   isManualReleaseId,
   manualRelease,
   manualReleaseCopyId,
@@ -164,7 +165,7 @@ export class DexieLocalStore implements LocalStore {
       if (
         filter.format !== undefined &&
         filter.format !== "ALL" &&
-        release?.format !== filter.format
+        copyFormat(copy, release) !== filter.format
       ) {
         return false;
       }
@@ -417,10 +418,9 @@ export function computeStats(
 
   for (const copy of copies) {
     const release = releases.get(copy.releaseId);
-    if (release !== undefined) {
-      byFormat[release.format] += 1;
-      releaseGroups.add(release.albumId);
-    }
+    // The copy's own format, so the shelf chip and its count can never disagree.
+    byFormat[copyFormat(copy, release)] += 1;
+    if (release !== undefined) releaseGroups.add(release.albumId);
     totalSpentCents += copy.pricePaidCents ?? 0;
   }
 

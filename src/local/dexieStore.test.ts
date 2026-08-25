@@ -68,6 +68,14 @@ describe("computeStats", () => {
     expect(stats.byFormat).toMatchObject({ VINYL: 1, CD: 1, CASSETTE: 1, DIGITAL: 0 });
   });
 
+  it("counts a copy under the format it was given rather than the catalogue's", () => {
+    const releases = new Map([["v", release("v", { format: "VINYL" })]]);
+
+    const stats = computeStats([copy("1", "v", { manualFormat: "CASSETTE" })], releases);
+
+    expect(stats.byFormat).toMatchObject({ CASSETTE: 1, VINYL: 0 });
+  });
+
   it("totals and averages what was actually paid", () => {
     const releases = new Map([["v", release("v")]]);
 

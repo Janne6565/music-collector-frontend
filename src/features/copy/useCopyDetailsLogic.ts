@@ -30,6 +30,13 @@ export interface DetailFields {
   year: string;
   label: string;
   catalogNumber: string;
+  /**
+   * The format of the item you own — the one pressing field every copy may answer.
+   *
+   * It starts at the catalogue's format on a matched copy rather than blank: a cassette of
+   * a record listed as vinyl is a normal thing to own, and correcting it here is cheaper
+   * and less destructive than re-matching the copy to another release.
+   */
   format: Format | "";
 }
 
@@ -53,17 +60,24 @@ const BLANK: DetailFields = {
 };
 
 /**
- * The pressing half of the patch — empty unless this copy owns its own release facts.
+ * The pressing half of the patch — five fields on a hand-entered copy, and on a matched
+ * one only the format, and only when it actually moved.
  *
  * Omitted rather than sent as nulls on a matched copy: `applyCopyPatch` restamps every key
  * it is given a value for, and stamping six fields nobody edited would let a save here
  * start winning conflicts against another device's real edits.
  */
 function manualPatch(
-  copy: { readonly releaseId: string },
+  copy: { readonly releaseId: string; readonly manualFormat: Format | null },
   fields: DetailFields,
+  catalogFormat: Format | undefined,
 ): Partial<ManualRelease> {
-  if (!isManualCopy(copy)) return {};
+  if (!isManualCopy(copy)) {
+    // Picking the catalogue's own format is how the override comes off again: the copy
+    // goes back to following the archive, including if the archive is corrected later.
+    const chosen = fields.format === "" || fields.format === catalogFormat ? null : fields.format;
+    return chosen === (copy.manualFormat ?? null) ? {} : { manualFormat: chosen };
+  }
   const year = Number.parseInt(fields.year.trim(), 10);
   return {
     manualTitle: blank(fields.title),
@@ -113,6 +127,7 @@ export function useCopyDetailsLogic(copyId: string, onSaved: () => void) {
   });
 
   const copy = query.data?.copy;
+  const loadedRelease = query.data?.release;
   useEffect(() => {
     // A copy reached from "Add and edit details" is blank, but the same step opens on a
     // copy that already has details when it is reopened; either way the form starts from
@@ -132,11 +147,11 @@ export function useCopyDetailsLogic(copyId: string, onSaved: () => void) {
       year: copy.manualYear == null ? "" : String(copy.manualYear),
       label: copy.manualLabel ?? "",
       catalogNumber: copy.manualCatalogNumber ?? "",
-      format: copy.manualFormat ?? "",
+      format: copy.manualFormat ?? loadedRelease?.format ?? "",
     };
     setFields(loaded);
     setBaseline(loaded);
-  }, [copy]);
+  }, [copy, loadedRelease]);
 
   /** Whether anything has been typed since the sheet opened. */
   const dirty = (Object.keys(fields) as (keyof DetailFields)[]).some(
@@ -158,7 +173,7 @@ export function useCopyDetailsLogic(copyId: string, onSaved: () => void) {
             purchasedAt: fields.purchasedAt.trim() === "" ? null : fields.purchasedAt.trim(),
             rating: fields.rating,
             notes: fields.notes.trim() === "" ? null : fields.notes,
-            ...manualPatch(current, fields),
+            ...manualPatch(current, fields, query.data?.release?.format),
           },
           clock,
         ),
@@ -185,7 +200,7 @@ export function useCopyDetailsLogic(copyId: string, onSaved: () => void) {
 
   return {
     release: query.data?.release,
-    /** Whether this copy's pressing is its own to describe. */
+    /** Whether this copy's pressing — bar the format, which every copy may set — is its own. */
     manual,
     fields,
     dirty,

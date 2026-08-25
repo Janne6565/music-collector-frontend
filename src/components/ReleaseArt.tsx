@@ -47,6 +47,14 @@ interface ReleaseArtProps {
    * as a release with no art does — not quietly keep showing what it discarded.
    */
   readonly allowCatalogArt?: boolean;
+  /**
+   * The format to draw the silhouette in, when the caller knows better than the release.
+   *
+   * A copy may be a cassette of a pressing the archive lists as vinyl, and the tile it
+   * sits in should say what is on the shelf, not what the catalogue holds — see
+   * `copyFormat`.
+   */
+  readonly format?: Format;
 }
 
 /**
@@ -74,6 +82,7 @@ export function ReleaseArt({
   variant = "sleeve",
   previewSrc = null,
   allowCatalogArt = true,
+  format,
 }: ReleaseArtProps) {
   const [loadedUrl, setLoadedUrl] = useState<string | null>(null);
   // A set rather than one URL: with a preview there are two addresses in play, and
@@ -124,7 +133,7 @@ export function ReleaseArt({
       <div className={cn("relative h-full w-full overflow-hidden", className)}>
         {/* Kept mounted underneath rather than swapped out: an image that decodes with a
             transparent edge would otherwise flash whatever is behind the frame. */}
-        {!shown && <FormatThumb format={release?.format ?? "OTHER"} sweep={fetched} />}
+        {!shown && <FormatThumb format={format ?? release?.format ?? "OTHER"} sweep={fetched} />}
         {art}
       </div>
     );
@@ -132,7 +141,11 @@ export function ReleaseArt({
 
   return (
     <div className={cn("relative h-full w-full", className)}>
-      <FormatThumb format={release?.format ?? "OTHER"} cover={art} sweep={fetched && !shown} />
+      <FormatThumb
+        format={format ?? release?.format ?? "OTHER"}
+        cover={art}
+        sweep={fetched && !shown}
+      />
     </div>
   );
 }

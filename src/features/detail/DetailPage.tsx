@@ -9,7 +9,7 @@ import { type ShownImage, resolveShown } from "@/features/photos/shownImage";
 import { usePhotoStripLogic } from "@/features/photos/usePhotoStripLogic";
 import { markBackNavigation } from "@/lib/motion";
 import type { Copy, Release } from "@janne6565/music-collector-shared";
-import { CONDITION_SHORT, FORMAT_LABELS } from "@janne6565/music-collector-shared";
+import { CONDITION_SHORT, FORMAT_LABELS, copyFormat } from "@janne6565/music-collector-shared";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft, PencilLine, Star } from "lucide-react";
 import { type ReactNode, useState } from "react";
@@ -125,6 +125,7 @@ export function DetailPage({ copyId }: { readonly copyId: string }) {
         <div className="flex gap-10 p-8">
           <div className="flex-none">
             <Cover
+              copy={copy}
               release={release}
               previewSrc={heroSrc}
               allowCatalogArt={photos.catalogArt !== "HIDDEN"}
@@ -180,10 +181,12 @@ function Breadcrumb({ release }: { readonly release: Release | undefined }) {
 }
 
 function Cover({
+  copy,
   release,
   previewSrc,
   allowCatalogArt,
 }: {
+  readonly copy: Copy;
   readonly release: Release | undefined;
   readonly previewSrc: string | null;
   readonly allowCatalogArt: boolean;
@@ -192,6 +195,7 @@ function Cover({
     <div className="h-[340px] w-[340px] overflow-hidden rounded-lg shadow-[0_10px_30px_rgba(25,23,19,.16)]">
       <ReleaseArt
         release={release}
+        format={copyFormat(copy, release)}
         loading="eager"
         variant="bleed"
         previewSrc={previewSrc}
@@ -205,7 +209,9 @@ function Header({ copy, release }: { readonly copy: Copy; readonly release: Rele
   return (
     <>
       <div className="flex items-center gap-2">
-        {release !== undefined && <Badge strong>{FORMAT_LABELS[release.format]}</Badge>}
+        {/* The copy's format, not the release's: a tape of a record listed as vinyl is
+            still a tape on your shelf. */}
+        <Badge strong>{FORMAT_LABELS[copyFormat(copy, release)]}</Badge>
         {copy.condition !== null && <Badge>{CONDITION_SHORT[copy.condition]}</Badge>}
       </div>
       <h1 className="mt-3.5 font-serif text-[38px] leading-[1.05]">{release?.title ?? "—"}</h1>
@@ -366,7 +372,9 @@ function OtherCopies({
             className="flex-1 rounded-lg bg-surface p-3.5"
           >
             <div className="font-mono text-[10px] uppercase tracking-[0.09em] text-ink-muted">
-              {release === undefined ? "—" : FORMAT_LABELS[release.format]}
+              {release === undefined && copy.manualFormat === null
+                ? "—"
+                : FORMAT_LABELS[copyFormat(copy, release)]}
             </div>
             <div className="mt-1.5 text-[13.5px] font-semibold">
               {release?.year ?? ""}

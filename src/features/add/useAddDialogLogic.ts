@@ -9,7 +9,12 @@ import type {
   LocalStore,
   Release,
 } from "@janne6565/music-collector-shared";
-import { createCopy, createManualCopy, isManualReleaseId } from "@janne6565/music-collector-shared";
+import {
+  applyCopyPatch,
+  createCopy,
+  createManualCopy,
+  isManualReleaseId,
+} from "@janne6565/music-collector-shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 
@@ -211,25 +216,31 @@ export function useAddDialogLogic(onClose: () => void, onAdded: (copyId: string)
           continue;
         }
         await store.cacheReleases([release]);
-        await store.putCopy(
-          createCopy(
-            release,
-            {
-              condition: row.mediaCondition,
-              sleeveCondition: row.sleeveCondition,
-              catalogArt: "AUTO",
-              pricePaidCents: row.pricePaidCents,
-              currency: row.currency,
-              purchasedOn: row.purchasedOn,
-              purchasedAt: row.purchasedAt,
-              notes: row.notes,
-              rating: row.rating,
-            },
-            clock,
-            Date.now(),
-            crypto.randomUUID(),
-          ),
+        const imported = createCopy(
+          release,
+          {
+            condition: row.mediaCondition,
+            sleeveCondition: row.sleeveCondition,
+            catalogArt: "AUTO",
+            pricePaidCents: row.pricePaidCents,
+            currency: row.currency,
+            purchasedOn: row.purchasedOn,
+            purchasedAt: row.purchasedAt,
+            notes: row.notes,
+            rating: row.rating,
+          },
+          clock,
+          Date.now(),
+          crypto.randomUUID(),
         );
+        // A copy can be a format its release is not, and the export says so. A blank
+        // column parses as OTHER, which is why that one is not carried back in: a
+        // foreign file with no format at all would otherwise mark every copy Other.
+        const overridden =
+          row.format !== release.format && row.format !== "OTHER"
+            ? applyCopyPatch(imported, { manualFormat: row.format }, clock)
+            : imported;
+        await store.putCopy(overridden);
         added += 1;
       }
       return { added, skipped };

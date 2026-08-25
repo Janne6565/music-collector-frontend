@@ -100,7 +100,7 @@ export function CopyDetailsDialog({
               : [
                   release.artistName,
                   release.year ?? null,
-                  FORMAT_LABELS[release.format],
+                  FORMAT_LABELS[logic.fields.format === "" ? release.format : logic.fields.format],
                   release.label,
                   release.catalogNumber,
                   release.country,
@@ -128,18 +128,32 @@ export function CopyDetailsDialog({
             <PhotoManager logic={photos} release={release} />
           ) : (
             <div className="h-45 w-45">
-              <ReleaseArt release={release} loading="eager" />
+              <ReleaseArt
+                release={release}
+                format={logic.fields.format === "" ? undefined : logic.fields.format}
+                loading="eager"
+              />
             </div>
           )}
           <div className="mt-4.5 font-mono text-[10px] uppercase tracking-[0.08em] text-ink-subtle">
             {t("copyDetails.format")}
           </div>
-          {/* A catalogued pressing's format is the archive's answer, not yours; a
-              hand-entered one has nobody else to ask. */}
+          {/* Editable on every copy: the archive answers for the pressing, but what is on
+              your shelf can be a tape of a record it only lists as vinyl. Picking the
+              catalogue's own format again puts the copy back to following it. */}
           <FormatChips
             format={logic.fields.format === "" ? (release?.format ?? "OTHER") : logic.fields.format}
-            onSelect={logic.manual ? (format) => logic.set("format", format) : undefined}
+            onSelect={(format) => logic.set("format", format)}
           />
+          {/* Said only where it is surprising: the header above still names the archive's
+              pressing, and this is why the two lines disagree. */}
+          {release !== undefined &&
+            logic.fields.format !== "" &&
+            logic.fields.format !== release.format && (
+              <p className="mt-1.5 text-[11px] text-ink-subtle">
+                {t("copyDetails.formatDiffers", { format: FORMAT_LABELS[release.format] })}
+              </p>
+            )}
         </div>
 
         <div className="min-w-0 flex-1">
@@ -403,28 +417,23 @@ function DialogActions({
 const FORMAT_CHIPS: readonly Format[] = ["VINYL", "CD", "CASSETTE", "DIGITAL"];
 
 /**
- * The whole scale, with this copy's place on it.
- *
- * The deck draws four chips here, and seeing "Vinyl" against the three it is not is what
- * makes the answer legible — one lone chip reads as a label, not a position. They are
- * inert all the same: a copy's format is the format of the pressing it is a copy of, and
- * changing it would mean pointing the copy at a different release entirely.
- */
-/**
  * The format, as a rail of chips.
  *
- * Read-only for a copy of a catalogued release — the pressing's format is a fact about the
- * pressing, and changing it here would only make this copy disagree with the archive. A
- * hand-entered copy (14b) owns the answer, so there it is a picker.
+ * The deck draws four chips here, and seeing "Vinyl" against the three it is not is what
+ * makes the answer legible — one lone chip reads as a label, not a position.
+ *
+ * Every one of them is pickable. The archive answers for the *pressing*, but what you own
+ * can be a cassette of a record it only lists as vinyl, and the alternative — pointing the
+ * copy at a different release — throws away its photos, grades and price to fix one word.
+ * The copy's answer is stored as `manualFormat` and read back through `copyFormat`.
  */
 function FormatChips({
   format,
   onSelect,
 }: {
   readonly format: Format;
-  readonly onSelect?: (format: Format) => void;
+  readonly onSelect: (format: Format) => void;
 }) {
-  const { t } = useTranslation();
   const chips = FORMAT_CHIPS.includes(format) ? FORMAT_CHIPS : [...FORMAT_CHIPS, format];
 
   return (
@@ -436,16 +445,7 @@ function FormatChips({
             ? "bg-ink font-semibold text-paper"
             : "border border-line bg-surface font-medium text-ink-subtle",
         );
-        return onSelect === undefined ? (
-          <span
-            key={chip}
-            aria-current={chip === format}
-            title={t("copyDetails.formatFixed")}
-            className={className}
-          >
-            {FORMAT_LABELS[chip]}
-          </span>
-        ) : (
+        return (
           <button
             key={chip}
             type="button"

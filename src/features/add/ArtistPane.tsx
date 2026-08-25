@@ -117,9 +117,9 @@ export function ArtistPane({
         {logic.loading ? (
           <AlbumSkeletons />
         ) : logic.failed ? (
-          <p className="pt-6 text-sm text-ink-muted">{t("add.failed")}</p>
+          <p className="py-6 text-sm text-ink-muted">{t("add.failed")}</p>
         ) : logic.albums.length === 0 ? (
-          <p className="pt-6 text-sm text-ink-muted">
+          <p className="py-6 text-sm text-ink-muted">
             {logic.filtering ? t("artists.noneMatchFilter") : t("artists.noneOfType")}
           </p>
         ) : (

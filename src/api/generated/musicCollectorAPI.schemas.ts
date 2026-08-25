@@ -192,6 +192,10 @@ export interface ArtistDto {
   score?: number;
 }
 
+export interface ArtistImageDto {
+  imageUrl?: string;
+}
+
 export interface AlbumDto {
   albumId?: string;
   title?: string;
@@ -260,14 +264,6 @@ q: string;
 limit?: number;
 };
 
-export type ReleasesInGroupParams = {
-/**
- * @minimum 1
- * @maximum 100
- */
-limit?: number;
-};
-
 export type SearchArtistsParams = {
 /**
  * @minLength 0
@@ -287,6 +283,14 @@ export type AlbumsOfArtistParams = {
  * @maxLength 30
  */
 type?: string;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+limit?: number;
+};
+
+export type ReleasesInGroupParams = {
 /**
  * @minimum 1
  * @maximum 100

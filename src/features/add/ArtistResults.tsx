@@ -1,21 +1,33 @@
 import { Skeleton } from "@/components/ui";
 import type { Artist } from "@/domain/types";
+import { useArtistImage } from "@/features/add/useArtistImage";
 import { artistMeta, type useArtistSearchLogic } from "@/features/add/useArtistSearchLogic";
 import { ChevronDown, ChevronRight } from "lucide-react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 /**
- * The striped disc an artist gets instead of a sleeve.
+ * An artist's portrait, or the striped disc they get until there is one.
  *
- * An artist has no cover art, and borrowing one of their albums' would make a row look
- * like a release. The initial plus the deck's placeholder stripes keeps it recognisably
- * the same family of art while being unmistakably a different kind of thing.
+ * The stripes are the deck's own answer, and they stay the floor rather than a stopgap:
+ * an artist has no cover art, borrowing one of their albums' would make a row look like a
+ * release, and plenty of artists have no picture in Discogs at all. The initial keeps the
+ * row recognisably the same family of art while being unmistakably a different kind of
+ * thing, and it is what a row shows before its portrait lands, when there is none, and if
+ * the image fails to load.
+ *
+ * Rendered underneath the image rather than swapped for it, so the circle never blinks
+ * empty between the two and a broken URL degrades to the initial with no extra state.
  */
-function ArtistAvatar({ name, size }: { readonly name: string; readonly size: number }) {
+function ArtistAvatar({
+  name,
+  size,
+  mbid,
+}: { readonly name: string; readonly size: number; readonly mbid?: string }) {
   return (
     <div
       aria-hidden
-      className="flex flex-none items-center justify-center rounded-full font-mono text-ink-subtle shadow-[inset_0_0_0_1px_rgba(25,23,19,.1)]"
+      className="relative flex flex-none items-center justify-center overflow-hidden rounded-full font-mono text-ink-subtle shadow-[inset_0_0_0_1px_rgba(25,23,19,.1)]"
       style={{
         width: size,
         height: size,
@@ -24,7 +36,28 @@ function ArtistAvatar({ name, size }: { readonly name: string; readonly size: nu
       }}
     >
       {name.slice(0, 1).toUpperCase()}
+      {mbid !== undefined && <ArtistPortrait mbid={mbid} />}
     </div>
+  );
+}
+
+/**
+ * Split from the avatar so the query only runs where a portrait was asked for, and so the
+ * initial underneath never re-renders when the picture arrives.
+ */
+function ArtistPortrait({ mbid }: { readonly mbid: string }) {
+  const src = useArtistImage(mbid);
+  const [failed, setFailed] = useState(false);
+  if (src === null || failed) return null;
+
+  return (
+    <img
+      src={src}
+      alt=""
+      loading="lazy"
+      onError={() => setFailed(true)}
+      className="absolute inset-0 h-full w-full object-cover"
+    />
   );
 }
 
@@ -82,7 +115,7 @@ function ArtistRow({ artist, onOpen }: { readonly artist: Artist; readonly onOpe
       onClick={onOpen}
       className="flex w-full items-center gap-3.5 border-t border-line py-3 text-left hover:bg-canvas/50"
     >
-      <ArtistAvatar name={artist.name} size={46} />
+      <ArtistAvatar name={artist.name} size={46} mbid={artist.mbid} />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <span className="truncate text-[13.5px] font-semibold leading-tight">{artist.name}</span>

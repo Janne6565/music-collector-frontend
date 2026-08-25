@@ -64,7 +64,7 @@ export function ArtistPane({
       </div>
 
       <header className="flex flex-none gap-4 border-b border-line px-6 pt-4 pb-4.5">
-        <ArtistAvatar name={artist.name} size={62} />
+        <ArtistAvatar name={artist.name} size={62} mbid={artist.mbid} />
         <div className="min-w-0 flex-1">
           <h2 className="font-serif text-[27px] leading-[1.05]">{artist.name}</h2>
           {artist.disambiguation !== "" && (

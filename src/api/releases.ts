@@ -1,5 +1,6 @@
 import {
   albumsOfArtist,
+  artistImage,
   findByBarcode,
   getRelease,
   releasesInGroup,
@@ -124,6 +125,16 @@ export async function findArtists(query: string, limit = 5): Promise<Artist[]> {
   return (await searchArtists({ q: query, limit }))
     .map(toArtist)
     .filter((artist): artist is Artist => artist !== null);
+}
+
+/**
+ * One artist's portrait, or null when they have none.
+ *
+ * Null is a real answer here rather than a failure — plenty of artists have no picture in
+ * Discogs at all — so the caller draws the initial and does not retry.
+ */
+export async function findArtistImage(mbid: string): Promise<string | null> {
+  return (await artistImage(mbid)).imageUrl ?? null;
 }
 
 function toAlbum(dto: AlbumDto): Album | null {

@@ -12,6 +12,7 @@ for copies. The server participates only as a sync peer.
 import type {
   AlbumsOfArtistParams,
   ArtistDto,
+  ArtistImageDto,
   DiscographyDto,
   ReleaseDto,
   ReleasesInGroupParams,
@@ -41,24 +42,10 @@ export const search = (
  * @summary Full detail for one release, including its cover theme
  */
 export const getRelease = (
-    mbid: string,
+    releaseId: string,
  ) => {
       return customInstance<ReleaseDto>(
-      {url: `/api/v1/metadata/releases/${mbid}`, method: 'GET'
-    },
-      );
-    }
-  /**
- * Bitches Brew has 47, so this pages rather than pretending the list is short.
- * @summary Every pressing of one album
- */
-export const releasesInGroup = (
-    albumId: string,
-    params?: ReleasesInGroupParams,
- ) => {
-      return customInstance<ReleaseDto[]>(
-      {url: `/api/v1/metadata/albums/${albumId}/releases`, method: 'GET',
-        params
+      {url: `/api/v1/metadata/releases/${releaseId}`, method: 'GET'
     },
       );
     }
@@ -88,6 +75,18 @@ export const searchArtists = (
       );
     }
   /**
+ * Its own endpoint, one artist at a time, because the first answer for any artist costs two paced upstream calls — MusicBrainz for the `discogs` URL relation that identifies the artist exactly, then Discogs for the picture. Folding it into /artists would hold a list of five behind the slowest of them. Answers are kept, so the second time is free. `imageUrl` is null when the artist genuinely has no picture; clients fall back to the initial.
+ * @summary One artist's portrait
+ */
+export const artistImage = (
+    mbid: string,
+ ) => {
+      return customInstance<ArtistImageDto>(
+      {url: `/api/v1/metadata/artists/${mbid}/image`, method: 'GET'
+    },
+      );
+    }
+  /**
  * `total` is how many the query matched upstream, not the size of this page — a client showing "Albums 51" is telling the truth on a page of 25. Omit `type` for everything.
  * @summary One artist's discography, by primary type
  */
@@ -101,9 +100,24 @@ export const albumsOfArtist = (
     },
       );
     }
+  /**
+ * Bitches Brew has 47, so this pages rather than pretending the list is short.
+ * @summary Every pressing of one album
+ */
+export const releasesInGroup = (
+    albumId: string,
+    params?: ReleasesInGroupParams,
+ ) => {
+      return customInstance<ReleaseDto[]>(
+      {url: `/api/v1/metadata/albums/${albumId}/releases`, method: 'GET',
+        params
+    },
+      );
+    }
   export type SearchResult = NonNullable<Awaited<ReturnType<typeof search>>>
 export type GetReleaseResult = NonNullable<Awaited<ReturnType<typeof getRelease>>>
-export type ReleasesInGroupResult = NonNullable<Awaited<ReturnType<typeof releasesInGroup>>>
 export type FindByBarcodeResult = NonNullable<Awaited<ReturnType<typeof findByBarcode>>>
 export type SearchArtistsResult = NonNullable<Awaited<ReturnType<typeof searchArtists>>>
+export type ArtistImageResult = NonNullable<Awaited<ReturnType<typeof artistImage>>>
 export type AlbumsOfArtistResult = NonNullable<Awaited<ReturnType<typeof albumsOfArtist>>>
+export type ReleasesInGroupResult = NonNullable<Awaited<ReturnType<typeof releasesInGroup>>>

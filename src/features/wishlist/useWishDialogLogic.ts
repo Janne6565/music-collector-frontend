@@ -1,10 +1,11 @@
-import { searchReleases } from "@/api/releases";
+import { lookupAlbumCovers, searchReleases } from "@/api/releases";
 import { useStore } from "@/local/StoreProvider";
 import type { Release, WishFormat, WishlistItem } from "@janne6565/music-collector-shared";
 import {
   applyWishPatch,
   asWishFormat,
   createWishlistItem,
+  isManualReleaseId,
   manualReleaseId,
 } from "@janne6565/music-collector-shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -30,6 +31,15 @@ export interface WishSubject {
   readonly year: number | null;
   /** The pressing the row came from, for the line under the title. Absent when typed. */
   readonly label: string | null;
+  /**
+   * The artwork of the pressing that was picked, when one was.
+   *
+   * Carried rather than looked up again: the search row the reader just clicked was already
+   * showing this cover, and asking the server for the album's cover a second time would
+   * blank the tile for a moment to arrive at the same picture. Null for an entry reopened
+   * to edit and for a hand-typed one, which is what `albumCover` is for.
+   */
+  readonly coverArtUrl: string | null;
 }
 
 function subjectOf(release: Release): WishSubject {
@@ -39,6 +49,7 @@ function subjectOf(release: Release): WishSubject {
     artistName: release.artistName,
     year: release.year,
     label: release.label,
+    coverArtUrl: release.coverArtUrl,
   };
 }
 
@@ -68,6 +79,7 @@ export function useWishDialogLogic(
           artistName: existing.artistName,
           year: existing.year,
           label: null,
+          coverArtUrl: null,
         }
       : seed !== null
         ? subjectOf(seed)
@@ -83,6 +95,22 @@ export function useWishDialogLogic(
 
   /** Hand-typed fields, for the record no search will ever return. */
   const [typed, setTyped] = useState({ title: "", artistName: "", year: "" });
+
+  /**
+   * The album's artwork, for a subject that arrived without a pressing's.
+   *
+   * An entry reopened to edit knows only its album, and the sheet showing a blank sleeve
+   * for a record whose cover the list beside it is drawing reads as a loading state that
+   * never finishes. Skipped entirely when the picked release already brought one, and for
+   * a hand-typed album, which no catalogue can answer for.
+   */
+  const albumCover = useQuery({
+    queryKey: ["albumCovers", subject === null ? [] : [subject.albumId]],
+    enabled:
+      subject !== null && subject.coverArtUrl === null && !isManualReleaseId(subject.albumId),
+    staleTime: 60 * 60 * 1000,
+    queryFn: () => lookupAlbumCovers([subject?.albumId ?? ""]),
+  });
 
   const results = useQuery({
     queryKey: ["releaseSearch", submitted],
@@ -159,6 +187,11 @@ export function useWishDialogLogic(
   return {
     step,
     subject,
+    /** The picked pressing's cover, the album's as a fallback, null while neither is known. */
+    subjectCoverArtUrl:
+      subject === null
+        ? null
+        : (subject.coverArtUrl ?? albumCover.data?.get(subject.albumId) ?? null),
     editing: existing !== null,
     term,
     setTerm,
@@ -194,6 +227,8 @@ export function useWishDialogLogic(
         artistName: typed.artistName.trim(),
         year: Number.isFinite(typedYear) ? typedYear : null,
         label: null,
+        // A record no catalogue has cannot have catalogue artwork either.
+        coverArtUrl: null,
       });
       setStep("DETAILS");
     }, [typed, typedYear]),

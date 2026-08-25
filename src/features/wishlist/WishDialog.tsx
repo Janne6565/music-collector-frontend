@@ -1,5 +1,4 @@
 import { releaseDisambiguation } from "@/api/releases";
-import { FormatThumb } from "@/components/FormatThumb";
 import { ReleaseArt } from "@/components/ReleaseArt";
 import { Button, Field, FieldSpinner, Modal, ModalClose } from "@/components/ui";
 import { useWishDialogLogic } from "@/features/wishlist/useWishDialogLogic";
@@ -218,7 +217,12 @@ function DetailsStep({ logic }: { readonly logic: Logic }) {
       <div className="min-h-0 flex-1 overflow-auto px-6 pt-4 pb-2">
         <div className="flex items-center gap-3.5 rounded-xl border border-line bg-canvas p-3">
           <div className="h-13 w-13 flex-none">
-            <FormatThumb format={logic.format ?? "OTHER"} />
+            {/* The format is the one the chips below are choosing, not the pressing's: the
+                tile should follow what is being asked for as it is asked for. */}
+            <ReleaseArt
+              release={{ coverArtUrl: logic.subjectCoverArtUrl }}
+              format={logic.format ?? "OTHER"}
+            />
           </div>
           <div className="min-w-0 flex-1">
             <div className="truncate text-[13.5px] font-semibold leading-tight">

@@ -16,7 +16,17 @@ import { SessionBootstrap } from "@/sync/SessionBootstrap";
 // an error rather than something to notice months later in a screen recording.
 if (import.meta.env.DEV) assertMotionTokensMatchStyles();
 
-const router = createRouter({ routeTree });
+/**
+ * `@` is left as itself in a path.
+ *
+ * It is a legal path character (RFC 3986 lists it under `pchar`), but the router percent-
+ * encodes every param by default, which turned the public link into `/%40janne` the moment
+ * it was navigated to rather than typed. The handle *is* the `@` here — it is what makes
+ * the link recognisable as somebody's shelf and what the Sharing panel prints — so a link
+ * that reads as an escape code in the address bar is the wrong link. No other param in the
+ * app contains one, so nothing else changes shape.
+ */
+const router = createRouter({ routeTree, pathParamsAllowedCharacters: ["@"] });
 const queryClient = new QueryClient();
 
 declare module "@tanstack/react-router" {

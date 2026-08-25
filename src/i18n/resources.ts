@@ -175,14 +175,26 @@ const enCommon = {
   },
   grading: {
     help: "What the grades mean",
-    title: "Goldmine grading",
     footnote: "Grade media and sleeve separately — that is how sellers list them.",
-    scale: {
-      M: "Sealed, never played.",
-      NM: "Looks and plays as new, no surface noise.",
-      VG_PLUS: "Light marks, faint noise in quiet passages.",
-      VG: "Audible noise, groove wear, still enjoyable.",
-      G: "Plays through, scratches and noise throughout.",
+    media: {
+      title: "Media grading",
+      scale: {
+        M: "Sealed, never played.",
+        NM: "Looks and plays as new, no surface noise.",
+        VG_PLUS: "Light marks, faint noise in quiet passages.",
+        VG: "Audible noise, groove wear, still enjoyable.",
+        G: "Plays through, scratches and noise throughout.",
+      },
+    },
+    sleeve: {
+      title: "Sleeve grading",
+      scale: {
+        M: "Still sealed, never opened.",
+        NM: "No ring wear, sharp corners, a clean spine.",
+        VG_PLUS: "Faint ring wear or one soft corner, no splits.",
+        VG: "Visible ring wear, creases, a small seam split.",
+        G: "Heavy wear, split seams, writing or tape.",
+      },
     },
   },
   detail: {
@@ -532,14 +544,26 @@ const deCommon: CommonSchema = {
   },
   grading: {
     help: "Was die Zustandsstufen bedeuten",
-    title: "Goldmine-Bewertung",
     footnote: "Tonträger und Hülle getrennt bewerten — so machen es Verkäufer auch.",
-    scale: {
-      M: "Versiegelt, nie abgespielt.",
-      NM: "Sieht aus und klingt wie neu, kein Rauschen.",
-      VG_PLUS: "Leichte Spuren, in leisen Passagen leises Rauschen.",
-      VG: "Hörbares Rauschen, Rillenverschleiß, trotzdem gut hörbar.",
-      G: "Läuft durch, durchgehend Kratzer und Rauschen.",
+    media: {
+      title: "Tonträger-Bewertung",
+      scale: {
+        M: "Versiegelt, nie abgespielt.",
+        NM: "Sieht aus und klingt wie neu, kein Rauschen.",
+        VG_PLUS: "Leichte Spuren, in leisen Passagen leises Rauschen.",
+        VG: "Hörbares Rauschen, Rillenverschleiß, trotzdem gut hörbar.",
+        G: "Läuft durch, durchgehend Kratzer und Rauschen.",
+      },
+    },
+    sleeve: {
+      title: "Hüllen-Bewertung",
+      scale: {
+        M: "Noch versiegelt, nie geöffnet.",
+        NM: "Kein Ringabdruck, scharfe Ecken, sauberer Rücken.",
+        VG_PLUS: "Schwacher Ringabdruck oder eine weiche Ecke, keine Risse.",
+        VG: "Sichtbarer Ringabdruck, Knicke, kleiner Nahtriss.",
+        G: "Starke Abnutzung, offene Nähte, Beschriftung oder Klebeband.",
+      },
     },
   },
   detail: {

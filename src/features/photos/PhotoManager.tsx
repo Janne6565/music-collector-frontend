@@ -137,6 +137,30 @@ export function PhotoManager({ logic, release }: PhotoManagerProps) {
                 <img src={src} alt="" className="h-full w-full object-cover" />
               )}
             </button>
+            {/* The preview marker, on the tiles rather than only on the large frame: the
+                large frame only offers it once you have already clicked the right
+                thumbnail, which hides the whole choice behind a step nobody takes. The
+                first tile wears a filled star because it *is* the preview — see `move`. */}
+            {index === 0 ? (
+              <span
+                title={t("photos.preview")}
+                className="pointer-events-none absolute top-0.75 left-0.75 flex h-3.75 w-3.75 items-center justify-center rounded-full bg-accent text-paper shadow-[0_1px_3px_rgba(25,23,19,.28)]"
+              >
+                <Star size={9} strokeWidth={2.4} fill="currentColor" aria-hidden />
+                <span className="sr-only">{t("photos.preview")}</span>
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => logic.setPreview(photo)}
+                disabled={logic.reordering}
+                aria-label={t("photos.makePreview")}
+                title={t("photos.makePreview")}
+                className="absolute top-0.75 left-0.75 hidden h-3.75 w-3.75 items-center justify-center rounded-full bg-paper text-ink shadow-[0_1px_3px_rgba(25,23,19,.28)] hover:bg-accent hover:text-paper group-hover:flex disabled:opacity-50"
+              >
+                <Star size={9} strokeWidth={2.4} aria-hidden />
+              </button>
+            )}
             <button
               type="button"
               onClick={() => logic.remove(photo)}

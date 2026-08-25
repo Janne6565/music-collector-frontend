@@ -125,11 +125,16 @@ export function CopyDetailsDialog({
         <div className="min-w-0 flex-1">
           <div className="grid grid-cols-2 gap-4">
             <ConditionScale
+              scope="MEDIA"
               label={t("copyDetails.mediaCondition")}
               value={logic.fields.condition}
               onChange={(value) => logic.set("condition", value)}
             />
+            {/* Right-hand column: the help panel is wider than the column, so it hangs
+                from the right edge instead of running off the side of the modal. */}
             <ConditionScale
+              scope="SLEEVE"
+              align="end"
               label={t("copyDetails.sleeveCondition")}
               value={logic.fields.sleeveCondition}
               onChange={(value) => logic.set("sleeveCondition", value)}

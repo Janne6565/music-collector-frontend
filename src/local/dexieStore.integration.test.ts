@@ -1,5 +1,7 @@
 import "fake-indexeddb/auto";
+import { toCsv } from "@/domain/csv";
 import { DexieLocalStore } from "@/local/dexieStore";
+import { readPhotoBytes } from "@/local/photoBytes";
 import type { ClockSource, Release } from "@janne6565/music-collector-shared";
 import {
   applyCopyPatch,
@@ -7,9 +9,12 @@ import {
   createManualCopy,
   createPhoto,
   createWishlistItem,
+  exportMcArchive,
   hlcInitial,
   hlcTick,
+  importMcArchive,
   markUploaded,
+  readZip,
   tombstoneCopy,
   tombstonePhoto,
   tombstoneWishlistItem,
@@ -409,5 +414,112 @@ describe("photos", () => {
     await store.adoptPhoto(photo("p-1"));
 
     expect(await store.readPendingIds()).toEqual([]);
+  });
+});
+
+/**
+ * The archive over the real store.
+ *
+ * The pure round-trip is covered in the shared package against an in-memory store; what
+ * this adds is the browser's own two halves — Dexie's whole-shelf photo query, and reading
+ * a `Blob` back out of IndexedDB — which is exactly where the export can lose a picture
+ * without any of the shared tests noticing.
+ */
+describe("the .mc archive over Dexie", () => {
+  let store: DexieLocalStore;
+  let clock: ClockSource;
+
+  beforeEach(async () => {
+    await Dexie.delete("music-collector");
+    store = new DexieLocalStore();
+    await store.open();
+    clock = clockSource();
+  });
+
+  async function seed() {
+    await store.cacheReleases([release("brew-1")]);
+    const copy = createCopy(release("brew-1"), draft, clock, 1700, "copy-1");
+    await store.putCopy(copy);
+    const photo = createPhoto(
+      { copyId: copy.id, contentType: "image/jpeg", byteSize: 4, sortIndex: 0 },
+      clock,
+      1701,
+      "photo-1",
+    );
+    await store.putPhoto(photo);
+    await store.putPhotoBytes(
+      photo.id,
+      new Uint8Array([0xff, 0xd8, 0x11, 0x22]).buffer,
+      photo.contentType,
+    );
+    await store.putWishlistItem(
+      createWishlistItem(
+        {
+          albumId: "group-kind",
+          title: "Kind of Blue",
+          artistName: "Miles Davis",
+          year: 1959,
+          desiredFormat: "VINYL",
+          note: null,
+        },
+        clock,
+        1702,
+        "wish-1",
+      ),
+    );
+    return copy;
+  }
+
+  async function archive() {
+    return await exportMcArchive(
+      store,
+      { collection: toCsv(await store.listCopies(), new Map()), wishlist: "albumId\r\n" },
+      (photoId) => readPhotoBytes(store, photoId),
+      new Date("2026-08-26T10:30:00Z"),
+    );
+  }
+
+  it("finds every live photo, and no tombstoned one", async () => {
+    await seed();
+    const gone = createPhoto(
+      { copyId: "copy-1", contentType: "image/png", byteSize: 1, sortIndex: 1 },
+      clock,
+      1800,
+      "photo-gone",
+    );
+    await store.putPhoto(tombstonePhoto(gone, clock, 1801));
+
+    expect((await store.listAllPhotos()).map((photo) => photo.id)).toEqual(["photo-1"]);
+  });
+
+  it("reads the bytes back out of IndexedDB and into the archive", async () => {
+    await seed();
+
+    const built = await archive();
+
+    expect(built).toMatchObject({ copies: 1, wishes: 1, photos: 1, photosWithoutBytes: 0 });
+    const entry = readZip(built.bytes).find((file) => file.path === "photos/photo-1.jpg");
+    expect([...(entry?.bytes ?? [])]).toEqual([0xff, 0xd8, 0x11, 0x22]);
+  });
+
+  it("round-trips into an empty database with the copy still itself", async () => {
+    const copy = await seed();
+    const built = await archive();
+    await Dexie.delete("music-collector");
+    const restored = new DexieLocalStore();
+    await restored.open();
+
+    const result = await importMcArchive(restored, built.bytes, clockSource("other-device"));
+
+    expect(result).toMatchObject({ copies: 1, wishes: 1, photos: 1 });
+    expect(await restored.listCopies()).toEqual([copy]);
+    expect((await restored.listPhotos("copy-1"))[0].id).toBe("photo-1");
+    // Read as a buffer rather than through getPhotoBytes: jsdom's Blob has no
+    // arrayBuffer, which is one of the reasons the export takes this route in the browser.
+    expect([...((await readPhotoBytes(restored, "photo-1")) ?? [])]).toEqual([
+      0xff, 0xd8, 0x11, 0x22,
+    ]);
+    // The picture has to go up under this account, whoever uploaded it before.
+    expect(await restored.listPhotosAwaitingUpload()).toHaveLength(1);
   });
 });

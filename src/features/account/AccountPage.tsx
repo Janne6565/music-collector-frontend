@@ -6,6 +6,7 @@ import { SharingPanel } from "@/features/friends/SharingPanel";
 import { Link, Navigate } from "@tanstack/react-router";
 import {
   ChevronRight,
+  FileArchive,
   FileDown,
   FileText,
   HardDrive,
@@ -152,6 +153,32 @@ export function AccountPage() {
                   variant="secondary"
                   onClick={logic.exportWishlistCsv}
                   loading={logic.exportingWishlist}
+                  className="h-[30px] rounded-md px-3 text-xs"
+                >
+                  {t("account.export.action")}
+                </Button>
+              }
+            />
+            {/* The archive is a third row rather than a second button on the first: it is
+                not another way to export the collection, it is a different promise — the
+                whole shelf, photographs and identities included, in a file that reads back
+                in as the same records rather than as copies of them. */}
+            <Row
+              icon={<FileArchive size={16} strokeWidth={1.75} aria-hidden />}
+              title={t("account.export.archive.title")}
+              body={
+                logic.archiveResult === undefined
+                  ? t("account.export.archive.body")
+                  : t("account.export.archive.done", {
+                      copies: logic.archiveResult.copies,
+                      photos: logic.archiveResult.photos,
+                    })
+              }
+              trailing={
+                <Button
+                  variant="secondary"
+                  onClick={logic.exportArchive}
+                  loading={logic.exportingArchive}
                   className="h-[30px] rounded-md px-3 text-xs"
                 >
                   {t("account.export.action")}

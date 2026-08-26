@@ -9,13 +9,17 @@ import type {
   CopyDraft,
   Format,
   LocalStore,
+  McImportResult,
   Release,
 } from "@janne6565/music-collector-shared";
 import {
+  MC_EXTENSION,
   applyCopyPatch,
+  applyMcArchive,
   createCopy,
   createManualCopy,
   isManualReleaseId,
+  readMcArchive,
 } from "@janne6565/music-collector-shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
@@ -62,6 +66,18 @@ async function warmCoverTheme(release: Release, store: LocalStore): Promise<void
     await store.cacheReleases([enriched]).catch(() => undefined);
   }
 }
+
+/**
+ * What an import turned out to be.
+ *
+ * Tagged rather than merged into one shape with optional fields, because the two say
+ * genuinely different things and the wording on screen has to differ: a spreadsheet adds
+ * copies and reports the rows it could not place, an archive restores records — copies,
+ * wishes and photographs — that were already themselves.
+ */
+export type ImportResult =
+  | ({ readonly kind: "CSV" } & CsvImportResult)
+  | ({ readonly kind: "MC" } & McImportResult);
 
 export interface CsvImportResult {
   readonly added: number;
@@ -176,98 +192,125 @@ export function useAddDialogLogic(
    * import either produces a copy attached to a real release or reports the row as
    * skipped — never a copy pointing at an mbid the app knows nothing about.
    */
-  const importCsv = useMutation<CsvImportResult, Error, File>({
-    mutationFn: async (file) => {
-      const { rows, skipped: malformed } = fromCsv(await file.text());
-      let added = 0;
-      let skipped = malformed;
-      // Everything this loop creates is an import, however many records that turns out to
-      // be. Two hundred rows are one act, and one act is not two hundred lines in the feeds
-      // of everybody who knows you.
-      const importedIds: string[] = [];
-      for (const row of rows) {
-        const draft = {
+  async function importRows(file: File): Promise<CsvImportResult> {
+    const { rows, skipped: malformed } = fromCsv(await file.text());
+    let added = 0;
+    let skipped = malformed;
+    // Everything this loop creates is an import, however many records that turns out to
+    // be. Two hundred rows are one act, and one act is not two hundred lines in the feeds
+    // of everybody who knows you.
+    const importedIds: string[] = [];
+    for (const row of rows) {
+      const draft = {
+        condition: row.mediaCondition,
+        sleeveCondition: row.sleeveCondition,
+        catalogArt: "AUTO" as const,
+        pricePaidCents: row.pricePaidCents,
+        currency: row.currency,
+        purchasedOn: row.purchasedOn,
+        purchasedAt: row.purchasedAt,
+        notes: row.notes,
+        rating: row.rating,
+      };
+
+      // A hand-entered copy has no archive entry to fetch. Its pressing is described by
+      // the row's own columns, and it comes back in as a new manual copy — under a new
+      // id, since a `local:` release id is the copy's own and cannot be carried across.
+      if (isManualReleaseId(row.releaseId)) {
+        if (row.artist === "" && row.title === "") {
+          skipped += 1;
+          continue;
+        }
+        const manual = createManualCopy(
+          {
+            manualTitle: row.title === "" ? null : row.title,
+            manualArtist: row.artist === "" ? null : row.artist,
+            manualYear: row.year,
+            manualLabel: row.label,
+            manualCatalogNumber: row.catalogNumber,
+            manualFormat: row.format,
+          },
+          draft,
+          clock,
+          Date.now(),
+          crypto.randomUUID(),
+        );
+        await store.putCopy(manual);
+        importedIds.push(manual.id);
+        added += 1;
+        continue;
+      }
+
+      const release =
+        (await store.getRelease(row.releaseId)) ?? (await lookupRelease(row.releaseId));
+      if (release === null || release === undefined) {
+        skipped += 1;
+        continue;
+      }
+      await store.cacheReleases([release]);
+      const imported = createCopy(
+        release,
+        {
           condition: row.mediaCondition,
           sleeveCondition: row.sleeveCondition,
-          catalogArt: "AUTO" as const,
+          catalogArt: "AUTO",
           pricePaidCents: row.pricePaidCents,
           currency: row.currency,
           purchasedOn: row.purchasedOn,
           purchasedAt: row.purchasedAt,
           notes: row.notes,
           rating: row.rating,
-        };
+        },
+        clock,
+        Date.now(),
+        crypto.randomUUID(),
+      );
+      // A copy can be a format its release is not, and the export says so. A blank
+      // column parses as OTHER, which is why that one is not carried back in: a
+      // foreign file with no format at all would otherwise mark every copy Other.
+      const overridden =
+        row.format !== release.format && row.format !== "OTHER"
+          ? applyCopyPatch(imported, { manualFormat: row.format }, clock)
+          : imported;
+      await store.putCopy(overridden);
+      importedIds.push(overridden.id);
+      added += 1;
+    }
+    await rememberCopyOrigins(store, importedIds, "CSV_IMPORT");
+    return { added, skipped };
+  }
 
-        // A hand-entered copy has no archive entry to fetch. Its pressing is described by
-        // the row's own columns, and it comes back in as a new manual copy — under a new
-        // id, since a `local:` release id is the copy's own and cannot be carried across.
-        if (isManualReleaseId(row.releaseId)) {
-          if (row.artist === "" && row.title === "") {
-            skipped += 1;
-            continue;
-          }
-          const manual = createManualCopy(
-            {
-              manualTitle: row.title === "" ? null : row.title,
-              manualArtist: row.artist === "" ? null : row.artist,
-              manualYear: row.year,
-              manualLabel: row.label,
-              manualCatalogNumber: row.catalogNumber,
-              manualFormat: row.format,
-            },
-            draft,
-            clock,
-            Date.now(),
-            crypto.randomUUID(),
-          );
-          await store.putCopy(manual);
-          importedIds.push(manual.id);
-          added += 1;
-          continue;
-        }
-
-        const release =
-          (await store.getRelease(row.releaseId)) ?? (await lookupRelease(row.releaseId));
-        if (release === null || release === undefined) {
-          skipped += 1;
-          continue;
-        }
-        await store.cacheReleases([release]);
-        const imported = createCopy(
-          release,
-          {
-            condition: row.mediaCondition,
-            sleeveCondition: row.sleeveCondition,
-            catalogArt: "AUTO",
-            pricePaidCents: row.pricePaidCents,
-            currency: row.currency,
-            purchasedOn: row.purchasedOn,
-            purchasedAt: row.purchasedAt,
-            notes: row.notes,
-            rating: row.rating,
-          },
-          clock,
-          Date.now(),
-          crypto.randomUUID(),
-        );
-        // A copy can be a format its release is not, and the export says so. A blank
-        // column parses as OTHER, which is why that one is not carried back in: a
-        // foreign file with no format at all would otherwise mark every copy Other.
-        const overridden =
-          row.format !== release.format && row.format !== "OTHER"
-            ? applyCopyPatch(imported, { manualFormat: row.format }, clock)
-            : imported;
-        await store.putCopy(overridden);
-        importedIds.push(overridden.id);
-        added += 1;
-      }
-      await rememberCopyOrigins(store, importedIds, "CSV_IMPORT");
-      return { added, skipped };
-    },
+  /**
+   * Importing a file, whichever of the two it is.
+   *
+   * One control rather than two, because the difference between them is not a decision the
+   * person is making — they have a file the app wrote and want it back. What differs is
+   * what can be promised afterwards, which is why the result says which kind it was: a CSV
+   * import can only ever *add* copies, an archive restores the ones it describes.
+   */
+  const importFile = useMutation<ImportResult, Error, File>({
+    mutationFn: async (file) =>
+      file.name.toLowerCase().endsWith(`.${MC_EXTENSION}`)
+        ? await restoreArchive(file)
+        : { kind: "CSV", ...(await importRows(file)) },
     onSuccess: async () => {
       await queryClient.invalidateQueries();
     },
   });
+
+  async function restoreArchive(file: File): Promise<ImportResult> {
+    const contents = readMcArchive(new Uint8Array(await file.arrayBuffer()));
+    const restored = await applyMcArchive(store, contents, clock);
+    // Filed as a CSV import on purpose: to the feed, "arrived as a file" is the whole
+    // distinction, and a restore is one act however many records it carries. A third
+    // origin would mean a new value in the server's enum for no difference anyone sees.
+    await rememberCopyOrigins(
+      store,
+      contents.manifest.copies.map((copy) => copy.id),
+      "CSV_IMPORT",
+    );
+    return { kind: "MC", ...restored };
+  }
 
   const all = resultsQuery.data ?? [];
   const results = format === "ALL" ? all : all.filter((release) => release.format === format);
@@ -392,10 +435,12 @@ export function useAddDialogLogic(
       remember(term);
     },
     clearRecent: () => forgetSearches.mutate(),
-    importCsv: (file: File) => importCsv.mutate(file),
-    importing: importCsv.isPending,
-    importResult: importCsv.data,
-    importFailed: importCsv.isError,
+    importFile: (file: File) => importFile.mutate(file),
+    importing: importFile.isPending,
+    importResult: importFile.data,
+    /** The archive reader says *why* a file was refused; the CSV path never fails at all. */
+    importError: importFile.error?.message ?? null,
+    importFailed: importFile.isError,
     close: onClose,
   };
 }

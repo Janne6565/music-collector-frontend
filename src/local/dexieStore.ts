@@ -401,6 +401,12 @@ export class DexieLocalStore implements LocalStore {
     return covers;
   }
 
+  /** Every live photo, whoever owns it — the whole-shelf read the `.mc` export needs. */
+  async listAllPhotos(): Promise<Photo[]> {
+    const photos = await this.db.photos.filter((photo) => photo.deletedAt === null).toArray();
+    return photos.sort((a, b) => a.sortIndex - b.sortIndex);
+  }
+
   async getPhotoIncludingDeleted(id: string): Promise<Photo | undefined> {
     return this.db.photos.get(id);
   }
@@ -434,6 +440,18 @@ export class DexieLocalStore implements LocalStore {
   async getPhotoBytes(id: string): Promise<Blob | undefined> {
     const row = await this.db.photoBytes.get(id);
     return row === undefined ? undefined : new Blob([row.buffer], { type: row.contentType });
+  }
+
+  /**
+   * The stored bytes themselves, without the `Blob` wrapper `getPhotoBytes` puts on them.
+   *
+   * The archive wants bytes; every screen wants a Blob to point an `<img>` at. Dexie holds
+   * the buffer either way, so the export reads the row directly rather than building a
+   * Blob only to take it apart again — which is also the only route that works where
+   * `Blob.arrayBuffer` is missing.
+   */
+  async photoBuffer(id: string): Promise<ArrayBuffer | undefined> {
+    return (await this.db.photoBytes.get(id))?.buffer;
   }
 
   async deletePhotoBytes(id: string): Promise<void> {

@@ -2,9 +2,11 @@ import { setAccessToken } from "@/api/axios-instance";
 import { logout, updateProfile } from "@/api/generated/auth/auth";
 import { toCsv, wishlistToCsv } from "@/domain/csv";
 import { useStore } from "@/local/StoreProvider";
+import { readPhotoBytes } from "@/local/photoBytes";
 import { readLastSyncedAt, readSyncEnabled, writeSyncEnabled } from "@/local/settings";
 import { renamed, signedOut } from "@/store/authSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { MC_MIME_TYPE, exportMcArchive, mcFileName } from "@janne6565/music-collector-shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useCallback, useState } from "react";
@@ -62,18 +64,25 @@ export function useAccountLogic() {
     },
   });
 
-  /** Hands a finished CSV to the browser as a download. */
-  const download = (name: string, text: string) => {
-    const blob = new Blob([text], { type: "text/csv;charset=utf-8" });
+  /** Hands a finished file to the browser as a download. */
+  const save = (filename: string, blob: Blob) => {
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = `${name}-${new Date().toISOString().slice(0, 10)}.csv`;
+    anchor.download = filename;
     anchor.click();
     // Revoked on the next tick: revoking synchronously can beat the download starting
     // in some browsers, and the file arrives empty.
     setTimeout(() => URL.revokeObjectURL(url), 0);
   };
+
+  const download = (name: string, text: string) =>
+    save(
+      `${name}-${new Date().toISOString().slice(0, 10)}.csv`,
+      new Blob([text], {
+        type: "text/csv;charset=utf-8",
+      }),
+    );
 
   /**
    * Builds the file in the browser from the local store — no request, so it works offline
@@ -98,6 +107,38 @@ export function useAccountLogic() {
       const items = await store.listWishlist();
       download("music-collector-wishlist", wishlistToCsv(items));
       return items.length;
+    },
+  });
+
+  /**
+   * The whole shelf in one file, photographs included.
+   *
+   * The CSV exports above are for reading; this one is for keeping. A spreadsheet has no
+   * column that can hold a photograph, and none that can hold the clocks that make a copy
+   * recognisable as *the same copy* when it comes back — so a CSV round-trip necessarily
+   * arrives as a pile of new records. The archive carries both, and the two CSVs with them,
+   * so the file is still readable by anything years from now.
+   *
+   * Built from the local store like the others: no request, works offline, works with no
+   * account at all.
+   */
+  const exportArchive = useMutation({
+    mutationFn: async () => {
+      const exportedAt = new Date();
+      const [copies, wishlist] = await Promise.all([store.listCopies(), store.listWishlist()]);
+      const releases = await store.getReleases(copies.map((copy) => copy.releaseId));
+      const archive = await exportMcArchive(
+        store,
+        { collection: toCsv(copies, releases), wishlist: wishlistToCsv(wishlist) },
+        (photoId) => readPhotoBytes(store, photoId),
+        exportedAt,
+      );
+      save(
+        mcFileName(exportedAt),
+        // A fresh buffer: the archive is a view onto one that Blob would otherwise pin.
+        new Blob([archive.bytes.slice().buffer as ArrayBuffer], { type: MC_MIME_TYPE }),
+      );
+      return archive;
     },
   });
 
@@ -137,6 +178,11 @@ export function useAccountLogic() {
     exporting: exportCsv.isPending,
     exportWishlistCsv: () => exportWishlistCsv.mutate(),
     exportingWishlist: exportWishlistCsv.isPending,
+    exportArchive: () => exportArchive.mutate(),
+    exportingArchive: exportArchive.isPending,
+    /** What the last archive held, so the row can say so rather than just going quiet. */
+    archiveResult: exportArchive.data,
+    archiveFailed: exportArchive.isError,
     signOut: () => signOut.mutate(),
     signingOut: signOut.isPending,
   };

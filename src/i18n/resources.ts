@@ -314,7 +314,7 @@ const enCommon = {
     tab: {
       SEARCH: "Search",
       BARCODE: "Barcode",
-      CSV: "Import CSV",
+      CSV: "Import a file",
       MANUAL: "Enter manually",
     },
     searchPlaceholder: "Artist, title or catalog number",
@@ -339,11 +339,12 @@ const enCommon = {
       byTitle: "Search by title",
     },
     csv: {
-      title: "Import from a CSV",
-      body: "One row per copy, with a releaseId column — the format this app exports. Rows without a release it can find are reported and skipped.",
+      title: "Import a CSV or an archive",
+      body: "A .mc archive puts the collection back exactly as it was, photos included. A CSV — one row per copy, with a releaseId column — adds copies instead; rows without a release it can find are reported and skipped.",
       choose: "Choose a file",
       done: "{{added}} copies imported, {{skipped}} rows skipped.",
-      failed: "That file could not be read as a CSV.",
+      doneArchive: "Restored {{copies}} copies, {{wishes}} wishlist entries and {{photos}} photos.",
+      failed: "That file could not be read.",
     },
   },
   artists: {
@@ -568,6 +569,11 @@ const enCommon = {
     export: {
       library: { title: "Export collection", body: "CSV, one row per copy" },
       wishlist: { title: "Export wishlist", body: "CSV, one row per entry" },
+      archive: {
+        title: "Export everything",
+        body: ".mc archive — every copy, wish and photo, and it imports back as the same records",
+        done: "Last archive: {{copies}} copies and {{photos}} photos.",
+      },
       action: "Export",
     },
     legal: {
@@ -1038,7 +1044,7 @@ const deCommon: CommonSchema = {
     tab: {
       SEARCH: "Suche",
       BARCODE: "Barcode",
-      CSV: "CSV importieren",
+      CSV: "Datei importieren",
       MANUAL: "Manuell eingeben",
     },
     searchPlaceholder: "Künstler, Titel oder Katalognummer",
@@ -1065,11 +1071,13 @@ const deCommon: CommonSchema = {
       byTitle: "Nach Titel suchen",
     },
     csv: {
-      title: "Aus einer CSV importieren",
-      body: "Eine Zeile pro Exemplar, mit einer Spalte releaseId — genau das Format, das diese App exportiert. Zeilen ohne auffindbare Veröffentlichung werden gemeldet und übersprungen.",
+      title: "CSV oder Archiv importieren",
+      body: "Ein .mc-Archiv stellt die Sammlung genau so wieder her, wie sie war — samt Fotos. Eine CSV — eine Zeile pro Exemplar, mit einer Spalte releaseId — fügt stattdessen Exemplare hinzu; Zeilen ohne auffindbare Veröffentlichung werden gemeldet und übersprungen.",
       choose: "Datei wählen",
       done: "{{added}} Exemplare importiert, {{skipped}} Zeilen übersprungen.",
-      failed: "Diese Datei konnte nicht als CSV gelesen werden.",
+      doneArchive:
+        "{{copies}} Exemplare, {{wishes}} Wunschlisteneinträge und {{photos}} Fotos wiederhergestellt.",
+      failed: "Diese Datei konnte nicht gelesen werden.",
     },
   },
   artists: {
@@ -1297,6 +1305,11 @@ const deCommon: CommonSchema = {
     export: {
       library: { title: "Sammlung exportieren", body: "CSV, eine Zeile pro Exemplar" },
       wishlist: { title: "Wunschliste exportieren", body: "CSV, eine Zeile pro Eintrag" },
+      archive: {
+        title: "Alles exportieren",
+        body: ".mc-Archiv — jedes Exemplar, jeder Wunsch, jedes Foto, und es kommt als dieselben Datensätze zurück",
+        done: "Letztes Archiv: {{copies}} Exemplare und {{photos}} Fotos.",
+      },
       action: "Exportieren",
     },
     legal: {

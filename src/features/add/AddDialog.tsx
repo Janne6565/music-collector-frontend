@@ -577,11 +577,11 @@ function CsvTab({ logic }: { readonly logic: Logic }) {
           <input
             ref={input}
             type="file"
-            accept=".csv,text/csv"
+            accept=".csv,.mc,text/csv,application/zip"
             className="sr-only"
             onChange={(event) => {
               const file = event.target.files?.[0];
-              if (file !== undefined) logic.importCsv(file);
+              if (file !== undefined) logic.importFile(file);
               // Cleared so re-picking the same file fires change again.
               event.target.value = "";
             }}
@@ -594,7 +594,11 @@ function CsvTab({ logic }: { readonly logic: Logic }) {
           >
             {t("addDialog.csv.choose")}
           </Button>
-          {logic.importResult !== undefined && (
+          {/* The two kinds are reported differently because they promise differently: a
+              spreadsheet *adds* copies and can fail to place a row, an archive puts back
+              records that were already themselves. Saying "added" after a restore would
+              describe the wrong thing happening. */}
+          {logic.importResult?.kind === "CSV" && (
             <p className="text-[11.5px] text-ink-muted">
               {t("addDialog.csv.done", {
                 added: logic.importResult.added,
@@ -602,8 +606,22 @@ function CsvTab({ logic }: { readonly logic: Logic }) {
               })}
             </p>
           )}
+          {logic.importResult?.kind === "MC" && (
+            <p className="text-[11.5px] text-ink-muted">
+              {t("addDialog.csv.doneArchive", {
+                copies: logic.importResult.copies,
+                photos: logic.importResult.photos,
+                wishes: logic.importResult.wishes,
+              })}
+            </p>
+          )}
           {logic.importFailed && (
-            <p className="text-[11.5px] text-accent">{t("addDialog.csv.failed")}</p>
+            <p className="text-[11.5px] text-accent">
+              {/* An archive says why it was refused — the wrong kind of zip, a damaged
+                  photo, a file from a newer build — and passing that on is the difference
+                  between "try again" and "this is not the file you think it is". */}
+              {logic.importError ?? t("addDialog.csv.failed")}
+            </p>
           )}
         </div>
       </div>

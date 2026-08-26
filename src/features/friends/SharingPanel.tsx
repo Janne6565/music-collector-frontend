@@ -99,7 +99,23 @@ export function SharingPanel() {
         note={t("sharing.wishlist.note")}
       />
 
-      {settings.wishlistVisibility === "PUBLIC" && <PublicLink handle={settings.handle} />}
+      {/* One link per list that is actually public, because they are two different pages
+          and two different decisions. Showing only the wishlist's meant somebody who had
+          opened their collection to the world had no way to find the address of it. */}
+      {(settings.collectionVisibility === "PUBLIC" || settings.wishlistVisibility === "PUBLIC") && (
+        <div className="flex flex-col gap-2">
+          {settings.collectionVisibility === "PUBLIC" && (
+            <PublicLink handle={settings.handle} label={t("sharing.link.collection")} />
+          )}
+          {settings.wishlistVisibility === "PUBLIC" && (
+            <PublicLink
+              handle={settings.handle}
+              path="/wishlist"
+              label={t("sharing.link.wishlist")}
+            />
+          )}
+        </div>
+      )}
 
       <Row
         title={t("sharing.prices.title")}
@@ -209,13 +225,27 @@ function VisibilityGroup({ legend, value, onChange, note }: VisibilityGroupProps
  * served from more than one host, and a link that names the wrong one is worse than no
  * link at all.
  */
-function PublicLink({ handle }: { readonly handle: string }) {
+/**
+ * One public address, with the label saying which list it opens.
+ *
+ * The label earns its place as soon as there can be two: `/@janne` and `/@janne/wishlist`
+ * truncate to nearly the same string in this width, and a copy button beside the wrong one
+ * is a link sent to the wrong place.
+ */
+function PublicLink({
+  handle,
+  path = "",
+  label,
+}: { readonly handle: string; readonly path?: string; readonly label: string }) {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
-  const url = `${window.location.origin}/@${handle}/wishlist`;
+  const url = `${window.location.origin}/@${handle}${path}`;
 
   return (
     <div className="flex items-center gap-2 rounded-lg border border-line bg-paper px-3 py-2">
+      <span className="flex-none font-mono text-[10px] uppercase tracking-[0.08em] text-ink-subtle">
+        {label}
+      </span>
       <span className="min-w-0 flex-1 truncate font-mono text-[11.5px] text-ink-muted">
         {url.replace(/^https?:\/\//, "")}
       </span>

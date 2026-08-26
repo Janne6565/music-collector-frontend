@@ -164,6 +164,7 @@ const enCommon = {
       title: "Findable by handle",
       body: "Appears in search when someone types your handle. Off means only a link you send yourself will reach your profile.",
     },
+    link: { collection: "Collection", wishlist: "Wishlist" },
     collection: {
       legend: "Who can see your collection",
       friends: "Friends",
@@ -972,6 +973,7 @@ const deCommon: CommonSchema = {
       title: "Über Handle auffindbar",
       body: "Taucht in der Suche auf, wenn jemand deinen Handle tippt. Aus heißt: nur ein Link, den du selbst verschickst, führt zu deinem Profil.",
     },
+    link: { collection: "Sammlung", wishlist: "Wunschliste" },
     collection: {
       legend: "Wer deine Sammlung sehen darf",
       friends: "Freunde",

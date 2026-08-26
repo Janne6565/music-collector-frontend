@@ -292,6 +292,7 @@ export interface ProfileDto {
 export interface SharedWishDto {
   id?: string;
   albumId?: string;
+  releaseId?: string;
   title?: string;
   artistName?: string;
   year?: number;

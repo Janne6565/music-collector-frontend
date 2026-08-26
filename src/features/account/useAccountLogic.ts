@@ -1,6 +1,6 @@
 import { setAccessToken } from "@/api/axios-instance";
 import { logout, updateProfile } from "@/api/generated/auth/auth";
-import { lookupAlbumCovers } from "@/api/releases";
+import { lookupAlbumCovers, lookupPressingCovers } from "@/api/releases";
 import { toCsv, wishlistToCsv } from "@/domain/csv";
 import { useStore } from "@/local/StoreProvider";
 import { readPhotoBytes } from "@/local/photoBytes";
@@ -138,6 +138,10 @@ export function useAccountLogic() {
         // would be complete about everything except the wishlist's pictures — which is
         // exactly what vanishes when the file is imported against a different mirror.
         (albumIds) => lookupAlbumCovers(albumIds),
+        // And the sleeves of the pressings those entries were made from, which the covers
+        // endpoint cannot answer for: it is asked about albums, and an album has no way of
+        // saying which of its pressings was picked.
+        (releaseIds) => lookupPressingCovers(releaseIds),
       );
       save(
         mcFileName(exportedAt),

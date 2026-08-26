@@ -157,12 +157,25 @@ describe("a picture for a record no catalogue has", () => {
     return harnessed;
   }
 
-  it("offers the upload only where nothing else can ever supply a cover", () => {
+  it("offers the upload on every entry, catalogued or not", () => {
+    // It used to be hand-entered records only. The catalogue's answer is one pressing's
+    // sleeve among several and often not the one being hunted for, so the precedence is
+    // stated — your picture first — rather than the choice being withheld.
     const matched = harness(null);
     act(() => matched.result.current.pick(RELEASE));
-    expect(matched.result.current.canUploadImage).toBe(false);
+    expect(matched.result.current.canUploadImage).toBe(true);
 
     expect(typedIn().result.current.canUploadImage).toBe(true);
+  });
+
+  it("keeps the pressing that was picked, so the entry wears that sleeve", () => {
+    const { result } = harness(null);
+
+    act(() => result.current.pick(RELEASE));
+
+    expect(result.current.subject?.releaseId).toBe(RELEASE.id);
+    // The row that was clicked was already showing this cover; nothing re-asks for it.
+    expect(result.current.subjectCoverArtUrl).toBe(RELEASE.coverArtUrl);
   });
 
   it("shows the chosen picture straight away, as the device's own rather than the catalogue's", () => {

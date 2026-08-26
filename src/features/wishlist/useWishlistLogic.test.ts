@@ -8,6 +8,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("@/api/releases", async (original) => ({
   ...(await original<typeof import("@/api/releases")>()),
   lookupAlbumCovers: vi.fn(async () => new Map<string, string | null>()),
+  lookupPressingCovers: vi.fn(async () => new Map<string, string | null>()),
 }));
 
 let wishes: WishlistItem[] = [];
@@ -56,6 +57,7 @@ describe("removing a wish", () => {
       createWishlistItem(
         {
           albumId: "local:abc",
+          releaseId: null,
           title: "Chapters Left Unread",
           artistName: "Nobody",
           year: null,
@@ -97,5 +99,65 @@ describe("removing a wish", () => {
     act(() => result.current.remove(wishes[0]));
 
     await waitFor(() => expect(wishes[0].deletedAt).not.toBeNull());
+  });
+});
+
+/**
+ * Which sleeve a row draws.
+ *
+ * The album's answer is resolved from whichever pressing the mirror ranks first, which is
+ * how an entry ended up wearing a different pressing's cover than the search row it was
+ * made from. The pressing the entry remembers is asked about first, and the album is only
+ * the fallback.
+ */
+describe("the cover a row shows", () => {
+  const ALBUM = "https://covers/album.jpg";
+  const PRESSING = "https://covers/pressing.jpg";
+
+  beforeEach(async () => {
+    photos = [];
+    wishes = [
+      createWishlistItem(
+        {
+          albumId: "musicbrainz:a1",
+          releaseId: "discogs:r1",
+          title: "Konstrukt 5",
+          artistName: "Buntspecht",
+          year: 2025,
+          desiredFormat: "VINYL",
+          note: null,
+        },
+        clock,
+        1000,
+        "wish-1",
+      ),
+    ];
+    const releases = await import("@/api/releases");
+    vi.mocked(releases.lookupAlbumCovers).mockResolvedValue(new Map([["musicbrainz:a1", ALBUM]]));
+    vi.mocked(releases.lookupPressingCovers).mockResolvedValue(new Map([["discogs:r1", PRESSING]]));
+  });
+
+  it("prefers the pressing the entry was made from", async () => {
+    const { result } = harness();
+
+    await waitFor(() => expect(result.current.coverOf(wishes[0])).toBe(PRESSING));
+  });
+
+  it("falls back to the album when the mirror has never seen that pressing", async () => {
+    const releases = await import("@/api/releases");
+    vi.mocked(releases.lookupPressingCovers).mockResolvedValue(new Map());
+    const { result } = harness();
+
+    await waitFor(() => expect(result.current.coverOf(wishes[0])).toBe(ALBUM));
+  });
+
+  it("asks about an entry that remembers no pressing by album alone", async () => {
+    const releases = await import("@/api/releases");
+    vi.mocked(releases.lookupPressingCovers).mockClear();
+    wishes = [{ ...wishes[0], releaseId: null }];
+    const { result } = harness();
+
+    await waitFor(() => expect(result.current.coverOf(wishes[0])).toBe(ALBUM));
+    expect(vi.mocked(releases.lookupPressingCovers)).not.toHaveBeenCalled();
   });
 });

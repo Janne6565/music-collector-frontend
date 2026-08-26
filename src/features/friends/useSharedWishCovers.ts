@@ -1,5 +1,5 @@
 import type { SharedWishDto } from "@/api/generated/musicCollectorAPI.schemas";
-import { lookupAlbumCovers } from "@/api/releases";
+import { lookupAlbumCovers, lookupPressingCovers } from "@/api/releases";
 import { isManualReleaseId } from "@janne6565/music-collector-shared";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
@@ -15,6 +15,12 @@ const NONE: ReadonlyMap<string, string | null> = new Map();
  * about it is private, which is why this goes to the open metadata mirror instead of
  * widening the shared wishlist response: the answer is a fact about a catalogue, the same
  * for every viewer, and a signed-out visitor on a public profile may have it too.
+ *
+ * An entry that names the pressing it was made from is asked about that pressing first,
+ * exactly as the owner's own list is: the album's answer is whichever pressing the mirror
+ * ranks first, and showing a friend a different sleeve than the one they are hunting for
+ * is the same bug wherever it is drawn. The result stays keyed by album, because that is
+ * what the row has in hand — and one entry per album means no two wishes compete for a key.
  *
  * Hand-entered wishes are left out. Their only possible picture is one the owner uploaded,
  * and `PhotoService` refuses those to everybody but the owner on purpose — a wish is not a
@@ -40,6 +46,19 @@ export function useSharedWishCovers(
     [wishes],
   );
 
+  const releaseIds = useMemo(
+    () =>
+      [
+        ...new Set(
+          wishes
+            .map((wish) => wish.releaseId)
+            .filter((releaseId): releaseId is string => releaseId !== undefined)
+            .filter((releaseId) => !isManualReleaseId(releaseId)),
+        ),
+      ].sort(),
+    [wishes],
+  );
+
   const covers = useQuery({
     queryKey: ["albumCovers", albumIds],
     enabled: albumIds.length > 0,
@@ -49,5 +68,24 @@ export function useSharedWishCovers(
     queryFn: () => lookupAlbumCovers(albumIds),
   });
 
-  return covers.data ?? NONE;
+  const pressings = useQuery({
+    queryKey: ["pressingCovers", releaseIds],
+    enabled: releaseIds.length > 0,
+    staleTime: 60 * 60 * 1000,
+    queryFn: () => lookupPressingCovers(releaseIds),
+  });
+
+  return useMemo(() => {
+    const byAlbum = covers.data;
+    const byPressing = pressings.data;
+    if (byAlbum === undefined && byPressing === undefined) return NONE;
+
+    const merged = new Map(byAlbum ?? NONE);
+    for (const wish of wishes) {
+      if (wish.albumId === undefined || wish.releaseId === undefined) continue;
+      const url = byPressing?.get(wish.releaseId) ?? null;
+      if (url !== null) merged.set(wish.albumId, url);
+    }
+    return merged;
+  }, [covers.data, pressings.data, wishes]);
 }

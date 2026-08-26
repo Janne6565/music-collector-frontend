@@ -162,6 +162,24 @@ class MusicCollectorDb extends Dexie {
     this.version(6).stores({
       photos: "id, copyId, wishId, storageKey, deletedAt",
     });
+
+    /**
+     * A wish now remembers the pressing it was made from.
+     *
+     * No index — nothing looks an entry up by it; it is read off the row that is already
+     * in hand. The existing rows are written rather than left alone, because `undefined`
+     * and `null` are the same thing to IndexedDB but not to the merge: a field that is
+     * absent from a pushed record reads as one nobody has ever set, which is exactly what
+     * an entry made before this existed should say.
+     */
+    this.version(7).upgrade(async (tx) => {
+      await tx
+        .table("wishlist")
+        .toCollection()
+        .modify((wish: Record<string, unknown>) => {
+          wish.releaseId = null;
+        });
+    });
   }
 }
 

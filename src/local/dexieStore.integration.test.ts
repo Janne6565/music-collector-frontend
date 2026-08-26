@@ -259,6 +259,7 @@ describe("wishlist", () => {
     return createWishlistItem(
       {
         albumId: group,
+        releaseId: null,
         title: "Ege Bamyasi",
         artistName: "Can",
         year: 1972,
@@ -456,6 +457,7 @@ describe("the .mc archive over Dexie", () => {
       createWishlistItem(
         {
           albumId: "group-kind",
+          releaseId: "musicbrainz:r-kind",
           title: "Kind of Blue",
           artistName: "Miles Davis",
           year: 1959,

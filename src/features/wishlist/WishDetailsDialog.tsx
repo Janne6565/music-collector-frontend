@@ -5,9 +5,69 @@ import { useWishDetailsLogic } from "@/features/wishlist/useWishDetailsLogic";
 import { cn } from "@/lib/utils";
 import type { WishFormat } from "@janne6565/music-collector-shared";
 import { FORMAT_LABELS } from "@janne6565/music-collector-shared";
-import { Check, Disc3, LibraryBig, Trash2 } from "lucide-react";
-import { useId } from "react";
+import { Check, Disc3, ImagePlus, LibraryBig, Trash2 } from "lucide-react";
+import { useId, useRef } from "react";
 import { useTranslation } from "react-i18next";
+
+/**
+ * Giving one entry a picture of its own, and taking it back off (19b).
+ *
+ * Under the tile rather than beside the fields: it is about the frame above it, and the
+ * line between the two already says which of the three sources is being shown. No Save,
+ * like everything else in this modal — choosing the file is the decision.
+ */
+function CoverPicture({ logic }: { readonly logic: ReturnType<typeof useWishDetailsLogic> }) {
+  const { t } = useTranslation();
+  const input = useRef<HTMLInputElement>(null);
+  const own = logic.pictureSrc !== null;
+
+  return (
+    <div className="mt-2.5">
+      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+        <button
+          type="button"
+          onClick={() => input.current?.click()}
+          disabled={logic.savingImage}
+          className="inline-flex items-center gap-1.5 text-[11.5px] font-medium text-ink-muted hover:text-ink disabled:opacity-50"
+        >
+          <ImagePlus size={13} strokeWidth={1.75} aria-hidden />
+          {t(own ? "wishlist.coverImageReplace" : "wishlist.coverImageAction")}
+        </button>
+        {own && (
+          <button
+            type="button"
+            onClick={logic.dropImage}
+            disabled={logic.savingImage}
+            className="text-[11.5px] font-medium text-ink-muted hover:text-ink disabled:opacity-50"
+          >
+            {t("wishlist.coverImageRemove")}
+          </button>
+        )}
+      </div>
+      {logic.imageRejected !== null && (
+        <p className="mt-1 text-[11px] leading-snug text-ink-muted">
+          {t(
+            logic.imageRejected === "size"
+              ? "wishlist.coverImageTooBig"
+              : "wishlist.coverImageWrongType",
+          )}
+        </p>
+      )}
+      <input
+        ref={input}
+        type="file"
+        accept={logic.acceptedImages}
+        className="hidden"
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          if (file !== undefined) logic.chooseImage(file);
+          // Cleared so picking the same file twice still fires a change.
+          event.target.value = "";
+        }}
+      />
+    </div>
+  );
+}
 
 /** The four chips of the wanted format, in the deck's order. */
 const CHIPS: readonly (WishFormat | null)[] = ["VINYL", "CD", "CASSETTE", null];
@@ -86,16 +146,19 @@ export function WishDetailsDialog({ wishId, onClose, onFound, onSeeCopy }: WishD
                   />
                 </div>
                 {/* Says where the picture came from, or why there is none. The frame never
-                    moves between the three cases (16l): only this line changes. */}
+                    moves between the cases (16l): only this line changes. */}
                 <p className="mt-[9px] font-mono text-[9.5px] leading-[1.5] text-ink-subtle">
-                  {logic.manual
-                    ? t("wishlist.artManual")
-                    : logic.pictureSrc !== null
-                      ? t("wishlist.artYours")
+                  {logic.pictureSrc !== null
+                    ? t("wishlist.artYours")
+                    : logic.manual
+                      ? t("wishlist.artManual")
                       : logic.coverArtUrl === null
                         ? t("wishlist.artNone")
-                        : t("wishlist.artMirrored")}
+                        : logic.coverFromPressing
+                          ? t("wishlist.artPressing")
+                          : t("wishlist.artMirrored")}
                 </p>
+                <CoverPicture logic={logic} />
               </div>
 
               <div className="min-w-0 flex-1">

@@ -1,4 +1,5 @@
-import { lookupAlbumCovers, searchReleases } from "@/api/releases";
+import { lookupAlbumCovers, lookupPressingCovers, searchReleases } from "@/api/releases";
+import { ACCEPTED_IMAGES, type ImageRejection, rejectionFor } from "@/features/wishlist/coverImage";
 import { useStore } from "@/local/StoreProvider";
 import type { Release, WishFormat, WishlistItem } from "@janne6565/music-collector-shared";
 import {
@@ -16,10 +17,6 @@ import { useCallback, useEffect, useState } from "react";
 /** Kept in step with the add sheet: one field standing still means one request, not eleven. */
 const DEBOUNCE_MS = 350;
 
-/** What a file picker produces, matching the server's allowlist. */
-const ACCEPTED_IMAGES = ["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"];
-/** The server's own cap. Refusing here makes it a sentence rather than a 413 later. */
-const MAX_IMAGE_BYTES = 15 * 1024 * 1024;
 const MIN_TERM_LENGTH = 2;
 
 /**
@@ -33,6 +30,15 @@ export type WishStep = "PICK" | "DETAILS" | "MANUAL";
 
 export interface WishSubject {
   readonly albumId: string;
+  /**
+   * The pressing that was picked, which the entry keeps.
+   *
+   * The search returns pressings and each one has its own sleeve, so an entry that
+   * remembered only the album had its cover resolved album-level on every read — and came
+   * back as whichever pressing the mirror ranks first, not the row that was clicked. Null
+   * for a hand-typed entry, and for one made before entries remembered this.
+   */
+  readonly releaseId: string | null;
   readonly title: string;
   readonly artistName: string;
   readonly year: number | null;
@@ -52,6 +58,7 @@ export interface WishSubject {
 function subjectOf(release: Release): WishSubject {
   return {
     albumId: release.albumId,
+    releaseId: release.id,
     title: release.title,
     artistName: release.artistName,
     year: release.year,
@@ -82,6 +89,7 @@ export function useWishDialogLogic(
     existing !== null
       ? {
           albumId: existing.albumId,
+          releaseId: existing.releaseId,
           title: existing.title,
           artistName: existing.artistName,
           year: existing.year,
@@ -103,7 +111,14 @@ export function useWishDialogLogic(
    * attached to an entry somebody then abandoned is bytes nothing will ever reference.
    */
   const [image, setImage] = useState<{ readonly file: File; readonly url: string } | null>(null);
-  const [imageRejected, setImageRejected] = useState<"type" | "size" | null>(null);
+  const [imageRejected, setImageRejected] = useState<ImageRejection>(null);
+  /**
+   * That the picture already on this entry should go, written when the sheet is saved.
+   *
+   * Held rather than acted on immediately for the same reason the chosen file is: closing
+   * the sheet without saving must leave the entry exactly as it was found.
+   */
+  const [pictureDropped, setPictureDropped] = useState(false);
 
   const [term, setTerm] = useState("");
   const [submitted, setSubmitted] = useState("");
@@ -135,6 +150,21 @@ export function useWishDialogLogic(
       const bytes = await store.getPhotoBytes(photo.id);
       return bytes === undefined ? null : URL.createObjectURL(bytes);
     },
+  });
+
+  /**
+   * The sleeve of the pressing this entry was made from, for a sheet reopened to edit.
+   *
+   * Asked before the album, because the album's answer is a different pressing's sleeve
+   * whenever the mirror ranks another one first — which is the whole reason an entry
+   * remembers a pressing at all.
+   */
+  const pinned = subject?.releaseId ?? null;
+  const pressingCover = useQuery({
+    queryKey: ["pressingCovers", pinned === null ? [] : [pinned]],
+    enabled: subject !== null && subject.coverArtUrl === null && pinned !== null,
+    staleTime: 60 * 60 * 1000,
+    queryFn: () => lookupPressingCovers([pinned ?? ""]),
   });
 
   const albumCover = useQuery({
@@ -186,8 +216,14 @@ export function useWishDialogLogic(
    * image forever, and the upload of the new one has not happened yet.
    */
   const attachImage = async (wishId: string) => {
-    if (image === null) return;
+    if (image === null && !pictureDropped) return;
     const previous = (await store.listWishPhotos([wishId])).get(wishId);
+    // Nothing new to hang up: the picture was taken back off, and the catalogue's cover —
+    // the pressing's, then the album's — is what the entry falls back to.
+    if (image === null) {
+      if (previous !== undefined) await store.putPhoto(tombstonePhoto(previous, clock, Date.now()));
+      return;
+    }
     const id = crypto.randomUUID();
     await store.putPhotoBytes(id, await image.file.arrayBuffer(), image.file.type);
     await store.putPhoto(
@@ -234,6 +270,7 @@ export function useWishDialogLogic(
         createWishlistItem(
           {
             albumId: subject.albumId,
+            releaseId: subject.releaseId,
             title: subject.title,
             artistName: subject.artistName,
             year: subject.year,
@@ -264,7 +301,10 @@ export function useWishDialogLogic(
     subjectCoverArtUrl:
       subject === null
         ? null
-        : (subject.coverArtUrl ?? albumCover.data?.get(subject.albumId) ?? null),
+        : (subject.coverArtUrl ??
+          (pinned === null ? null : (pressingCover.data?.get(pinned) ?? null)) ??
+          albumCover.data?.get(subject.albumId) ??
+          null),
     /**
      * The device's own picture: the file being chosen right now, else the one already saved.
      *
@@ -272,25 +312,33 @@ export function useWishDialogLogic(
      * the tile keep the old picture is the app telling you it did not hear you — and both
      * outrank the catalogue, which for a hand-entered record has nothing to say anyway.
      */
-    subjectPictureSrc: image?.url ?? ownPhoto.data ?? null,
+    subjectPictureSrc: image?.url ?? (pictureDropped ? null : (ownPhoto.data ?? null)),
     /**
-     * Whether this entry can carry a picture of its own.
+     * Whether this entry can carry a picture of its own — which every entry can.
      *
-     * Only a record no catalogue has: everything else resolves its album's cover from the
-     * mirror, and two sources for one tile would need a precedence rule nobody asked for.
+     * It used to be only a record no catalogue has, on the grounds that everything else
+     * resolves a cover from the mirror. But the mirror's answer is one pressing's sleeve
+     * among several and often not the one you are hunting for, and a wish is a note to
+     * yourself: the picture on it should be the one you recognise the record by. So the
+     * precedence is stated instead of avoided — your picture, then the pressing you
+     * picked, then the album's.
      */
-    canUploadImage: subject !== null && isManualReleaseId(subject.albumId),
+    canUploadImage: subject !== null,
+    /** A record no catalogue has, which has nothing else its tile could ever show. */
+    manualSubject: subject !== null && isManualReleaseId(subject.albumId),
+    /** Whether there is a picture of your own to take back off. */
+    canDropImage: image !== null || (!pictureDropped && (ownPhoto.data ?? null) !== null),
+    dropImage: () => {
+      setImageRejected(null);
+      setImage(null);
+      setPictureDropped(true);
+    },
     imageRejected,
     chooseImage: (file: File) => {
-      setImageRejected(null);
-      if (!ACCEPTED_IMAGES.includes(file.type)) {
-        setImageRejected("type");
-        return;
-      }
-      if (file.size > MAX_IMAGE_BYTES) {
-        setImageRejected("size");
-        return;
-      }
+      const rejection = rejectionFor(file);
+      setImageRejected(rejection);
+      if (rejection !== null) return;
+      setPictureDropped(false);
       setImage({ file, url: URL.createObjectURL(file) });
     },
     acceptedImages: ACCEPTED_IMAGES.join(","),
@@ -325,6 +373,8 @@ export function useWishDialogLogic(
     confirmManual: useCallback(() => {
       setSubject({
         albumId: manualReleaseId(crypto.randomUUID()),
+        // Nothing was picked, because there was nothing to pick from.
+        releaseId: null,
         title: typed.title.trim(),
         artistName: typed.artistName.trim(),
         year: Number.isFinite(typedYear) ? typedYear : null,

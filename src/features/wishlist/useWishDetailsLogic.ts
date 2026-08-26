@@ -1,9 +1,11 @@
-import { lookupAlbumCovers, lookupPressings } from "@/api/releases";
+import { lookupAlbumCovers, lookupPressingCovers, lookupPressings } from "@/api/releases";
 import { useUndo } from "@/features/detail/UndoDelete";
+import { ACCEPTED_IMAGES, type ImageRejection, rejectionFor } from "@/features/wishlist/coverImage";
 import { useStore } from "@/local/StoreProvider";
 import type { Release, WishFormat, WishlistItem } from "@janne6565/music-collector-shared";
 import {
   applyWishPatch,
+  createPhoto,
   isManualReleaseId,
   sortWishlist,
   tombstonePhoto,
@@ -55,6 +57,21 @@ export function useWishDetailsLogic(wishId: string, onClose: () => void) {
   const noteValue = note ?? shown?.note ?? "";
 
   const manual = shown !== null && isManualReleaseId(shown.albumId);
+
+  /**
+   * The sleeve of the pressing this entry was made from.
+   *
+   * Asked before the album, because the album's answer is resolved from whichever pressing
+   * the mirror ranks first — which is how an entry ended up wearing a different pressing's
+   * cover than the row it was made from.
+   */
+  const pinned = shown?.releaseId ?? null;
+  const pressingCover = useQuery({
+    queryKey: ["pressingCovers", pinned === null ? [] : [pinned]],
+    enabled: pinned !== null,
+    staleTime: 60 * 60 * 1000,
+    queryFn: () => lookupPressingCovers([pinned ?? ""]),
+  });
 
   const cover = useQuery({
     queryKey: ["albumCovers", shown === null ? [] : [shown.albumId]],
@@ -137,6 +154,52 @@ export function useWishDetailsLogic(wishId: string, onClose: () => void) {
     return () => clearTimeout(timer);
   });
 
+  /**
+   * The picture this entry wears instead of the catalogue's answer.
+   *
+   * Written the moment a file is chosen rather than behind a Save, because that is what
+   * everything else in this modal does — the format and the note both land as you touch
+   * them, and one field that waited would be the odd one out.
+   *
+   * The old picture is tombstoned rather than overwritten: a photo id points at one image
+   * forever, and the new one's bytes have not been uploaded yet.
+   */
+  const [imageRejected, setImageRejected] = useState<ImageRejection>(null);
+
+  const putPicture = useMutation({
+    mutationFn: async (file: File) => {
+      const previous = (await store.listWishPhotos([wishId])).get(wishId);
+      const id = crypto.randomUUID();
+      await store.putPhotoBytes(id, await file.arrayBuffer(), file.type);
+      await store.putPhoto(
+        createPhoto(
+          { wishId, contentType: file.type, byteSize: file.size, sortIndex: 0 },
+          clock,
+          Date.now(),
+          id,
+        ),
+      );
+      if (previous !== undefined) {
+        await store.putPhoto(tombstonePhoto(previous, clock, Date.now()));
+      }
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["wish-photo", wishId] });
+      await queryClient.invalidateQueries({ queryKey: ["wish-photos"] });
+    },
+  });
+
+  const dropPicture = useMutation({
+    mutationFn: async () => {
+      const held = (await store.listWishPhotos([wishId])).get(wishId);
+      if (held !== undefined) await store.putPhoto(tombstonePhoto(held, clock, Date.now()));
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["wish-photo", wishId] });
+      await queryClient.invalidateQueries({ queryKey: ["wish-photos"] });
+    },
+  });
+
   const [confirmingRemoval, setConfirmingRemoval] = useState(false);
   /**
    * Whether the entry left because this modal removed it.
@@ -198,10 +261,31 @@ export function useWishDetailsLogic(wishId: string, onClose: () => void) {
     entry: shown,
     loading: wishlist.isLoading && shown === null,
     manual,
-    /** The catalogue's answer for the album, and the picture somebody uploaded for it. */
-    coverArtUrl: shown === null ? null : (cover.data?.get(shown.albumId) ?? null),
+    /** The catalogue's answer, and the picture somebody uploaded for this entry. */
+    coverArtUrl:
+      shown === null
+        ? null
+        : ((pinned === null ? null : (pressingCover.data?.get(pinned) ?? null)) ??
+          cover.data?.get(shown.albumId) ??
+          null),
+    /** Whether that answer is the pinned pressing's sleeve rather than the album's. */
+    coverFromPressing: pinned !== null && (pressingCover.data?.get(pinned) ?? null) !== null,
     pictureSrc: picture.data ?? null,
-    coverPending: !manual && cover.isFetching,
+    /** Choosing, replacing and taking off the entry's own picture (19b). */
+    acceptedImages: ACCEPTED_IMAGES.join(","),
+    imageRejected,
+    chooseImage: (file: File) => {
+      const rejection = rejectionFor(file);
+      setImageRejected(rejection);
+      if (rejection !== null) return;
+      putPicture.mutate(file);
+    },
+    dropImage: () => {
+      setImageRejected(null);
+      dropPicture.mutate();
+    },
+    savingImage: putPicture.isPending || dropPicture.isPending,
+    coverPending: (!manual && cover.isFetching) || pressingCover.isFetching,
     position,
     alsoOwned: alsoOwned.data ?? 0,
     note: noteValue,

@@ -150,7 +150,8 @@ const enCommon = {
     footnote: {
       saves: "Changes save as you make them. Your name, email, exports and sharing live on",
     },
-  },  sharing: {
+  },
+  sharing: {
     title: "Sharing",
     noHandle: {
       body: "Pick a handle and you can choose who sees your collection and your wishlist. Nothing is shared until you do.",
@@ -289,13 +290,16 @@ const enCommon = {
     manualAction: "Type it in",
     changeRelease: "Change",
     coverImage: "Cover picture",
-    coverImageHint: "Nothing has artwork for a record no catalogue has. Add your own.",
+    coverImageHint: "The catalogue shows one pressing's sleeve. Use your own picture instead.",
+    coverImageHintManual: "Nothing has artwork for a record no catalogue has. Add your own.",
     coverImageAction: "Choose a picture",
     coverImageReplace: "Replace picture",
+    coverImageRemove: "Use the catalogue's",
     coverImageTooBig: "That image is over 15 MB. Try a smaller one.",
     coverImageWrongType: "That is not an image this app stores. Use JPEG, PNG or WebP.",
     entryEyebrow: "Wishlist entry",
     entryEyebrowManual: "Wishlist entry · entered by hand",
+    artPressing: "cover of the pressing you picked",
     artMirrored: "cover from the mirrored pressings · album-level",
     artNone: "no artwork for this album · silhouette",
     artYours: "your own picture · not from a catalogue",
@@ -960,7 +964,8 @@ const deCommon: CommonSchema = {
       saves:
         "Änderungen werden sofort gespeichert. Name, E-Mail, Exporte und Freigabe stehen unter",
     },
-  },  sharing: {
+  },
+  sharing: {
     title: "Freigabe",
     noHandle: {
       body: "Wähl einen Handle, dann kannst du festlegen, wer deine Sammlung und deine Wunschliste sieht. Bis dahin wird nichts geteilt.",
@@ -1100,14 +1105,18 @@ const deCommon: CommonSchema = {
     changeRelease: "Ändern",
     coverImage: "Coverbild",
     coverImageHint:
+      "Der Katalog zeigt das Cover einer Pressung. Nimm stattdessen dein eigenes Bild.",
+    coverImageHintManual:
       "Für eine Platte, die in keinem Katalog steht, hat niemand ein Cover. Nimm dein eigenes.",
     coverImageAction: "Bild auswählen",
     coverImageReplace: "Bild ersetzen",
+    coverImageRemove: "Das aus dem Katalog nehmen",
     coverImageTooBig: "Das Bild ist über 15 MB groß. Nimm ein kleineres.",
     coverImageWrongType:
       "Das ist kein Bildformat, das diese App speichert. Nimm JPEG, PNG oder WebP.",
     entryEyebrow: "Wunschlisten-Eintrag",
     entryEyebrowManual: "Wunschlisten-Eintrag · von Hand eingetragen",
+    artPressing: "Cover der Pressung, die du gewählt hast",
     artMirrored: "Cover aus den gespiegelten Pressungen · Albumebene",
     artNone: "kein Cover für dieses Album · Silhouette",
     artYours: "dein eigenes Bild · nicht aus einem Katalog",

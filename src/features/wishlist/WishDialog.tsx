@@ -208,12 +208,13 @@ function ManualStep({ logic }: { readonly logic: Logic }) {
 }
 
 /**
- * The one picture a wish can own (design turn 18).
+ * The one picture a wish can own (design turn 18, widened in 19).
  *
- * Only for a record no catalogue has: every other entry resolves its album's cover from
- * the mirror, and nothing will ever resolve one for an album nobody has heard of. The
- * chosen file is not written until the sheet is saved — an image attached to an entry
- * somebody then abandoned would be bytes nothing ever references.
+ * Every entry may carry one now, not only a record no catalogue has. The catalogue's
+ * answer is one pressing's sleeve among several — often not the one you are hunting for —
+ * and a wish is a note to yourself, so the picture on it should be the one you recognise
+ * the record by. The chosen file is not written until the sheet is saved: an image
+ * attached to an entry somebody then abandoned would be bytes nothing ever references.
  */
 function CoverImageField({ logic }: { readonly logic: Logic }) {
   const { t } = useTranslation();
@@ -236,12 +237,25 @@ function CoverImageField({ logic }: { readonly logic: Logic }) {
           <ImagePlus size={14} strokeWidth={1.75} aria-hidden />
           {t(chosen ? "wishlist.coverImageReplace" : "wishlist.coverImageAction")}
         </Button>
+        {/* Only once there is one to take off, and never as a confirm step: nothing is
+            written until the sheet is saved, so closing it is the undo. */}
+        {logic.canDropImage && (
+          <button
+            type="button"
+            onClick={logic.dropImage}
+            className="flex-none text-[11.5px] font-medium text-ink-muted hover:text-ink"
+          >
+            {t("wishlist.coverImageRemove")}
+          </button>
+        )}
         <p id={describedBy} className="min-w-0 flex-1 text-[11.5px] leading-snug text-ink-muted">
           {logic.imageRejected === "size"
             ? t("wishlist.coverImageTooBig")
             : logic.imageRejected === "type"
               ? t("wishlist.coverImageWrongType")
-              : t("wishlist.coverImageHint")}
+              : t(
+                  logic.manualSubject ? "wishlist.coverImageHintManual" : "wishlist.coverImageHint",
+                )}
         </p>
       </div>
       <input

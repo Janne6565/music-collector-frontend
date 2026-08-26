@@ -566,8 +566,8 @@ const enCommon = {
       always: "Always on — every screen reads from this device",
     },
     export: {
-      title: "Export collection",
-      body: "CSV, one row per copy",
+      library: { title: "Export collection", body: "CSV, one row per copy" },
+      wishlist: { title: "Export wishlist", body: "CSV, one row per entry" },
       action: "Export",
     },
     legal: {
@@ -1290,8 +1290,8 @@ const deCommon: CommonSchema = {
       always: "Immer an — jede Ansicht liest von diesem Gerät",
     },
     export: {
-      title: "Sammlung exportieren",
-      body: "CSV, eine Zeile pro Exemplar",
+      library: { title: "Sammlung exportieren", body: "CSV, eine Zeile pro Exemplar" },
+      wishlist: { title: "Wunschliste exportieren", body: "CSV, eine Zeile pro Eintrag" },
       action: "Exportieren",
     },
     legal: {

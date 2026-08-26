@@ -124,15 +124,34 @@ export function AccountPage() {
                 />
               }
             />
+            {/* Two files, not one. The collection and the wishlist are different shapes —
+                a copy has a price, a condition and a pressing; a wish has an album and a
+                format — and a single sheet with half its columns blank on every other row
+                is a sheet no spreadsheet can pivot. */}
             <Row
               icon={<FileDown size={16} strokeWidth={1.75} aria-hidden />}
-              title={t("account.export.title")}
-              body={t("account.export.body")}
+              title={t("account.export.library.title")}
+              body={t("account.export.library.body")}
               trailing={
                 <Button
                   variant="secondary"
                   onClick={logic.exportCsv}
                   loading={logic.exporting}
+                  className="h-[30px] rounded-md px-3 text-xs"
+                >
+                  {t("account.export.action")}
+                </Button>
+              }
+            />
+            <Row
+              icon={<FileDown size={16} strokeWidth={1.75} aria-hidden />}
+              title={t("account.export.wishlist.title")}
+              body={t("account.export.wishlist.body")}
+              trailing={
+                <Button
+                  variant="secondary"
+                  onClick={logic.exportWishlistCsv}
+                  loading={logic.exportingWishlist}
                   className="h-[30px] rounded-md px-3 text-xs"
                 >
                   {t("account.export.action")}

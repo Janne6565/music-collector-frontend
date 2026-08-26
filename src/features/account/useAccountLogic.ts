@@ -1,6 +1,6 @@
 import { setAccessToken } from "@/api/axios-instance";
 import { logout, updateProfile } from "@/api/generated/auth/auth";
-import { toCsv } from "@/domain/csv";
+import { toCsv, wishlistToCsv } from "@/domain/csv";
 import { useStore } from "@/local/StoreProvider";
 import { readLastSyncedAt, readSyncEnabled, writeSyncEnabled } from "@/local/settings";
 import { renamed, signedOut } from "@/store/authSlice";
@@ -62,6 +62,19 @@ export function useAccountLogic() {
     },
   });
 
+  /** Hands a finished CSV to the browser as a download. */
+  const download = (name: string, text: string) => {
+    const blob = new Blob([text], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `${name}-${new Date().toISOString().slice(0, 10)}.csv`;
+    anchor.click();
+    // Revoked on the next tick: revoking synchronously can beat the download starting
+    // in some browsers, and the file arrives empty.
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+  };
+
   /**
    * Builds the file in the browser from the local store — no request, so it works offline
    * and works identically with no account at all.
@@ -70,16 +83,21 @@ export function useAccountLogic() {
     mutationFn: async () => {
       const copies = await store.listCopies();
       const releases = await store.getReleases(copies.map((copy) => copy.releaseId));
-      const blob = new Blob([toCsv(copies, releases)], { type: "text/csv;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = `music-collector-${new Date().toISOString().slice(0, 10)}.csv`;
-      anchor.click();
-      // Revoked on the next tick: revoking synchronously can beat the download starting
-      // in some browsers, and the file arrives empty.
-      setTimeout(() => URL.revokeObjectURL(url), 0);
+      download("music-collector", toCsv(copies, releases));
       return copies.length;
+    },
+  });
+
+  /**
+   * The wishlist as its own file, for the same reason it is its own page: it is a list of
+   * records you do not have, and folding it into the collection export would put a row in
+   * the spreadsheet for something that is not on the shelf.
+   */
+  const exportWishlistCsv = useMutation({
+    mutationFn: async () => {
+      const items = await store.listWishlist();
+      download("music-collector-wishlist", wishlistToCsv(items));
+      return items.length;
     },
   });
 
@@ -117,6 +135,8 @@ export function useAccountLogic() {
     ),
     exportCsv: () => exportCsv.mutate(),
     exporting: exportCsv.isPending,
+    exportWishlistCsv: () => exportWishlistCsv.mutate(),
+    exportingWishlist: exportWishlistCsv.isPending,
     signOut: () => signOut.mutate(),
     signingOut: signOut.isPending,
   };

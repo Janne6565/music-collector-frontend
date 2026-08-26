@@ -10,7 +10,10 @@ for copies. The server participates only as a sync peer.
  * OpenAPI spec version: v1
  */
 import type {
+  MuteDeviceRequest,
+  NotificationDeviceDto,
   NotificationPreferencesDto,
+  RegisterDeviceRequest,
   UpdateNotificationPreferenceRequest
 } from '../musicCollectorAPI.schemas';
 
@@ -18,6 +21,32 @@ import { customInstance } from '../../axios-instance';
 
 
 
+  /**
+ * The second, shorter question on 22a: the grid says what may reach you, this says which devices may buzz. A phone in a drawer and a phone in a pocket disagree, which is why one mute lives per device and the categories do not.
+ * @summary Where a push could arrive
+ */
+export const devices = (
+    
+ ) => {
+      return customInstance<NotificationDeviceDto[]>(
+      {url: `/api/v1/notifications/devices`, method: 'GET'
+    },
+      );
+    }
+  /**
+ * Keyed on the client's own device id rather than on the token: a token is reissued on reinstall, so keying on it would grow a row per phone per reinstall and buzz the same person twice. A device that re-registers keeps its mute.
+ * @summary Register where this device can be reached
+ */
+export const registerDevice = (
+    registerDeviceRequest: RegisterDeviceRequest,
+ ) => {
+      return customInstance<NotificationDeviceDto[]>(
+      {url: `/api/v1/notifications/devices`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: registerDeviceRequest
+    },
+      );
+    }
   /**
  * Follows the account rather than the device it was set on, unlike everything under Settings. Every category is always present: the answer is the whole grid, defaults included, so no client has to know what a default is.
  * @summary What may reach you, and on which channel
@@ -44,5 +73,22 @@ export const updatePreference = (
     },
       );
     }
-  export type PreferencesResult = NonNullable<Awaited<ReturnType<typeof preferences>>>
+  /**
+ * @summary Mute or unmute one device
+ */
+export const muteDevice = (
+    id: string,
+    muteDeviceRequest: MuteDeviceRequest,
+ ) => {
+      return customInstance<NotificationDeviceDto[]>(
+      {url: `/api/v1/notifications/devices/${id}/mute`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: muteDeviceRequest
+    },
+      );
+    }
+  export type DevicesResult = NonNullable<Awaited<ReturnType<typeof devices>>>
+export type RegisterDeviceResult = NonNullable<Awaited<ReturnType<typeof registerDevice>>>
+export type PreferencesResult = NonNullable<Awaited<ReturnType<typeof preferences>>>
 export type UpdatePreferenceResult = NonNullable<Awaited<ReturnType<typeof updatePreference>>>
+export type MuteDeviceResult = NonNullable<Awaited<ReturnType<typeof muteDevice>>>

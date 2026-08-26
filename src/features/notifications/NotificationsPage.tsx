@@ -149,29 +149,56 @@ export function NotificationsPage() {
             <p className="mt-3 text-[12.5px] text-accent">{t("notifications.failed")}</p>
           )}
 
+          {/* Only while the column can do nothing. Once a phone has registered, the
+              switches above are the answer and this block would be repeating itself. */}
           {!logic.pushAvailable && (
-            <>
-              <div className="mt-4 rounded-xl border border-line bg-canvas px-4 py-3.5">
-                <h3 className="text-[13px] font-semibold">{t("notifications.noPush.title")}</h3>
-                <p className="mt-1 text-[12.5px] leading-[1.55] text-ink-muted">
-                  {t("notifications.noPush.body")}
-                </p>
-              </div>
-
-              <h2 className="mt-8 font-mono text-[10px] tracking-[0.1em] text-ink-subtle uppercase">
-                {t("notifications.devices.heading")}
-              </h2>
-              <p className="mt-2 max-w-[560px] text-[12.5px] leading-[1.55] text-ink-muted">
-                {t("notifications.devices.explainer")}
+            <div className="mt-4 rounded-xl border border-line bg-canvas px-4 py-3.5">
+              <h3 className="text-[13px] font-semibold">{t("notifications.noPush.title")}</h3>
+              <p className="mt-1 text-[12.5px] leading-[1.55] text-ink-muted">
+                {t("notifications.noPush.body")}
               </p>
-              <div className="mt-2.5 rounded-xl border border-line bg-surface px-4 py-3.5">
+            </div>
+          )}
+
+          <h2 className="mt-8 font-mono text-[10px] tracking-[0.1em] text-ink-subtle uppercase">
+            {t("notifications.devices.heading")}
+          </h2>
+          <p className="mt-2 max-w-[560px] text-[12.5px] leading-[1.55] text-ink-muted">
+            {t("notifications.devices.explainer")}
+          </p>
+          <div className="mt-2.5 overflow-hidden rounded-xl border border-line bg-surface">
+            {logic.devices.length === 0 ? (
+              <div className="px-4 py-3.5">
                 <div className="text-[13px] font-semibold">{t("notifications.devices.none")}</div>
                 <p className="mt-0.5 text-[11.5px] text-ink-muted">
                   {t("notifications.devices.thisBrowser")}
                 </p>
               </div>
-            </>
-          )}
+            ) : (
+              logic.devices.map((device) => (
+                <div
+                  key={device.id}
+                  className="flex items-center justify-between gap-4 border-b border-line px-4 py-3.5 last:border-b-0"
+                >
+                  <div className="min-w-0">
+                    <div className="text-[13px] font-semibold">
+                      {device.label ?? device.platform ?? ""}
+                    </div>
+                    <div className="mt-0.5 text-[11.5px] text-ink-muted">
+                      {device.mutedAt === undefined || device.mutedAt === null
+                        ? t("notifications.devices.allowed")
+                        : t("notifications.devices.muted")}
+                    </div>
+                  </div>
+                  <Toggle
+                    checked={device.mutedAt === undefined || device.mutedAt === null}
+                    onChange={(on) => logic.setMuted(device.id ?? "", !on)}
+                    label={device.label ?? device.platform ?? ""}
+                  />
+                </div>
+              ))
+            )}
+          </div>
 
           <p className="mt-6 text-[11.5px] text-ink-subtle">{t("notifications.savesAsYouGo")}</p>
         </div>

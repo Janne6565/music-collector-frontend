@@ -2,7 +2,12 @@ import type {
   NotificationPreferenceDto,
   NotificationPreferenceDtoCategory,
 } from "@/api/generated/musicCollectorAPI.schemas";
-import { preferences, updatePreference } from "@/api/generated/notifications/notifications";
+import {
+  devices,
+  muteDevice,
+  preferences,
+  updatePreference,
+} from "@/api/generated/notifications/notifications";
 import { useAccountLogic } from "@/features/account/useAccountLogic";
 import { useAppSelector } from "@/store/hooks";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -26,6 +31,26 @@ export function useNotificationsLogic() {
     queryKey: ["notificationPreferences"],
     queryFn: () => preferences(),
     enabled: auth.status === "signedIn",
+  });
+
+  /**
+   * The second, shorter question: which device buzzes. It is a separate list on purpose —
+   * a phone in a drawer and a phone in a pocket disagree, and the categories above are
+   * never duplicated per phone.
+   *
+   * This browser is never in it: it has no push transport of its own and does not ask for
+   * one, so the list is what the phone registered.
+   */
+  const deviceList = useQuery({
+    queryKey: ["notificationDevices"],
+    queryFn: () => devices(),
+    enabled: auth.status === "signedIn",
+  });
+
+  const mute = useMutation({
+    mutationFn: async (next: { id: string; muted: boolean }) =>
+      muteDevice(next.id, { muted: next.muted }),
+    onSuccess: (answer) => queryClient.setQueryData(["notificationDevices"], answer),
   });
 
   const flip = useMutation({
@@ -73,7 +98,9 @@ export function useNotificationsLogic() {
         push: channel === "push" ? on : row.push === true,
       });
     },
+    devices: deviceList.data ?? [],
+    setMuted: (id: string, muted: boolean) => mute.mutate({ id, muted }),
     saving: flip.isPending,
-    failed: flip.isError,
+    failed: flip.isError || mute.isError,
   };
 }

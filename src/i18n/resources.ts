@@ -930,6 +930,8 @@ const enCommon = {
         "The grid above belongs to the account. Which devices may buzz is a separate, shorter question, and it has to be — a phone in a drawer and a phone in a pocket disagree.",
       none: "No devices yet",
       thisBrowser: "This browser cannot receive push, and does not ask to.",
+      allowed: "Allowed on this device",
+      muted: "Muted here",
     },
     category: {
       FRIEND_REQUEST: {
@@ -1913,6 +1915,8 @@ const deCommon: CommonSchema = {
         "Die Tabelle oben gehört zum Konto. Welche Geräte vibrieren dürfen, ist eine eigene, kürzere Frage — und muss es sein: ein Telefon in der Schublade und eines in der Tasche sind sich uneinig.",
       none: "Noch keine Geräte",
       thisBrowser: "Dieser Browser kann kein Push empfangen und fragt auch nicht danach.",
+      allowed: "Auf diesem Gerät erlaubt",
+      muted: "Hier stummgeschaltet",
     },
     category: {
       FRIEND_REQUEST: {

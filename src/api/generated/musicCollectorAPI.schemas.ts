@@ -202,6 +202,25 @@ export interface PhotoUploadDto {
   byteSize?: number;
 }
 
+export interface RegisterDeviceRequest {
+  /** @minLength 1 */
+  deviceId: string;
+  /** @minLength 1 */
+  pushToken: string;
+  /** @minLength 1 */
+  platform: string;
+  label?: string;
+}
+
+export interface NotificationDeviceDto {
+  id?: string;
+  platform?: string;
+  label?: string;
+  mutedAt?: string;
+  createdAt?: string;
+  current?: boolean;
+}
+
 export interface ClaimHandleRequest {
   /**
    * @minLength 3
@@ -345,6 +364,10 @@ export interface NotificationPreferenceDto {
 export interface NotificationPreferencesDto {
   categories?: NotificationPreferenceDto[];
   pushAvailable?: boolean;
+}
+
+export interface MuteDeviceRequest {
+  muted?: boolean;
 }
 
 export interface UpdateProfileRequest {

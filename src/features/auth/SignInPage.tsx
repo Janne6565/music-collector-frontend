@@ -90,6 +90,16 @@ export function SignInPage() {
               }
             />
 
+            {/* 21f: the one place the cost of an unconfirmed address is stated. It belongs
+                here rather than as a warning next to the collection, because this is the
+                screen where it would actually bite -- and the reset endpoint itself has to
+                stay silent, so it can never be the thing that explains. */}
+            {!registering && (
+              <p className="-mt-1 text-[11.5px] leading-[1.5] text-ink-subtle">
+                {t("auth.resetNeedsConfirmed")}
+              </p>
+            )}
+
             {registering ? (
               <div className="flex flex-col gap-3.5">
                 <Checkbox checked={logic.agreed} onChange={logic.setAgreed}>

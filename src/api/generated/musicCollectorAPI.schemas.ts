@@ -237,6 +237,7 @@ export interface UserDto {
   displayName?: string;
   createdAt?: string;
   emailVerified?: boolean;
+  hasPassword?: boolean;
 }
 
 export interface RegisterRequest {
@@ -277,9 +278,33 @@ export interface ForgotPasswordRequest {
   email: string;
 }
 
+export interface ChangeEmailRequest {
+  /** @minLength 1 */
+  email: string;
+  password?: string;
+}
+
+export interface EmailConfirmationDto {
+  confirmed?: boolean;
+  sentAt?: string;
+  expiresAt?: string;
+  retryAfter?: number;
+  pendingEmail?: string;
+}
+
+export interface CancelEmailChangeRequest {
+  /** @minLength 1 */
+  token: string;
+}
+
 export interface ConfirmEmailRequest {
   /** @minLength 1 */
   token: string;
+}
+
+export interface RequestEmailConfirmationRequest {
+  /** @minLength 1 */
+  email: string;
 }
 
 export interface UpdateProfileRequest {

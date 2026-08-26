@@ -2,6 +2,7 @@ import { ReleaseArt } from "@/components/ReleaseArt";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button, Skeleton } from "@/components/ui";
 import { AddDialog } from "@/features/add/AddDialog";
+import { ConfirmStrip } from "@/features/auth/ConfirmStrip";
 import { CopyDetailsDialog } from "@/features/copy/CopyDetailsDialog";
 import { useUndo } from "@/features/detail/UndoDelete";
 import {
@@ -78,6 +79,8 @@ export function LibraryPage() {
 
   return (
     <AppShell stats={logic.stats}>
+      {/* 21b: above the header, once per device, and never again. */}
+      <ConfirmStrip />
       <header className="flex flex-none items-center gap-4 border-b border-line px-7 py-4">
         <label className="flex h-9 flex-1 items-center gap-2 rounded-lg border border-line bg-surface px-3.5">
           <Search size={16} strokeWidth={1.75} className="flex-none text-ink-subtle" aria-hidden />

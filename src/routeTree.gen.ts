@@ -10,8 +10,6 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AccountRouteImport } from './routes/account'
-import { Route as ConfirmRouteImport } from './routes/confirm'
 import { Route as ForgotRouteImport } from './routes/forgot'
 import { Route as ResetRouteImport } from './routes/reset'
 import { Route as SettingsRouteImport } from './routes/settings'
@@ -19,26 +17,20 @@ import { Route as SigninRouteImport } from './routes/signin'
 import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as HandleIndexRouteImport } from './routes/$handle.index'
 import { Route as HandleWishlistRouteImport } from './routes/$handle.wishlist'
+import { Route as AccountIndexRouteImport } from './routes/account.index'
+import { Route as AccountEmailRouteImport } from './routes/account.email'
+import { Route as ConfirmTokenRouteImport } from './routes/confirm.$token'
 import { Route as CopiesCopyIdRouteImport } from './routes/copies.$copyId'
 import { Route as FriendsIndexRouteImport } from './routes/friends.index'
 import { Route as LegalDocRouteImport } from './routes/legal.$doc'
 import { Route as LegalDataRouteImport } from './routes/legal.data'
+import { Route as EmailCancelTokenRouteImport } from './routes/email.cancel.$token'
 import { Route as FriendsHandleIndexRouteImport } from './routes/friends.$handle.index'
 import { Route as FriendsHandleWishlistRouteImport } from './routes/friends.$handle.wishlist'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AccountRoute = AccountRouteImport.update({
-  id: '/account',
-  path: '/account',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ConfirmRoute = ConfirmRouteImport.update({
-  id: '/confirm',
-  path: '/confirm',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForgotRoute = ForgotRouteImport.update({
@@ -76,6 +68,21 @@ const HandleWishlistRoute = HandleWishlistRouteImport.update({
   path: '/$handle/wishlist',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AccountIndexRoute = AccountIndexRouteImport.update({
+  id: '/account/',
+  path: '/account/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccountEmailRoute = AccountEmailRouteImport.update({
+  id: '/account/email',
+  path: '/account/email',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConfirmTokenRoute = ConfirmTokenRouteImport.update({
+  id: '/confirm/$token',
+  path: '/confirm/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CopiesCopyIdRoute = CopiesCopyIdRouteImport.update({
   id: '/copies/$copyId',
   path: '/copies/$copyId',
@@ -96,6 +103,11 @@ const LegalDataRoute = LegalDataRouteImport.update({
   path: '/legal/data',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EmailCancelTokenRoute = EmailCancelTokenRouteImport.update({
+  id: '/email/cancel/$token',
+  path: '/email/cancel/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FriendsHandleIndexRoute = FriendsHandleIndexRouteImport.update({
   id: '/friends/$handle/',
   path: '/friends/$handle/',
@@ -109,56 +121,62 @@ const FriendsHandleWishlistRoute = FriendsHandleWishlistRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/account': typeof AccountRoute
-  '/confirm': typeof ConfirmRoute
   '/forgot': typeof ForgotRoute
   '/reset': typeof ResetRoute
   '/settings': typeof SettingsRoute
   '/signin': typeof SigninRoute
   '/wishlist': typeof WishlistRoute
   '/$handle/wishlist': typeof HandleWishlistRoute
+  '/account/email': typeof AccountEmailRoute
+  '/confirm/$token': typeof ConfirmTokenRoute
   '/copies/$copyId': typeof CopiesCopyIdRoute
   '/legal/$doc': typeof LegalDocRoute
   '/legal/data': typeof LegalDataRoute
   '/$handle/': typeof HandleIndexRoute
+  '/account/': typeof AccountIndexRoute
   '/friends/': typeof FriendsIndexRoute
+  '/email/cancel/$token': typeof EmailCancelTokenRoute
   '/friends/$handle/wishlist': typeof FriendsHandleWishlistRoute
   '/friends/$handle/': typeof FriendsHandleIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/account': typeof AccountRoute
-  '/confirm': typeof ConfirmRoute
   '/forgot': typeof ForgotRoute
   '/reset': typeof ResetRoute
   '/settings': typeof SettingsRoute
   '/signin': typeof SigninRoute
   '/wishlist': typeof WishlistRoute
   '/$handle/wishlist': typeof HandleWishlistRoute
+  '/account/email': typeof AccountEmailRoute
+  '/confirm/$token': typeof ConfirmTokenRoute
   '/copies/$copyId': typeof CopiesCopyIdRoute
   '/legal/$doc': typeof LegalDocRoute
   '/legal/data': typeof LegalDataRoute
   '/$handle': typeof HandleIndexRoute
+  '/account': typeof AccountIndexRoute
   '/friends': typeof FriendsIndexRoute
+  '/email/cancel/$token': typeof EmailCancelTokenRoute
   '/friends/$handle/wishlist': typeof FriendsHandleWishlistRoute
   '/friends/$handle': typeof FriendsHandleIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/account': typeof AccountRoute
-  '/confirm': typeof ConfirmRoute
   '/forgot': typeof ForgotRoute
   '/reset': typeof ResetRoute
   '/settings': typeof SettingsRoute
   '/signin': typeof SigninRoute
   '/wishlist': typeof WishlistRoute
   '/$handle/wishlist': typeof HandleWishlistRoute
+  '/account/email': typeof AccountEmailRoute
+  '/confirm/$token': typeof ConfirmTokenRoute
   '/copies/$copyId': typeof CopiesCopyIdRoute
   '/legal/$doc': typeof LegalDocRoute
   '/legal/data': typeof LegalDataRoute
   '/$handle/': typeof HandleIndexRoute
+  '/account/': typeof AccountIndexRoute
   '/friends/': typeof FriendsIndexRoute
+  '/email/cancel/$token': typeof EmailCancelTokenRoute
   '/friends/$handle/wishlist': typeof FriendsHandleWishlistRoute
   '/friends/$handle/': typeof FriendsHandleIndexRoute
 }
@@ -166,74 +184,82 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/account'
-    | '/confirm'
     | '/forgot'
     | '/reset'
     | '/settings'
     | '/signin'
     | '/wishlist'
     | '/$handle/wishlist'
+    | '/account/email'
+    | '/confirm/$token'
     | '/copies/$copyId'
     | '/legal/$doc'
     | '/legal/data'
     | '/$handle/'
+    | '/account/'
     | '/friends/'
+    | '/email/cancel/$token'
     | '/friends/$handle/wishlist'
     | '/friends/$handle/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/account'
-    | '/confirm'
     | '/forgot'
     | '/reset'
     | '/settings'
     | '/signin'
     | '/wishlist'
     | '/$handle/wishlist'
+    | '/account/email'
+    | '/confirm/$token'
     | '/copies/$copyId'
     | '/legal/$doc'
     | '/legal/data'
     | '/$handle'
+    | '/account'
     | '/friends'
+    | '/email/cancel/$token'
     | '/friends/$handle/wishlist'
     | '/friends/$handle'
   id:
     | '__root__'
     | '/'
-    | '/account'
-    | '/confirm'
     | '/forgot'
     | '/reset'
     | '/settings'
     | '/signin'
     | '/wishlist'
     | '/$handle/wishlist'
+    | '/account/email'
+    | '/confirm/$token'
     | '/copies/$copyId'
     | '/legal/$doc'
     | '/legal/data'
     | '/$handle/'
+    | '/account/'
     | '/friends/'
+    | '/email/cancel/$token'
     | '/friends/$handle/wishlist'
     | '/friends/$handle/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AccountRoute: typeof AccountRoute
-  ConfirmRoute: typeof ConfirmRoute
   ForgotRoute: typeof ForgotRoute
   ResetRoute: typeof ResetRoute
   SettingsRoute: typeof SettingsRoute
   SigninRoute: typeof SigninRoute
   WishlistRoute: typeof WishlistRoute
   HandleWishlistRoute: typeof HandleWishlistRoute
+  AccountEmailRoute: typeof AccountEmailRoute
+  ConfirmTokenRoute: typeof ConfirmTokenRoute
   CopiesCopyIdRoute: typeof CopiesCopyIdRoute
   LegalDocRoute: typeof LegalDocRoute
   LegalDataRoute: typeof LegalDataRoute
   HandleIndexRoute: typeof HandleIndexRoute
+  AccountIndexRoute: typeof AccountIndexRoute
   FriendsIndexRoute: typeof FriendsIndexRoute
+  EmailCancelTokenRoute: typeof EmailCancelTokenRoute
   FriendsHandleWishlistRoute: typeof FriendsHandleWishlistRoute
   FriendsHandleIndexRoute: typeof FriendsHandleIndexRoute
 }
@@ -245,20 +271,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/account': {
-      id: '/account'
-      path: '/account'
-      fullPath: '/account'
-      preLoaderRoute: typeof AccountRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/confirm': {
-      id: '/confirm'
-      path: '/confirm'
-      fullPath: '/confirm'
-      preLoaderRoute: typeof ConfirmRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/forgot': {
@@ -310,6 +322,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HandleWishlistRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/account/': {
+      id: '/account/'
+      path: '/account'
+      fullPath: '/account/'
+      preLoaderRoute: typeof AccountIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/account/email': {
+      id: '/account/email'
+      path: '/account/email'
+      fullPath: '/account/email'
+      preLoaderRoute: typeof AccountEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/confirm/$token': {
+      id: '/confirm/$token'
+      path: '/confirm/$token'
+      fullPath: '/confirm/$token'
+      preLoaderRoute: typeof ConfirmTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/copies/$copyId': {
       id: '/copies/$copyId'
       path: '/copies/$copyId'
@@ -338,6 +371,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LegalDataRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/email/cancel/$token': {
+      id: '/email/cancel/$token'
+      path: '/email/cancel/$token'
+      fullPath: '/email/cancel/$token'
+      preLoaderRoute: typeof EmailCancelTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/friends/$handle/': {
       id: '/friends/$handle/'
       path: '/friends/$handle'
@@ -357,19 +397,21 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AccountRoute: AccountRoute,
-  ConfirmRoute: ConfirmRoute,
   ForgotRoute: ForgotRoute,
   ResetRoute: ResetRoute,
   SettingsRoute: SettingsRoute,
   SigninRoute: SigninRoute,
   WishlistRoute: WishlistRoute,
   HandleWishlistRoute: HandleWishlistRoute,
+  AccountEmailRoute: AccountEmailRoute,
+  ConfirmTokenRoute: ConfirmTokenRoute,
   CopiesCopyIdRoute: CopiesCopyIdRoute,
   LegalDocRoute: LegalDocRoute,
   LegalDataRoute: LegalDataRoute,
   HandleIndexRoute: HandleIndexRoute,
+  AccountIndexRoute: AccountIndexRoute,
   FriendsIndexRoute: FriendsIndexRoute,
+  EmailCancelTokenRoute: EmailCancelTokenRoute,
   FriendsHandleWishlistRoute: FriendsHandleWishlistRoute,
   FriendsHandleIndexRoute: FriendsHandleIndexRoute,
 }

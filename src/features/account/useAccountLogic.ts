@@ -1,5 +1,11 @@
 import { setAccessToken } from "@/api/axios-instance";
-import { logout, resendEmailConfirmation, updateProfile } from "@/api/generated/auth/auth";
+import {
+  cancelEmailChange,
+  emailConfirmation,
+  logout,
+  resendEmailConfirmation,
+  updateProfile,
+} from "@/api/generated/auth/auth";
 import { lookupAlbumCovers, lookupPressingCovers } from "@/api/releases";
 import { toCsv, wishlistToCsv } from "@/domain/csv";
 import { useStore } from "@/local/StoreProvider";
@@ -10,7 +16,7 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { MC_MIME_TYPE, exportMcArchive, mcFileName } from "@janne6565/music-collector-shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 /**
  * The account screen (7a on web, 8b on mobile).
@@ -51,13 +57,52 @@ export function useAccountLogic() {
   });
 
   /**
-   * A fresh confirmation link. Silent about whether there was anything to send -- the
-   * server answers the same either way, and an address that is already confirmed is the
-   * state the person wanted rather than an error to report at them.
+   * The confirmation row's state (21c), read from the server rather than remembered.
+   *
+   * "Link sent, good for 24 hours" and the resend countdown are facts about the server; a
+   * client that only learned them from its own last button press would forget them the
+   * moment the page came back.
+   */
+  const confirmation = useQuery({
+    queryKey: ["emailConfirmation"],
+    queryFn: () => emailConfirmation(),
+    enabled: auth.status === "signedIn",
+  });
+
+  /**
+   * A fresh link. Silent about whether there was anything to send -- already confirmed is
+   * the state the person wanted rather than an error to report at them -- and inside the
+   * first minute the server sends nothing and answers with the seconds left instead.
    */
   const resendConfirmation = useMutation({
     mutationFn: async () => resendEmailConfirmation(),
+    onSuccess: (next) => queryClient.setQueryData(["emailConfirmation"], next),
   });
+
+  const cancelChange = useMutation({
+    mutationFn: async () => cancelEmailChange(),
+    onSuccess: (next) => queryClient.setQueryData(["emailConfirmation"], next),
+  });
+
+  /**
+   * The countdown on the resend button, ticked here rather than by the server.
+   *
+   * The server says how many seconds are left when asked; turning that into a number that
+   * moves is the screen's job, and re-asking once a second would be a request per tick to
+   * learn something arithmetic already knows.
+   */
+  const [now, setNow] = useState(() => Date.now());
+  const sentAt = confirmation.data?.sentAt;
+  const retryAfter = confirmation.data?.retryAfter ?? 0;
+  useEffect(() => {
+    if (sentAt === undefined || retryAfter === 0) return;
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [sentAt, retryAfter]);
+  const cooldown =
+    sentAt === undefined
+      ? 0
+      : Math.max(0, Math.ceil((new Date(sentAt).getTime() + retryAfter * 1000 - now) / 1000));
 
   const syncState = useQuery({
     queryKey: ["syncState"],
@@ -187,9 +232,17 @@ export function useAccountLogic() {
     email: auth.user?.email ?? null,
     /** Undefined on an account the server has not described yet; treated as confirmed. */
     emailConfirmed: auth.user?.emailVerified !== false,
+    /** Set once a link is outstanding, which is what turns the row into its "sent" state. */
+    confirmationSentAt: confirmation.data?.sentAt ?? null,
+    /** Seconds until the button comes back, or 0 while it is pressable. */
+    confirmationCooldown: cooldown,
     resendConfirmation: () => resendConfirmation.mutate(),
     resendingConfirmation: resendConfirmation.isPending,
-    confirmationSent: resendConfirmation.isSuccess,
+    /** The address a change is waiting on, or null when none is. */
+    pendingEmail: confirmation.data?.pendingEmail ?? null,
+    pendingExpiresAt: confirmation.data?.expiresAt ?? null,
+    cancelChange: () => cancelChange.mutate(),
+    cancellingChange: cancelChange.isPending,
     memberSince: auth.user?.createdAt ?? null,
     stats: stats.data,
     syncEnabled: syncState.data?.enabled ?? true,

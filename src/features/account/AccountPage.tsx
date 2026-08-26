@@ -12,7 +12,6 @@ import {
   FileText,
   Info,
   LogOut,
-  MailWarning,
   Settings as SettingsIcon,
   ShieldCheck,
   UserRound,
@@ -134,28 +133,12 @@ export function AccountPage() {
           <SectionTitle>{t("account.section.signIn")}</SectionTitle>
           <Card>
             <Row title={t("auth.email")} body={logic.email ?? ""} />
-            {/* Only while there is something to do about it. A permanent "confirmed" row
-                would be a badge for the ordinary state, which is not news. */}
-            {!logic.emailConfirmed && (
-              <Row
-                icon={<MailWarning size={16} strokeWidth={1.75} aria-hidden />}
-                title={t("account.confirmEmail.title")}
-                body={t("account.confirmEmail.body")}
-                trailing={
-                  <Button
-                    variant="secondary"
-                    onClick={logic.resendConfirmation}
-                    loading={logic.resendingConfirmation}
-                    disabled={logic.confirmationSent}
-                    className="h-[34px] flex-none rounded-lg px-3.5 text-[12.5px]"
-                  >
-                    {logic.confirmationSent
-                      ? t("account.confirmEmail.sent")
-                      : t("account.confirmEmail.send")}
-                  </Button>
-                }
-              />
-            )}
+            {/* 21c. Only while there is something to do about it: a permanent "confirmed"
+                row would be a badge for the ordinary state, which is not news. The address
+                is repeated in full so a typo is findable right here. */}
+            {!logic.emailConfirmed && logic.pendingEmail === null && <ConfirmRow logic={logic} />}
+            {/* 21g. One row, two addresses, for as long as the change waits. */}
+            {logic.pendingEmail !== null && <PendingChangeRow logic={logic} />}
             <Row title={t("auth.password")} body={t("account.passwordBody")} />
           </Card>
 
@@ -360,6 +343,106 @@ function Stat({
     <div className="rounded-lg border border-line bg-surface px-4 py-3.5">
       <div className="text-xl font-semibold">{value}</div>
       <div className="mt-0.5 text-[11px] text-ink-muted">{label}</div>
+    </div>
+  );
+}
+
+/**
+ * Screen 21c, all four states — resting, sending, sent, and pressed again.
+ *
+ * The fourth is the one that decides the feature's manners. Pressing twice sends no second
+ * mail and shows no error: the button becomes a countdown in place, because the first link
+ * is still the valid one and impatience is not a mistake. The pill keeps its width so the
+ * row never reflows while somebody watches it.
+ */
+function ConfirmRow({ logic }: { readonly logic: ReturnType<typeof useAccountLogic> }) {
+  const { t } = useTranslation();
+  const sent = logic.confirmationSentAt !== null;
+  const counting = logic.confirmationCooldown > 0;
+
+  return (
+    <div className="border-b border-line px-4 py-3.5 last:border-b-0">
+      <div className="flex items-center justify-between gap-4">
+        <div className="min-w-0">
+          <div className="text-[13px] font-semibold">{t("auth.email")}</div>
+          <div className="truncate text-[11.5px] text-ink-muted">
+            {logic.email} ·{" "}
+            {sent ? t("account.confirmEmail.linkLive") : t("account.confirmEmail.notYet")}
+          </div>
+        </div>
+        <div className="flex flex-none items-center gap-3">
+          <Button
+            variant="secondary"
+            onClick={logic.resendConfirmation}
+            loading={logic.resendingConfirmation}
+            disabled={counting}
+            className="h-[34px] min-w-[104px] rounded-lg px-3.5 text-[12.5px] tabular-nums"
+          >
+            {counting
+              ? `0:${String(logic.confirmationCooldown).padStart(2, "0")}`
+              : sent
+                ? t("account.confirmEmail.sendAgain")
+                : t("account.confirmEmail.send")}
+          </Button>
+          <Link to="/account/email" className="text-[12.5px] font-medium text-accent">
+            {t("account.confirmEmail.change")}
+          </Link>
+        </div>
+      </div>
+      {/* Only after the first send, where it is advice instead of an excuse. */}
+      {sent && (
+        <p className="mt-2.5 text-[11.5px] leading-[1.55] text-ink-subtle">
+          {counting ? t("account.confirmEmail.stillValid") : t("account.confirmEmail.spamHint")}
+        </p>
+      )}
+    </div>
+  );
+}
+
+/** Screen 21g's waiting row: the address you still sign in with, and the one being awaited. */
+function PendingChangeRow({ logic }: { readonly logic: ReturnType<typeof useAccountLogic> }) {
+  const { t } = useTranslation();
+
+  return (
+    <div className="border-b border-line px-4 py-3.5 last:border-b-0">
+      <div className="flex items-center justify-between gap-4">
+        <div className="min-w-0">
+          <div className="text-[13px] font-semibold">{t("auth.email")}</div>
+          <div className="truncate text-[11.5px] text-ink-muted">
+            {t("account.pendingChange.stillYours", { email: logic.email ?? "" })}
+          </div>
+        </div>
+        <Link to="/account/email" className="flex-none text-[12.5px] font-medium text-accent">
+          {t("account.confirmEmail.change")}
+        </Link>
+      </div>
+      <div className="mt-3 rounded-lg bg-canvas px-3.5 py-3">
+        <div className="text-[12.5px] font-semibold">
+          {t("account.pendingChange.waitingFor", { email: logic.pendingEmail ?? "" })}
+        </div>
+        <p className="mt-1 text-[11.5px] leading-[1.55] text-ink-muted">
+          {t("account.pendingChange.lapses")}
+        </p>
+        <div className="mt-2.5 flex items-center gap-4">
+          <button
+            type="button"
+            onClick={logic.resendConfirmation}
+            disabled={logic.confirmationCooldown > 0}
+            className="text-[12.5px] font-medium text-accent disabled:text-ink-subtle tabular-nums"
+          >
+            {logic.confirmationCooldown > 0
+              ? `0:${String(logic.confirmationCooldown).padStart(2, "0")}`
+              : t("account.pendingChange.resend")}
+          </button>
+          <button
+            type="button"
+            onClick={logic.cancelChange}
+            className="text-[12.5px] font-medium text-ink-muted hover:text-ink"
+          >
+            {t("common.cancel")}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

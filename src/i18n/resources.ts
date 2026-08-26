@@ -560,16 +560,55 @@ const enCommon = {
     resetSubmit: "Save and sign in",
     resetNoToken: "That link is missing its token. Request a new one.",
     resetInvalid: "That link is expired or already used. Request a new one.",
-    confirmTitle: "Confirm your e-mail address",
-    confirmDoneTitle: "That's confirmed",
-    confirm: {
-      pending: "One moment — checking the link.",
-      done: "Your address is confirmed. A password reset and any security notice can now reach you.",
-      invalid: "That link is expired or already used. Ask for a new one on your Account screen.",
-      noToken: "That link is missing its token. Ask for a new one on your Account screen.",
+    resetNeedsConfirmed:
+      "A reset link only goes to an address that has been confirmed — otherwise there is no way to know who is reading it.",
+    strip: {
+      title: "A confirmation link is on its way to {{email}}",
+      body: "Nothing here is waiting on it — keep adding records. Confirming only means we can reach you if you forget your password.",
+      wrongAddress: "Wrong address?",
     },
-    confirmContinue: "Back to the collection",
-    confirmResendHint: "Send a new link",
+    confirmPage: {
+      pending: {
+        title: "Checking the link",
+        body: "A second at most. Do not close the tab — if you do, the link still works.",
+      },
+      done: {
+        title: "Address confirmed",
+        body: "{{email}} can now receive a password reset and the security notices for this account. Nothing else changed, and nothing needs doing here.",
+        open: "Open Music Collector",
+        backToLibrary: "Back to your library",
+        closeTab: "Close this tab",
+      },
+      dead: {
+        title: "This link is no longer good",
+        body: "It was either used already or sent more than 24 hours ago. Nothing happened to the account either way — it works exactly as it did a minute ago.",
+        hint: "Type the address you signed up with. If an account has it, a link goes out.",
+        placeholder: "you@example.com",
+        send: "Send",
+        sendMine: "Send me a new link",
+        sent: "Link sent",
+        sentAnonymous: "If an account has that address, a link is on its way.",
+      },
+      truncated: {
+        title: "The link arrived cut short",
+        body: "The address in the bar is missing its last few characters, which some mail apps do when they wrap a long line. Copy the whole line from the mail, including everything after the last slash.",
+        exampleHead: "musiccollector.app/confirm/",
+        exampleTail: "4d71-9ba2-06fc-31e8",
+        exampleNote: "— the part in dark is what got lost",
+      },
+    },
+    cancelChange: {
+      pending: { title: "Undoing the change", body: "A second at most." },
+      done: {
+        title: "The change is undone",
+        body: "The account is back on this address, and every device has been signed out — including whoever asked for the change. Sign in again with your usual password.",
+        signIn: "Sign in",
+      },
+      dead: {
+        title: "This link is no longer good",
+        body: "It was used already, or the day it was good for has passed. If the address on the account is not the one you expect, change your password and then change it back from the account screen.",
+      },
+    },
     newPassword: "New password",
     needAccountPrefix: "New here?",
     haveAccountPrefix: "Already collecting?",
@@ -625,10 +664,43 @@ const enCommon = {
     since: "collecting since {{year}}",
     passwordBody: "Change it from the reset link on the sign-in screen.",
     confirmEmail: {
-      title: "Confirm your address",
-      body: "Until you do, a password reset cannot reach you.",
+      notYet: "not confirmed yet",
+      linkLive: "link sent, good for 24 hours",
       send: "Send a link",
-      sent: "Link sent",
+      sendAgain: "Send again",
+      change: "Change",
+      spamHint:
+        "Nothing in the app is waiting on it. If it has not arrived, look in the spam folder before sending another — the second mail lands in the same place as the first.",
+      stillValid:
+        "The first link is still the valid one. When the button comes back, a press invalidates it and sends a new one, so the older mail is never the one that works.",
+    },
+    pendingChange: {
+      stillYours: "{{email}} · still the one you sign in with",
+      waitingFor: "Waiting for {{email}}",
+      lapses:
+        "The link is good for 24 hours, and the change quietly lapses if nobody answers. Until then nothing about this account has moved.",
+      resend: "Resend",
+    },
+    changeEmail: {
+      title: "Change your e-mail address",
+      lede: "Your current address keeps working — signing in, resets, everything — until the new one is confirmed.",
+      current: "Current",
+      currentConfirmed: "Confirmed",
+      currentUnconfirmed:
+        "Not confirmed — it will be dropped, since nothing was ever proven about it",
+      newAddress: "New address",
+      password: "Your password",
+      passwordWhy:
+        "Asked for because a stray session should not be able to walk off with the account.",
+      next: {
+        title: "What happens next",
+        one: "A confirmation link goes to the new address, good for 24 hours.",
+        two: "{{email}} is told the change was requested, with a link to cancel it.",
+        three: "Until the new address answers, you still sign in with the old one.",
+        four: "The moment it answers, the old address stops working and is deleted.",
+      },
+      submit: "Send the link",
+      failed: "That did not work. Check the password, and that the address is not already in use.",
     },
     deviceSettings: {
       title: "Sync, offline copy and language",
@@ -1400,17 +1472,55 @@ const deCommon: CommonSchema = {
     resetSubmit: "Speichern und anmelden",
     resetNoToken: "Diesem Link fehlt das Token. Fordere einen neuen an.",
     resetInvalid: "Dieser Link ist abgelaufen oder wurde schon benutzt. Fordere einen neuen an.",
-    confirmTitle: "E-Mail-Adresse bestätigen",
-    confirmDoneTitle: "Bestätigt",
-    confirm: {
-      pending: "Einen Moment — der Link wird geprüft.",
-      done: "Deine Adresse ist bestätigt. Ein Passwort-Reset und Sicherheitshinweise erreichen dich jetzt.",
-      invalid:
-        "Dieser Link ist abgelaufen oder wurde schon benutzt. Fordere unter Konto einen neuen an.",
-      noToken: "Diesem Link fehlt das Token. Fordere unter Konto einen neuen an.",
+    resetNeedsConfirmed:
+      "Ein Reset-Link geht nur an eine bestätigte Adresse — sonst lässt sich nicht wissen, wer sie liest.",
+    strip: {
+      title: "Ein Bestätigungslink ist unterwegs an {{email}}",
+      body: "Hier wartet nichts darauf — leg ruhig weiter Platten an. Bestätigen heißt nur, dass wir dich erreichen, wenn du dein Passwort vergisst.",
+      wrongAddress: "Falsche Adresse?",
     },
-    confirmContinue: "Zurück zur Sammlung",
-    confirmResendHint: "Neuen Link senden",
+    confirmPage: {
+      pending: {
+        title: "Der Link wird geprüft",
+        body: "Höchstens eine Sekunde. Schließ den Tab nicht — falls doch, funktioniert der Link weiterhin.",
+      },
+      done: {
+        title: "Adresse bestätigt",
+        body: "{{email}} kann jetzt einen Passwort-Reset und die Sicherheitshinweise zu diesem Konto empfangen. Sonst hat sich nichts geändert, und hier ist nichts weiter zu tun.",
+        open: "Music Collector öffnen",
+        backToLibrary: "Zurück zur Sammlung",
+        closeTab: "Tab schließen",
+      },
+      dead: {
+        title: "Dieser Link gilt nicht mehr",
+        body: "Er wurde entweder schon benutzt oder vor mehr als 24 Stunden verschickt. Dem Konto ist so oder so nichts passiert — es funktioniert genau wie vor einer Minute.",
+        hint: "Gib die Adresse ein, mit der du dich angemeldet hast. Wenn es dazu ein Konto gibt, geht ein Link raus.",
+        placeholder: "du@beispiel.de",
+        send: "Senden",
+        sendMine: "Neuen Link an mich senden",
+        sent: "Link gesendet",
+        sentAnonymous: "Falls es zu dieser Adresse ein Konto gibt, ist ein Link unterwegs.",
+      },
+      truncated: {
+        title: "Der Link kam abgeschnitten an",
+        body: "In der Adresszeile fehlen die letzten Zeichen — manche Mail-Programme kürzen lange Zeilen beim Umbruch. Kopiere die ganze Zeile aus der Mail, inklusive allem nach dem letzten Schrägstrich.",
+        exampleHead: "musiccollector.app/confirm/",
+        exampleTail: "4d71-9ba2-06fc-31e8",
+        exampleNote: "— der dunkle Teil ist der, der verloren ging",
+      },
+    },
+    cancelChange: {
+      pending: { title: "Die Änderung wird zurückgenommen", body: "Höchstens eine Sekunde." },
+      done: {
+        title: "Die Änderung ist zurückgenommen",
+        body: "Das Konto liegt wieder auf dieser Adresse, und alle Geräte wurden abgemeldet — auch das, von dem die Änderung kam. Melde dich mit deinem gewohnten Passwort neu an.",
+        signIn: "Anmelden",
+      },
+      dead: {
+        title: "Dieser Link gilt nicht mehr",
+        body: "Er wurde schon benutzt, oder der Tag, für den er galt, ist vorbei. Falls die Adresse am Konto nicht die erwartete ist: Passwort ändern und sie danach im Kontobereich zurückstellen.",
+      },
+    },
     newPassword: "Neues Passwort",
     needAccountPrefix: "Neu hier?",
     haveAccountPrefix: "Schon dabei?",
@@ -1466,10 +1576,43 @@ const deCommon: CommonSchema = {
     since: "sammelt seit {{year}}",
     passwordBody: "Änderbar über den Zurücksetzen-Link auf der Anmeldeseite.",
     confirmEmail: {
-      title: "Adresse bestätigen",
-      body: "Solange sie unbestätigt ist, erreicht dich kein Passwort-Reset.",
+      notYet: "noch nicht bestätigt",
+      linkLive: "Link gesendet, 24 Stunden gültig",
       send: "Link senden",
-      sent: "Link gesendet",
+      sendAgain: "Erneut senden",
+      change: "Ändern",
+      spamHint:
+        "In der App wartet nichts darauf. Falls er nicht angekommen ist: erst in den Spam-Ordner schauen, bevor du einen neuen schickst — die zweite Mail landet am selben Ort wie die erste.",
+      stillValid:
+        "Der erste Link ist weiterhin der gültige. Wenn der Knopf zurückkommt, macht ein Druck ihn ungültig und schickt einen neuen — die ältere Mail ist also nie die, die funktioniert.",
+    },
+    pendingChange: {
+      stillYours: "{{email}} · damit meldest du dich weiterhin an",
+      waitingFor: "Wartet auf {{email}}",
+      lapses:
+        "Der Link gilt 24 Stunden, und die Änderung verfällt still, wenn niemand antwortet. Bis dahin hat sich am Konto nichts bewegt.",
+      resend: "Erneut senden",
+    },
+    changeEmail: {
+      title: "E-Mail-Adresse ändern",
+      lede: "Deine aktuelle Adresse funktioniert weiter — Anmeldung, Reset, alles — bis die neue bestätigt ist.",
+      current: "Aktuell",
+      currentConfirmed: "Bestätigt",
+      currentUnconfirmed:
+        "Nicht bestätigt — sie wird verworfen, da über sie nie etwas belegt wurde",
+      newAddress: "Neue Adresse",
+      password: "Dein Passwort",
+      passwordWhy:
+        "Wird abgefragt, damit eine herumliegende Sitzung nicht mit dem Konto davonlaufen kann.",
+      next: {
+        title: "Was als Nächstes passiert",
+        one: "Ein Bestätigungslink geht an die neue Adresse, 24 Stunden gültig.",
+        two: "{{email}} wird über die angefragte Änderung informiert, mit einem Link zum Abbrechen.",
+        three: "Bis die neue Adresse antwortet, meldest du dich weiter mit der alten an.",
+        four: "Sobald sie antwortet, funktioniert die alte Adresse nicht mehr und wird gelöscht.",
+      },
+      submit: "Link senden",
+      failed: "Das hat nicht geklappt. Prüfe das Passwort und ob die Adresse schon vergeben ist.",
     },
     deviceSettings: {
       title: "Synchronisierung, Offline-Kopie und Sprache",

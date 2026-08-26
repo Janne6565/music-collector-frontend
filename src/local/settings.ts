@@ -34,6 +34,22 @@ const WISHLIST_SORT = "wishlistSort";
  */
 const DOCUMENT_LANGUAGE = "documentLanguage";
 
+/**
+ * Whether the "a link is on its way" strip (21b) has had its one appearance here.
+ *
+ * Device-local and deliberately not synced: it is a fact about a screen somebody has
+ * already read, not about the account. Signing in on a second browser earns one strip
+ * there too, which is right — that browser has not seen it.
+ */
+const CONFIRM_STRIP_SEEN = "confirmStripSeen";
+
+/** True the first time it is asked on this device, false ever after. */
+export async function claimConfirmStrip(store: LocalStore): Promise<boolean> {
+  if ((await store.readSetting(CONFIRM_STRIP_SEEN)) === "true") return false;
+  await store.writeSetting(CONFIRM_STRIP_SEEN, "true");
+  return true;
+}
+
 /** Defaults to on: someone who signed in asked for sync, and asked for it silently. */
 export async function readSyncEnabled(store: LocalStore): Promise<boolean> {
   return (await store.readSetting(SYNC_ENABLED)) !== "false";

@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ForgotRouteImport } from './routes/forgot'
 import { Route as ResetRouteImport } from './routes/reset'
-import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SigninRouteImport } from './routes/signin'
 import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as HandleIndexRouteImport } from './routes/$handle.index'
@@ -24,6 +23,8 @@ import { Route as CopiesCopyIdRouteImport } from './routes/copies.$copyId'
 import { Route as FriendsIndexRouteImport } from './routes/friends.index'
 import { Route as LegalDocRouteImport } from './routes/legal.$doc'
 import { Route as LegalDataRouteImport } from './routes/legal.data'
+import { Route as SettingsIndexRouteImport } from './routes/settings.index'
+import { Route as SettingsNotificationsRouteImport } from './routes/settings.notifications'
 import { Route as EmailCancelTokenRouteImport } from './routes/email.cancel.$token'
 import { Route as FriendsHandleIndexRouteImport } from './routes/friends.$handle.index'
 import { Route as FriendsHandleWishlistRouteImport } from './routes/friends.$handle.wishlist'
@@ -41,11 +42,6 @@ const ForgotRoute = ForgotRouteImport.update({
 const ResetRoute = ResetRouteImport.update({
   id: '/reset',
   path: '/reset',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SettingsRoute = SettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SigninRoute = SigninRouteImport.update({
@@ -103,6 +99,16 @@ const LegalDataRoute = LegalDataRouteImport.update({
   path: '/legal/data',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsIndexRoute = SettingsIndexRouteImport.update({
+  id: '/settings/',
+  path: '/settings/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsNotificationsRoute = SettingsNotificationsRouteImport.update({
+  id: '/settings/notifications',
+  path: '/settings/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EmailCancelTokenRoute = EmailCancelTokenRouteImport.update({
   id: '/email/cancel/$token',
   path: '/email/cancel/$token',
@@ -123,7 +129,6 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/forgot': typeof ForgotRoute
   '/reset': typeof ResetRoute
-  '/settings': typeof SettingsRoute
   '/signin': typeof SigninRoute
   '/wishlist': typeof WishlistRoute
   '/$handle/wishlist': typeof HandleWishlistRoute
@@ -132,9 +137,11 @@ export interface FileRoutesByFullPath {
   '/copies/$copyId': typeof CopiesCopyIdRoute
   '/legal/$doc': typeof LegalDocRoute
   '/legal/data': typeof LegalDataRoute
+  '/settings/notifications': typeof SettingsNotificationsRoute
   '/$handle/': typeof HandleIndexRoute
   '/account/': typeof AccountIndexRoute
   '/friends/': typeof FriendsIndexRoute
+  '/settings/': typeof SettingsIndexRoute
   '/email/cancel/$token': typeof EmailCancelTokenRoute
   '/friends/$handle/wishlist': typeof FriendsHandleWishlistRoute
   '/friends/$handle/': typeof FriendsHandleIndexRoute
@@ -143,7 +150,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/forgot': typeof ForgotRoute
   '/reset': typeof ResetRoute
-  '/settings': typeof SettingsRoute
   '/signin': typeof SigninRoute
   '/wishlist': typeof WishlistRoute
   '/$handle/wishlist': typeof HandleWishlistRoute
@@ -152,9 +158,11 @@ export interface FileRoutesByTo {
   '/copies/$copyId': typeof CopiesCopyIdRoute
   '/legal/$doc': typeof LegalDocRoute
   '/legal/data': typeof LegalDataRoute
+  '/settings/notifications': typeof SettingsNotificationsRoute
   '/$handle': typeof HandleIndexRoute
   '/account': typeof AccountIndexRoute
   '/friends': typeof FriendsIndexRoute
+  '/settings': typeof SettingsIndexRoute
   '/email/cancel/$token': typeof EmailCancelTokenRoute
   '/friends/$handle/wishlist': typeof FriendsHandleWishlistRoute
   '/friends/$handle': typeof FriendsHandleIndexRoute
@@ -164,7 +172,6 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/forgot': typeof ForgotRoute
   '/reset': typeof ResetRoute
-  '/settings': typeof SettingsRoute
   '/signin': typeof SigninRoute
   '/wishlist': typeof WishlistRoute
   '/$handle/wishlist': typeof HandleWishlistRoute
@@ -173,9 +180,11 @@ export interface FileRoutesById {
   '/copies/$copyId': typeof CopiesCopyIdRoute
   '/legal/$doc': typeof LegalDocRoute
   '/legal/data': typeof LegalDataRoute
+  '/settings/notifications': typeof SettingsNotificationsRoute
   '/$handle/': typeof HandleIndexRoute
   '/account/': typeof AccountIndexRoute
   '/friends/': typeof FriendsIndexRoute
+  '/settings/': typeof SettingsIndexRoute
   '/email/cancel/$token': typeof EmailCancelTokenRoute
   '/friends/$handle/wishlist': typeof FriendsHandleWishlistRoute
   '/friends/$handle/': typeof FriendsHandleIndexRoute
@@ -186,7 +195,6 @@ export interface FileRouteTypes {
     | '/'
     | '/forgot'
     | '/reset'
-    | '/settings'
     | '/signin'
     | '/wishlist'
     | '/$handle/wishlist'
@@ -195,9 +203,11 @@ export interface FileRouteTypes {
     | '/copies/$copyId'
     | '/legal/$doc'
     | '/legal/data'
+    | '/settings/notifications'
     | '/$handle/'
     | '/account/'
     | '/friends/'
+    | '/settings/'
     | '/email/cancel/$token'
     | '/friends/$handle/wishlist'
     | '/friends/$handle/'
@@ -206,7 +216,6 @@ export interface FileRouteTypes {
     | '/'
     | '/forgot'
     | '/reset'
-    | '/settings'
     | '/signin'
     | '/wishlist'
     | '/$handle/wishlist'
@@ -215,9 +224,11 @@ export interface FileRouteTypes {
     | '/copies/$copyId'
     | '/legal/$doc'
     | '/legal/data'
+    | '/settings/notifications'
     | '/$handle'
     | '/account'
     | '/friends'
+    | '/settings'
     | '/email/cancel/$token'
     | '/friends/$handle/wishlist'
     | '/friends/$handle'
@@ -226,7 +237,6 @@ export interface FileRouteTypes {
     | '/'
     | '/forgot'
     | '/reset'
-    | '/settings'
     | '/signin'
     | '/wishlist'
     | '/$handle/wishlist'
@@ -235,9 +245,11 @@ export interface FileRouteTypes {
     | '/copies/$copyId'
     | '/legal/$doc'
     | '/legal/data'
+    | '/settings/notifications'
     | '/$handle/'
     | '/account/'
     | '/friends/'
+    | '/settings/'
     | '/email/cancel/$token'
     | '/friends/$handle/wishlist'
     | '/friends/$handle/'
@@ -247,7 +259,6 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ForgotRoute: typeof ForgotRoute
   ResetRoute: typeof ResetRoute
-  SettingsRoute: typeof SettingsRoute
   SigninRoute: typeof SigninRoute
   WishlistRoute: typeof WishlistRoute
   HandleWishlistRoute: typeof HandleWishlistRoute
@@ -256,9 +267,11 @@ export interface RootRouteChildren {
   CopiesCopyIdRoute: typeof CopiesCopyIdRoute
   LegalDocRoute: typeof LegalDocRoute
   LegalDataRoute: typeof LegalDataRoute
+  SettingsNotificationsRoute: typeof SettingsNotificationsRoute
   HandleIndexRoute: typeof HandleIndexRoute
   AccountIndexRoute: typeof AccountIndexRoute
   FriendsIndexRoute: typeof FriendsIndexRoute
+  SettingsIndexRoute: typeof SettingsIndexRoute
   EmailCancelTokenRoute: typeof EmailCancelTokenRoute
   FriendsHandleWishlistRoute: typeof FriendsHandleWishlistRoute
   FriendsHandleIndexRoute: typeof FriendsHandleIndexRoute
@@ -285,13 +298,6 @@ declare module '@tanstack/react-router' {
       path: '/reset'
       fullPath: '/reset'
       preLoaderRoute: typeof ResetRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/signin': {
@@ -371,6 +377,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LegalDataRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings/': {
+      id: '/settings/'
+      path: '/settings'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof SettingsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings/notifications': {
+      id: '/settings/notifications'
+      path: '/settings/notifications'
+      fullPath: '/settings/notifications'
+      preLoaderRoute: typeof SettingsNotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/email/cancel/$token': {
       id: '/email/cancel/$token'
       path: '/email/cancel/$token'
@@ -399,7 +419,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ForgotRoute: ForgotRoute,
   ResetRoute: ResetRoute,
-  SettingsRoute: SettingsRoute,
   SigninRoute: SigninRoute,
   WishlistRoute: WishlistRoute,
   HandleWishlistRoute: HandleWishlistRoute,
@@ -408,9 +427,11 @@ const rootRouteChildren: RootRouteChildren = {
   CopiesCopyIdRoute: CopiesCopyIdRoute,
   LegalDocRoute: LegalDocRoute,
   LegalDataRoute: LegalDataRoute,
+  SettingsNotificationsRoute: SettingsNotificationsRoute,
   HandleIndexRoute: HandleIndexRoute,
   AccountIndexRoute: AccountIndexRoute,
   FriendsIndexRoute: FriendsIndexRoute,
+  SettingsIndexRoute: SettingsIndexRoute,
   EmailCancelTokenRoute: EmailCancelTokenRoute,
   FriendsHandleWishlistRoute: FriendsHandleWishlistRoute,
   FriendsHandleIndexRoute: FriendsHandleIndexRoute,

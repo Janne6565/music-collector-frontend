@@ -307,6 +307,46 @@ export interface RequestEmailConfirmationRequest {
   email: string;
 }
 
+export type UpdateNotificationPreferenceRequestCategory = typeof UpdateNotificationPreferenceRequestCategory[keyof typeof UpdateNotificationPreferenceRequestCategory];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const UpdateNotificationPreferenceRequestCategory = {
+  FRIEND_REQUEST: 'FRIEND_REQUEST',
+  FRIEND_ACTIVITY: 'FRIEND_ACTIVITY',
+  SECURITY: 'SECURITY',
+  PRODUCT_NEWS: 'PRODUCT_NEWS',
+} as const;
+
+export interface UpdateNotificationPreferenceRequest {
+  category: UpdateNotificationPreferenceRequestCategory;
+  mail: boolean;
+  push: boolean;
+}
+
+export type NotificationPreferenceDtoCategory = typeof NotificationPreferenceDtoCategory[keyof typeof NotificationPreferenceDtoCategory];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const NotificationPreferenceDtoCategory = {
+  FRIEND_REQUEST: 'FRIEND_REQUEST',
+  FRIEND_ACTIVITY: 'FRIEND_ACTIVITY',
+  SECURITY: 'SECURITY',
+  PRODUCT_NEWS: 'PRODUCT_NEWS',
+} as const;
+
+export interface NotificationPreferenceDto {
+  category?: NotificationPreferenceDtoCategory;
+  mail?: boolean;
+  push?: boolean;
+  mailLocked?: boolean;
+}
+
+export interface NotificationPreferencesDto {
+  categories?: NotificationPreferenceDto[];
+  pushAvailable?: boolean;
+}
+
 export interface UpdateProfileRequest {
   /**
    * @minLength 0
@@ -552,6 +592,7 @@ export interface AccountExportDto {
   account?: AccountDto;
   consents?: ConsentDto[];
   sharing?: SharingSettingsDto;
+  notifications?: NotificationPreferenceDto[];
   copies?: SyncCopyDto[];
   wishes?: SyncWishDto[];
   photos?: SyncPhotoDto[];

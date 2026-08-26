@@ -1,5 +1,5 @@
 import { AppShell } from "@/components/layout/AppShell";
-import { Card, Row, SectionTitle } from "@/components/rows";
+import { Card, LinkRow, Row, SectionTitle } from "@/components/rows";
 import { Toggle, buttonClassName } from "@/components/ui";
 import { CURRENCIES, currencyChipLabel } from "@/domain/currency";
 import { formatRelativeTime } from "@/domain/relativeTime";
@@ -9,6 +9,7 @@ import type { AppLanguage } from "@/local/settings";
 import { Link } from "@tanstack/react-router";
 import {
   Banknote,
+  Bell,
   Check,
   ChevronDown,
   CloudOff,
@@ -135,6 +136,23 @@ export function SettingsPage() {
               }
             />
           </Card>
+
+          {/* 22a: only with an account. What may reach you outside the app follows the
+              account, so a signed-out person has no address to reach and nothing to set --
+              a greyed row here would only advertise that an account exists. */}
+          {logic.signedIn && (
+            <>
+              <SectionTitle>{t("settings.section.notifications")}</SectionTitle>
+              <Card>
+                <LinkRow
+                  to="/settings/notifications"
+                  icon={<Bell size={16} strokeWidth={1.75} aria-hidden />}
+                  title={t("notifications.title")}
+                  body={t("notifications.rowBody")}
+                />
+              </Card>
+            </>
+          )}
 
           <SectionTitle>{t("settings.section.storageSync")}</SectionTitle>
           <Card>

@@ -95,6 +95,7 @@ const enCommon = {
     },
     section: {
       languageCurrency: "Language and currency",
+      notifications: "Notifications",
       storageSync: "Storage and sync",
     },
     saved: "Saved",
@@ -213,6 +214,27 @@ const enCommon = {
     notFound: {
       title: "No such collector",
       body: "Nobody goes by @{{handle}}.",
+    },
+    detail: {
+      wishlist: "Wishlist",
+      year: "Year",
+      format: "Format",
+      media: "Media",
+      sleeve: "Sleeve",
+      mediaSleeve: "Media / sleeve",
+      lookingFor: "Looking for",
+      paid: "Paid",
+      added: "Added",
+      addedOn: "Added {{when}}",
+      ownerCopy: "{{name}}'s copy",
+      hidden: "prices hidden",
+      notOwned: "not owned yet",
+      position: "{{index}} of {{total}}",
+      positionSwipe: "{{index}} of {{total}} · swipe",
+      previous: "Previous record",
+      next: "Next record",
+      flip: "flip",
+      dismiss: "close",
     },
   },
   public: {
@@ -882,6 +904,52 @@ const enCommon = {
       keep: "Keep my account",
     },
   },
+  notifications: {
+    title: "Notifications",
+    rowBody: "What may reach you outside the app, by mail or push.",
+    scope:
+      "These follow your account, not the browser you set them in — unlike everything else on Settings. Change them here and the app agrees.",
+    grid: { heading: "What may reach you" },
+    channel: { mail: "E-mail", push: "Push", pushNeedsApp: "needs the app" },
+    always: "Always",
+    locked: "This one is not yours to mute.",
+    noConfirmedAddress: "No confirmed address",
+    savesAsYouGo: "Changes save as you make them.",
+    failed: "That did not save. Try the switch again.",
+    allQuiet: {
+      title: "Everything is off",
+      body: "Nothing will reach you outside the app. Friend requests still arrive — they wait on the Friends tab with a dot, as they always did.",
+    },
+    noPush: {
+      title: "Push has nowhere to arrive",
+      body: "No device has the app installed, so the column is empty rather than switchable. Install it and these switches appear — set once here, and every device you sign in on inherits them.",
+    },
+    devices: {
+      heading: "Where push would arrive",
+      explainer:
+        "The grid above belongs to the account. Which devices may buzz is a separate, shorter question, and it has to be — a phone in a drawer and a phone in a pocket disagree.",
+      none: "No devices yet",
+      thisBrowser: "This browser cannot receive push, and does not ask to.",
+    },
+    category: {
+      FRIEND_REQUEST: {
+        title: "A friend request",
+        body: "Someone asks to follow your collection. It waits until you answer it, so it is the one thing worth interrupting for.",
+      },
+      FRIEND_ACTIVITY: {
+        title: "What your friends added",
+        body: "One mail on Sunday morning covering the week — records added by hand, never an import. Nothing to answer, so nothing arrives per record.",
+      },
+      SECURITY: {
+        title: "Security notices",
+        body: "A new sign-in, a changed password, a changed address. These cannot be switched off — a notice you can silence is not a notice.",
+      },
+      PRODUCT_NEWS: {
+        title: "News about the app",
+        body: "Two or three times a year, when something is genuinely new. Off unless you ask for it.",
+      },
+    },
+  },
   common: {
     unknownYear: "Year unknown",
     save: "Save",
@@ -995,6 +1063,7 @@ const deCommon: CommonSchema = {
     },
     section: {
       languageCurrency: "Sprache und Währung",
+      notifications: "Benachrichtigungen",
       storageSync: "Speicher und Synchronisierung",
     },
     saved: "Gespeichert",
@@ -1114,6 +1183,27 @@ const deCommon: CommonSchema = {
     notFound: {
       title: "Keine solche Sammlung",
       body: "Niemand nennt sich @{{handle}}.",
+    },
+    detail: {
+      wishlist: "Wunschliste",
+      year: "Jahr",
+      format: "Format",
+      media: "Tonträger",
+      sleeve: "Hülle",
+      mediaSleeve: "Tonträger / Hülle",
+      lookingFor: "Gesucht als",
+      paid: "Bezahlt",
+      added: "Aufgenommen",
+      addedOn: "Aufgenommen {{when}}",
+      ownerCopy: "Exemplar von {{name}}",
+      hidden: "Preise verborgen",
+      notOwned: "noch nicht im Regal",
+      position: "{{index}} von {{total}}",
+      positionSwipe: "{{index}} von {{total}} · wischen",
+      previous: "Vorheriges Exemplar",
+      next: "Nächstes Exemplar",
+      flip: "blättern",
+      dismiss: "schließen",
     },
   },
   public: {
@@ -1795,6 +1885,52 @@ const deCommon: CommonSchema = {
       typeToConfirm: "Zum Bestätigen LÖSCHEN eingeben",
       confirm: "Konto endgültig löschen",
       keep: "Konto behalten",
+    },
+  },
+  notifications: {
+    title: "Benachrichtigungen",
+    rowBody: "Was dich außerhalb der App erreichen darf, per Mail oder Push.",
+    scope:
+      "Diese folgen deinem Konto, nicht dem Browser, in dem du sie einstellst — anders als alles andere unter Einstellungen. Änder sie hier, und die App stimmt zu.",
+    grid: { heading: "Was dich erreichen darf" },
+    channel: { mail: "E-Mail", push: "Push", pushNeedsApp: "braucht die App" },
+    always: "Immer",
+    locked: "Diese hier kannst du nicht stummschalten.",
+    noConfirmedAddress: "Keine bestätigte Adresse",
+    savesAsYouGo: "Änderungen werden sofort gespeichert.",
+    failed: "Das wurde nicht gespeichert. Versuch den Schalter noch einmal.",
+    allQuiet: {
+      title: "Alles ist aus",
+      body: "Außerhalb der App erreicht dich nichts. Freundschaftsanfragen kommen weiterhin an — sie warten wie immer mit einem Punkt im Tab „Freunde“.",
+    },
+    noPush: {
+      title: "Push hat keinen Ort zum Ankommen",
+      body: "Auf keinem Gerät ist die App installiert, deshalb ist die Spalte leer statt schaltbar. Installier sie, und die Schalter erscheinen — einmal hier gesetzt, übernimmt sie jedes Gerät, auf dem du dich anmeldest.",
+    },
+    devices: {
+      heading: "Wo Push ankommen würde",
+      explainer:
+        "Die Tabelle oben gehört zum Konto. Welche Geräte vibrieren dürfen, ist eine eigene, kürzere Frage — und muss es sein: ein Telefon in der Schublade und eines in der Tasche sind sich uneinig.",
+      none: "Noch keine Geräte",
+      thisBrowser: "Dieser Browser kann kein Push empfangen und fragt auch nicht danach.",
+    },
+    category: {
+      FRIEND_REQUEST: {
+        title: "Eine Freundschaftsanfrage",
+        body: "Jemand möchte deiner Sammlung folgen. Sie wartet, bis du antwortest — das Einzige, wofür sich eine Unterbrechung lohnt.",
+      },
+      FRIEND_ACTIVITY: {
+        title: "Was deine Freunde eingestellt haben",
+        body: "Eine Mail am Sonntagmorgen über die Woche — von Hand eingetragene Platten, nie ein Import. Nichts zu beantworten, also kommt auch nichts pro Platte.",
+      },
+      SECURITY: {
+        title: "Sicherheitshinweise",
+        body: "Eine neue Anmeldung, ein geändertes Passwort, eine geänderte Adresse. Die lassen sich nicht abschalten — ein Hinweis, den man stummschalten kann, ist keiner.",
+      },
+      PRODUCT_NEWS: {
+        title: "Neues über die App",
+        body: "Zwei- oder dreimal im Jahr, wenn es wirklich etwas Neues gibt. Aus, solange du nicht danach fragst.",
+      },
     },
   },
   common: {

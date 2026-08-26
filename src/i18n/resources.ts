@@ -86,7 +86,71 @@ const enCommon = {
       },
     },
   },
-  sharing: {
+  settings: {
+    scope: {
+      signedIn:
+        "Your collection, wishlist and photos follow you to every device you sign in on. These preferences do not — they describe this browser, and stay in it.",
+      anonymous:
+        "Everything is stored in this browser, including these preferences. Nothing on this page needs an account.",
+    },
+    section: {
+      languageCurrency: "Language and currency",
+      storageSync: "Storage and sync",
+    },
+    saved: "Saved",
+    tryAgain: "Try again",
+    language: { en: "English", de: "Deutsch" },
+    appLanguage: {
+      title: "App language",
+      following: "Following your browser, which asks for {{language}}",
+      chosen: "Chosen for this browser, whatever your system asks for",
+      option: { system: "Follow my browser", en: "English", de: "Deutsch" },
+      failed:
+        "Couldn’t keep that on this device — storage is full or blocked here. The app stays in {{value}}.",
+    },
+    documents: {
+      title: "Legal documents",
+      body: "Deutsch is the binding version. English is a translation of it.",
+      failed:
+        "Couldn’t keep that on this device — storage is full or blocked here. The documents stay in {{value}}.",
+    },
+    currency: {
+      title: "Currency for new copies",
+      body_one:
+        "Fills in the price field when you add a copy. The one already saved keeps its own.",
+      body_other:
+        "Fills in the price field when you add a copy. The {{count}} already saved keep theirs.",
+      failed:
+        "Couldn’t keep that on this device — storage is full or blocked here. New copies still use {{value}}.",
+    },
+    sync: {
+      title: "Sync across devices",
+      lastSynced: "Last synced {{when}}",
+      never: "Not synced yet",
+      anonymous_one: "One copy lives on this device only",
+      anonymous_other: "{{count}} copies live on this device only",
+      signIn: "Sign in",
+      failed: "Couldn’t change that on this device — storage is full or blocked here.",
+    },
+    local: {
+      title: "Keep a local copy",
+      body: "Works offline in this browser",
+      always: "The app reads from this copy, so it cannot be turned off.",
+    },
+    searches: {
+      title: "Recent searches",
+      body_one: "One kept for the Add dialog’s search tab",
+      body_other: "{{count}} kept for the Add dialog’s search tab",
+      empty: "Nothing kept on this device",
+      clear: "Clear",
+      cleared_one: "1 cleared",
+      cleared_other: "{{count}} cleared",
+      failed: "Couldn’t clear them — storage is full or blocked here.",
+    },
+    footnote: {
+      saves: "Changes save as you make them. Your name, email, exports and sharing live on",
+    },
+  },  sharing: {
     title: "Sharing",
     noHandle: {
       body: "Pick a handle and you can choose who sees your collection and your wishlist. Nothing is shared until you do.",
@@ -545,11 +609,20 @@ const enCommon = {
     title: "Account",
     since: "collecting since {{year}}",
     passwordBody: "Change it from the reset link on the sign-in screen.",
+    deviceSettings: {
+      title: "Sync, offline copy and language",
+      body: "Set per device, in Settings",
+    },
     stat: {
       copies: "copies",
       releases: "releases",
       spent: "total spent",
       average: "average per copy",
+      spentIn: "total spent, {{currency}}",
+      averageIn: "average, {{currency}}",
+      mixedPart_one: "{{count}} copy in {{currency}}",
+      mixedPart_other: "{{count}} copies in {{currency}}",
+      mixedNote: "Amounts are never converted, so nothing here depends on a rate.",
     },
     section: {
       legal: "Legal & privacy",
@@ -820,7 +893,73 @@ const deCommon: CommonSchema = {
       },
     },
   },
-  sharing: {
+  settings: {
+    scope: {
+      signedIn:
+        "Sammlung, Wunschliste und Fotos sind auf allen Geräten gleich, auf denen du angemeldet bist. Diese Einstellungen nicht — sie gelten für diesen Browser und bleiben hier.",
+      anonymous:
+        "Alles wird in diesem Browser gespeichert, auch diese Einstellungen. Nichts auf dieser Seite braucht ein Konto.",
+    },
+    section: {
+      languageCurrency: "Sprache und Währung",
+      storageSync: "Speicher und Synchronisierung",
+    },
+    saved: "Gespeichert",
+    tryAgain: "Erneut versuchen",
+    language: { en: "Englisch", de: "Deutsch" },
+    appLanguage: {
+      title: "Sprache der App",
+      following: "Richtet sich nach dem Browser, der {{language}} verlangt",
+      chosen: "Für diesen Browser festgelegt, unabhängig vom System",
+      option: { system: "Browsersprache", en: "Englisch", de: "Deutsch" },
+      failed:
+        "Konnte auf diesem Gerät nicht gespeichert werden — der Speicher ist voll oder blockiert. Die App bleibt auf {{value}}.",
+    },
+    documents: {
+      title: "Rechtliche Dokumente",
+      body: "Deutsch ist die verbindliche Fassung, Englisch eine Übersetzung davon.",
+      failed:
+        "Konnte auf diesem Gerät nicht gespeichert werden — der Speicher ist voll oder blockiert. Die Dokumente bleiben auf {{value}}.",
+    },
+    currency: {
+      title: "Währung für neue Exemplare",
+      body_one:
+        "Wird beim Hinzufügen vorgeschlagen. Das eine gespeicherte Exemplar behält seine Währung.",
+      body_other:
+        "Wird beim Hinzufügen vorgeschlagen. Die {{count}} gespeicherten Exemplare behalten ihre Währung.",
+      failed:
+        "Konnte auf diesem Gerät nicht gespeichert werden — der Speicher ist voll oder blockiert. Neue Exemplare verwenden weiterhin {{value}}.",
+    },
+    sync: {
+      title: "Geräteübergreifend synchronisieren",
+      lastSynced: "Zuletzt {{when}} abgeglichen",
+      never: "Noch nicht abgeglichen",
+      anonymous_one: "Ein Exemplar liegt nur auf diesem Gerät",
+      anonymous_other: "{{count}} Exemplare liegen nur auf diesem Gerät",
+      signIn: "Anmelden",
+      failed:
+        "Konnte auf diesem Gerät nicht geändert werden — der Speicher ist voll oder blockiert.",
+    },
+    local: {
+      title: "Lokale Kopie behalten",
+      body: "Funktioniert in diesem Browser auch offline",
+      always: "Die App liest aus dieser Kopie, sie lässt sich daher nicht abschalten.",
+    },
+    searches: {
+      title: "Zuletzt gesuchte Begriffe",
+      body_one: "Ein Begriff für die Suche im Hinzufügen-Dialog",
+      body_other: "{{count}} Begriffe für die Suche im Hinzufügen-Dialog",
+      empty: "Nichts auf diesem Gerät gespeichert",
+      clear: "Löschen",
+      cleared_one: "1 gelöscht",
+      cleared_other: "{{count}} gelöscht",
+      failed: "Konnten nicht gelöscht werden — der Speicher ist voll oder blockiert.",
+    },
+    footnote: {
+      saves:
+        "Änderungen werden sofort gespeichert. Name, E-Mail, Exporte und Freigabe stehen unter",
+    },
+  },  sharing: {
     title: "Freigabe",
     noHandle: {
       body: "Wähl einen Handle, dann kannst du festlegen, wer deine Sammlung und deine Wunschliste sieht. Bis dahin wird nichts geteilt.",
@@ -1288,11 +1427,20 @@ const deCommon: CommonSchema = {
     title: "Konto",
     since: "sammelt seit {{year}}",
     passwordBody: "Änderbar über den Zurücksetzen-Link auf der Anmeldeseite.",
+    deviceSettings: {
+      title: "Synchronisierung, Offline-Kopie und Sprache",
+      body: "Pro Gerät, unter Einstellungen",
+    },
     stat: {
       copies: "Exemplare",
       releases: "Veröffentlichungen",
       spent: "insgesamt ausgegeben",
       average: "im Schnitt pro Exemplar",
+      spentIn: "insgesamt ausgegeben, {{currency}}",
+      averageIn: "im Schnitt, {{currency}}",
+      mixedPart_one: "{{count}} Exemplar in {{currency}}",
+      mixedPart_other: "{{count}} Exemplare in {{currency}}",
+      mixedNote: "Beträge werden nie umgerechnet, nichts hier hängt von einem Kurs ab.",
     },
     section: {
       legal: "Rechtliches & Datenschutz",

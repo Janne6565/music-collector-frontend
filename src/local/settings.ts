@@ -1,8 +1,9 @@
+import { type CurrencyCode, DEFAULT_CURRENCY, isCurrencyCode } from "@/domain/currency";
 import type { LegalLanguage, LocalStore } from "@janne6565/music-collector-shared";
 import type { WishSort } from "@janne6565/music-collector-shared";
 import { parseWishSort } from "@janne6565/music-collector-shared";
 /**
- * The handful of device-local preferences the account screen exposes.
+ * The device-local preferences Settings (20a) exposes.
  *
  * They live in the local store rather than in Redux because they have to survive a reload
  * before the session is restored — the sync loop consults `syncEnabled` on the first tick,
@@ -112,4 +113,44 @@ export async function writeDocumentLanguage(
   language: LegalLanguage,
 ): Promise<void> {
   await store.writeSetting(DOCUMENT_LANGUAGE, language);
+}
+
+const APP_LANGUAGE = "appLanguage";
+const DEFAULT_CURRENCY_KEY = "defaultCurrency";
+
+/**
+ * The interface language, or "system" for the browser's own answer.
+ *
+ * "system" is a real third value rather than the absence of a stored one: somebody who has
+ * chosen English on a German laptop and then changes their mind needs a way back to
+ * following the browser, and deleting the setting is not something a picker can express.
+ */
+export type AppLanguage = "system" | "en" | "de";
+
+export async function readAppLanguage(store: LocalStore): Promise<AppLanguage> {
+  const stored = await store.readSetting(APP_LANGUAGE);
+  return stored === "en" || stored === "de" ? stored : "system";
+}
+
+export async function writeAppLanguage(store: LocalStore, language: AppLanguage): Promise<void> {
+  await store.writeSetting(APP_LANGUAGE, language);
+}
+
+/**
+ * The currency new copies start in.
+ *
+ * Per device and never synced, like everything else here — and, unlike everything else
+ * here, it is only ever a *starting* value. Once a copy is saved its currency is part of
+ * that purchase, and changing this setting must not rewrite history.
+ */
+export async function readDefaultCurrency(store: LocalStore): Promise<CurrencyCode> {
+  const stored = await store.readSetting(DEFAULT_CURRENCY_KEY);
+  return stored !== undefined && isCurrencyCode(stored) ? stored : DEFAULT_CURRENCY;
+}
+
+export async function writeDefaultCurrency(
+  store: LocalStore,
+  currency: CurrencyCode,
+): Promise<void> {
+  await store.writeSetting(DEFAULT_CURRENCY_KEY, currency);
 }

@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as ForgotRouteImport } from './routes/forgot'
 import { Route as ResetRouteImport } from './routes/reset'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SigninRouteImport } from './routes/signin'
 import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as HandleIndexRouteImport } from './routes/$handle.index'
@@ -42,6 +43,11 @@ const ForgotRoute = ForgotRouteImport.update({
 const ResetRoute = ResetRouteImport.update({
   id: '/reset',
   path: '/reset',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SigninRoute = SigninRouteImport.update({
@@ -100,6 +106,7 @@ export interface FileRoutesByFullPath {
   '/account': typeof AccountRoute
   '/forgot': typeof ForgotRoute
   '/reset': typeof ResetRoute
+  '/settings': typeof SettingsRoute
   '/signin': typeof SigninRoute
   '/wishlist': typeof WishlistRoute
   '/$handle/wishlist': typeof HandleWishlistRoute
@@ -116,6 +123,7 @@ export interface FileRoutesByTo {
   '/account': typeof AccountRoute
   '/forgot': typeof ForgotRoute
   '/reset': typeof ResetRoute
+  '/settings': typeof SettingsRoute
   '/signin': typeof SigninRoute
   '/wishlist': typeof WishlistRoute
   '/$handle/wishlist': typeof HandleWishlistRoute
@@ -133,6 +141,7 @@ export interface FileRoutesById {
   '/account': typeof AccountRoute
   '/forgot': typeof ForgotRoute
   '/reset': typeof ResetRoute
+  '/settings': typeof SettingsRoute
   '/signin': typeof SigninRoute
   '/wishlist': typeof WishlistRoute
   '/$handle/wishlist': typeof HandleWishlistRoute
@@ -151,6 +160,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/forgot'
     | '/reset'
+    | '/settings'
     | '/signin'
     | '/wishlist'
     | '/$handle/wishlist'
@@ -167,6 +177,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/forgot'
     | '/reset'
+    | '/settings'
     | '/signin'
     | '/wishlist'
     | '/$handle/wishlist'
@@ -183,6 +194,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/forgot'
     | '/reset'
+    | '/settings'
     | '/signin'
     | '/wishlist'
     | '/$handle/wishlist'
@@ -200,6 +212,7 @@ export interface RootRouteChildren {
   AccountRoute: typeof AccountRoute
   ForgotRoute: typeof ForgotRoute
   ResetRoute: typeof ResetRoute
+  SettingsRoute: typeof SettingsRoute
   SigninRoute: typeof SigninRoute
   WishlistRoute: typeof WishlistRoute
   HandleWishlistRoute: typeof HandleWishlistRoute
@@ -240,6 +253,13 @@ declare module '@tanstack/react-router' {
       path: '/reset'
       fullPath: '/reset'
       preLoaderRoute: typeof ResetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/signin': {
@@ -320,6 +340,7 @@ const rootRouteChildren: RootRouteChildren = {
   AccountRoute: AccountRoute,
   ForgotRoute: ForgotRoute,
   ResetRoute: ResetRoute,
+  SettingsRoute: SettingsRoute,
   SigninRoute: SigninRoute,
   WishlistRoute: WishlistRoute,
   HandleWishlistRoute: HandleWishlistRoute,

@@ -1,27 +1,29 @@
 import { AppShell } from "@/components/layout/AppShell";
-import { Button, Toggle, buttonClassName } from "@/components/ui";
-import { formatRelativeTime } from "@/domain/relativeTime";
+import { Card, LinkRow, Row, SectionTitle } from "@/components/rows";
+import { Button, buttonClassName } from "@/components/ui";
+import { formatMoney } from "@/domain/currency";
 import { useAccountLogic } from "@/features/account/useAccountLogic";
+import { useCollectionSpend } from "@/features/account/useCollectionSpend";
 import { SharingPanel } from "@/features/friends/SharingPanel";
 import { Link, Navigate } from "@tanstack/react-router";
 import {
-  ChevronRight,
   FileArchive,
   FileDown,
   FileText,
-  HardDrive,
+  Info,
   LogOut,
-  RefreshCw,
+  Settings as SettingsIcon,
   ShieldCheck,
   UserRound,
 } from "lucide-react";
-import { type ReactNode, useId } from "react";
+import { useId } from "react";
 import { useTranslation } from "react-i18next";
 
 /** Screen 7a — reached by clicking your name in the sidebar footer. */
 export function AccountPage() {
   const { t, i18n } = useTranslation();
   const logic = useAccountLogic();
+  const spend = useCollectionSpend();
 
   // Nothing on this page means anything without an account, and a signed-out person who
   // lands here wanted the sign-in screen.
@@ -63,14 +65,58 @@ export function AccountPage() {
               label={t("account.stat.releases")}
             />
             <Stat
-              value={money(logic.stats?.totalSpentCents, i18n.language)}
-              label={t("account.stat.spent")}
+              value={
+                spend.length === 0
+                  ? "—"
+                  : spend
+                      .map((entry) => formatMoney(entry.totalCents, entry.currency, i18n.language))
+                      .join(" + ")
+              }
+              label={
+                spend.length === 1
+                  ? t("account.stat.spentIn", { currency: spend[0].currency })
+                  : t("account.stat.spent")
+              }
             />
             <Stat
-              value={money(logic.stats?.averageSpentCents, i18n.language)}
-              label={t("account.stat.average")}
+              value={
+                spend.length === 0
+                  ? "—"
+                  : spend
+                      .map((entry) =>
+                        formatMoney(
+                          Math.round(entry.totalCents / entry.copies),
+                          entry.currency,
+                          i18n.language,
+                        ),
+                      )
+                      .join(" · ")
+              }
+              label={
+                spend.length === 1
+                  ? t("account.stat.averageIn", { currency: spend[0].currency })
+                  : t("account.stat.average")
+              }
             />
           </div>
+          {/* Never converted, so nothing here depends on an exchange rate — which is the
+              whole reason the total splits instead of adding up (20d). */}
+          {spend.length > 1 && (
+            <p className="mt-2.5 flex items-start gap-2 px-0.5 text-[11.5px] leading-relaxed text-ink-subtle">
+              <Info size={13} strokeWidth={1.75} aria-hidden className="mt-0.5 flex-none" />
+              <span>
+                {spend
+                  .map((entry) =>
+                    t("account.stat.mixedPart", {
+                      count: entry.copies,
+                      currency: entry.currency,
+                    }),
+                  )
+                  .join(", ")}
+                . {t("account.stat.mixedNote")}
+              </span>
+            </p>
+          )}
 
           <SectionTitle>{t("account.section.profile")}</SectionTitle>
           <Card>
@@ -92,38 +138,15 @@ export function AccountPage() {
 
           <SectionTitle>{t("account.section.storage")}</SectionTitle>
           <Card>
-            <Row
-              icon={<RefreshCw size={16} strokeWidth={1.75} aria-hidden />}
-              title={t("account.sync.title")}
-              body={
-                logic.lastSyncedAt === null
-                  ? t("account.sync.never")
-                  : t("account.sync.last", {
-                      when: formatRelativeTime(logic.lastSyncedAt, i18n.language),
-                    })
-              }
-              trailing={
-                <Toggle
-                  checked={logic.syncEnabled}
-                  onChange={logic.setSyncEnabled}
-                  label={t("account.sync.title")}
-                />
-              }
-            />
-            <Row
-              icon={<HardDrive size={16} strokeWidth={1.75} aria-hidden />}
-              title={t("account.local.title")}
-              body={t("account.local.body")}
-              trailing={
-                // Fixed on, and honest about it. Every screen in the app reads from the
-                // local store, so a switch that turned it off would break reading rather
-                // than change where data lives.
-                <Toggle
-                  checked
-                  label={t("account.local.title")}
-                  disabledReason={t("account.local.always")}
-                />
-              }
+            {/* 20f: the two device toggles moved to Settings, because they describe this
+                browser rather than the account. One pointer row replaces them, so the sync
+                switch stays findable from the page people already know it by — and it is
+                the only thing left on Account that mentions a device at all. */}
+            <LinkRow
+              to="/settings"
+              icon={<SettingsIcon size={16} strokeWidth={1.75} aria-hidden />}
+              title={t("account.deviceSettings.title")}
+              body={t("account.deviceSettings.body")}
             />
             {/* Two files, not one. The collection and the wishlist are different shapes —
                 a copy has a price, a condition and a pressing; a wish has an album and a
@@ -301,76 +324,7 @@ function NameRow({ value, onChange, onSave, changed, saving, failed }: NameRowPr
   );
 }
 
-function SectionTitle({ children }: { readonly children: ReactNode }) {
-  return (
-    <h2 className="mt-8 font-mono text-[10px] uppercase tracking-[0.1em] text-ink-subtle">
-      {children}
-    </h2>
-  );
-}
-
-function Card({ children }: { readonly children: ReactNode }) {
-  return (
-    <div className="mt-2.5 overflow-hidden rounded-xl border border-line bg-surface">
-      {children}
-    </div>
-  );
-}
-
-interface RowProps {
-  readonly icon?: ReactNode;
-  readonly title: string;
-  readonly body: string;
-  readonly trailing?: ReactNode;
-}
-
-function Row({ icon, title, body, trailing }: RowProps) {
-  return (
-    <div className="flex items-center justify-between gap-4 border-b border-line px-4 py-3.5 last:border-b-0">
-      <div className="flex min-w-0 items-center gap-2.5">
-        {icon !== undefined && <span className="flex-none text-ink-subtle">{icon}</span>}
-        <div className="min-w-0">
-          <div className="text-[13px] font-semibold">{title}</div>
-          <div className="truncate text-[11.5px] text-ink-muted">{body}</div>
-        </div>
-      </div>
-      {trailing}
-    </div>
-  );
-}
-
-interface LinkRowProps {
-  readonly to: string;
-  readonly params?: Record<string, string>;
-  readonly icon: ReactNode;
-  readonly title: string;
-  readonly body: string;
-}
-
 /** A {@link Row} that goes somewhere, so the whole row is the target rather than a word in it. */
-function LinkRow({ to, params, icon, title, body }: LinkRowProps) {
-  return (
-    <Link
-      to={to}
-      params={params}
-      className="flex items-center justify-between gap-4 border-b border-line px-4 py-3.5 no-underline transition-colors duration-(--mc-quick) last:border-b-0 hover:bg-canvas"
-    >
-      <div className="flex min-w-0 items-center gap-2.5">
-        <span className="flex-none text-ink-subtle">{icon}</span>
-        <div className="min-w-0">
-          <div className="text-[13px] font-semibold">{title}</div>
-          <div className="truncate text-[11.5px] text-ink-muted">{body}</div>
-        </div>
-      </div>
-      <ChevronRight
-        size={16}
-        strokeWidth={1.75}
-        aria-hidden
-        className="flex-none text-ink-subtle"
-      />
-    </Link>
-  );
-}
 
 function Stat({
   value,
@@ -385,14 +339,4 @@ function Stat({
       <div className="mt-0.5 text-[11px] text-ink-muted">{label}</div>
     </div>
   );
-}
-
-/** Whole euros: the deck shows "€3,120", and the cents are noise at this size. */
-function money(cents: number | undefined, language: string): string {
-  if (cents === undefined) return "—";
-  return new Intl.NumberFormat(language, {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 0,
-  }).format(cents / 100);
 }

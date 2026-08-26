@@ -3,7 +3,12 @@ import { fromCsv } from "@/domain/csv";
 import { useSatisfyWishes } from "@/features/wishlist/useSatisfyWishes";
 import { useStore } from "@/local/StoreProvider";
 import { rememberCopyOrigins } from "@/local/dexieStore";
-import { clearRecentSearches, readRecentSearches, rememberSearch } from "@/local/settings";
+import {
+  clearRecentSearches,
+  readDefaultCurrency,
+  readRecentSearches,
+  rememberSearch,
+} from "@/local/settings";
 import type {
   Artist,
   CopyDraft,
@@ -41,17 +46,25 @@ const DEBOUNCE_MS = 350;
 /** Below this, a title search matches most of the archive and tells you nothing. */
 const MIN_TERM_LENGTH = 2;
 
-const EMPTY_DRAFT: CopyDraft = {
-  condition: null,
-  sleeveCondition: null,
-  catalogArt: "AUTO",
-  pricePaidCents: null,
-  currency: "EUR",
-  purchasedOn: null,
-  purchasedAt: null,
-  notes: null,
-  rating: null,
-};
+/**
+ * A copy added from a search result, before anybody has edited it.
+ *
+ * Takes the currency rather than hardcoding one: since 20a the device has a default, and
+ * the whole point of that setting is that it reaches the copies this path creates.
+ */
+function emptyDraft(currency: string): CopyDraft {
+  return {
+    condition: null,
+    sleeveCondition: null,
+    catalogArt: "AUTO",
+    pricePaidCents: null,
+    currency,
+    purchasedOn: null,
+    purchasedAt: null,
+    notes: null,
+    rating: null,
+  };
+}
 
 /**
  * Fetches and stores one release's cover theme without anyone waiting for it.
@@ -158,7 +171,13 @@ export function useAddDialogLogic(
       // Cache the release alongside the copy: every screen reads release metadata from the
       // local store and must keep working with no network at all.
       await store.cacheReleases([release]);
-      const copy = createCopy(release, EMPTY_DRAFT, clock, Date.now(), crypto.randomUUID());
+      const copy = createCopy(
+        release,
+        emptyDraft(await readDefaultCurrency(store)),
+        clock,
+        Date.now(),
+        crypto.randomUUID(),
+      );
       await store.putCopy(copy);
       // One record, added by a person: the only origin that reaches anybody's feed.
       await rememberCopyOrigins(store, [copy.id], "MANUAL");

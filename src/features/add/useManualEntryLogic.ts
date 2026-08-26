@@ -1,5 +1,6 @@
 import { useStore } from "@/local/StoreProvider";
 import { rememberCopyOrigins } from "@/local/dexieStore";
+import { readDefaultCurrency } from "@/local/settings";
 import type {
   Condition,
   CopyDraft,
@@ -130,7 +131,7 @@ export function useManualEntryLogic(onAdded: (copyId: string) => void) {
         sleeveCondition: null,
         catalogArt: "AUTO",
         pricePaidCents: price,
-        currency: "EUR",
+        currency: await readDefaultCurrency(store),
         purchasedOn: null,
         purchasedAt: blankToNull(fields.shop),
         notes: blankToNull(fields.note),

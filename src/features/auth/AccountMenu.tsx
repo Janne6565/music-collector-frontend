@@ -43,20 +43,15 @@ export function AccountMenu({ id, onNavigate, signOut }: AccountMenuProps) {
             <User size={14} strokeWidth={1.75} className="flex-none text-ink-subtle" aria-hidden />
             {t("account.title")}
           </MenuLink>
-          {/* Designed in 19a, not built: there is no settings route yet. Shown disabled and
-              labelled rather than dropped, so the menu matches the deck and says why. */}
-          <button
-            type="button"
-            role="menuitem"
-            disabled
-            className={cn(itemClassName, "w-full cursor-default text-ink-subtle")}
-          >
-            <Settings size={14} strokeWidth={1.75} className="flex-none" aria-hidden />
+          <MenuLink to="/settings" onNavigate={onNavigate}>
+            <Settings
+              size={14}
+              strokeWidth={1.75}
+              className="flex-none text-ink-subtle"
+              aria-hidden
+            />
             {t("nav.settings")}
-            <span className="ml-auto font-mono text-[9.5px] uppercase tracking-[0.08em]">
-              {t("account.menu.soon")}
-            </span>
-          </button>
+          </MenuLink>
           <Divider />
         </>
       )}

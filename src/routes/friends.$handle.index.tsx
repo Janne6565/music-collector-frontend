@@ -1,4 +1,5 @@
 import { ProfilePage } from "@/features/friends/ProfilePage";
+import { replacesHistory, validateCopySearch } from "@/features/friends/profileSearch";
 import { createFileRoute } from "@tanstack/react-router";
 
 /**
@@ -9,10 +10,20 @@ import { createFileRoute } from "@tanstack/react-router";
  * `<Outlet />` swallows its child whole.
  */
 export const Route = createFileRoute("/friends/$handle/")({
+  validateSearch: validateCopySearch,
   component: FriendCollection,
 });
 
 function FriendCollection() {
   const { handle } = Route.useParams();
-  return <ProfilePage handle={handle} tab="collection" />;
+  const { copy } = Route.useSearch();
+  const navigate = Route.useNavigate();
+  return (
+    <ProfilePage
+      handle={handle}
+      tab="collection"
+      openId={copy}
+      onOpen={(id) => void navigate({ search: { copy: id }, replace: replacesHistory(copy) })}
+    />
+  );
 }

@@ -2,6 +2,7 @@ import { cn } from "@/lib/utils";
 import { DURATION } from "@janne6565/music-collector-shared";
 import { X } from "lucide-react";
 import {
+  type CSSProperties,
   type ReactNode,
   createContext,
   useCallback,
@@ -48,6 +49,32 @@ interface ModalProps {
    * where a stray click is an accident.
    */
   readonly holdOnBackdrop?: boolean;
+  /**
+   * Where the panel sits in the viewport.
+   *
+   * `top` is the sheet every editing dialog uses — it starts below the header so the page
+   * it was lifted from stays recognisable. `center` is 23a's detail sheet, which has a
+   * square of artwork in it and nothing to type into: hung from the top it would sit with
+   * its weight in the upper half and a band of dim underneath.
+   */
+  readonly align?: "top" | "center";
+  /**
+   * Whether the panel becomes a bottom sheet on a phone (23e).
+   *
+   * Under 640px a centred box with 24px of dim around it wastes the only screen where
+   * space is scarce, so the panel goes full width, keeps its top corners and loses its
+   * bottom ones. The width prop still governs every larger screen.
+   */
+  readonly phoneSheet?: boolean;
+  /**
+   * Chrome painted on the dim itself rather than in the panel — 23a's prev/next.
+   *
+   * It lives inside the <dialog>, because an element outside it is inert while a modal is
+   * open, and it is positioned by the caller against the viewport.
+   */
+  readonly overlay?: ReactNode;
+  /** A quiet line under the panel, on the dim: the keyboard hints on 23a. */
+  readonly footnote?: ReactNode;
   readonly children: ReactNode;
 }
 
@@ -64,7 +91,17 @@ interface ModalProps {
  * the backdrop, saving — takes the same 120ms exit. Nothing is faster: a keypress that
  * skips the animation reads as a crash.
  */
-export function Modal({ onClose, labelledBy, width, holdOnBackdrop, children }: ModalProps) {
+export function Modal({
+  onClose,
+  labelledBy,
+  width,
+  holdOnBackdrop,
+  align = "top",
+  phoneSheet = false,
+  overlay,
+  footnote,
+  children,
+}: ModalProps) {
   const ref = useRef<HTMLDialogElement>(null);
   const [closing, setClosing] = useState(false);
   const [nudging, setNudging] = useState(false);
@@ -123,7 +160,11 @@ export function Modal({ onClose, labelledBy, width, holdOnBackdrop, children }: 
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: the keyboard gesture for this is
           Escape, which the browser already delivers to the dialog as `cancel`. */}
       <div
-        className="flex h-full items-start justify-center p-6 pt-[70px]"
+        className={cn(
+          "flex h-full justify-center p-6",
+          align === "center" ? "items-center" : "items-start pt-[70px]",
+          phoneSheet && "max-sm:items-end max-sm:p-0",
+        )}
         onMouseDown={(event) => {
           pressedBackdrop.current = event.target === event.currentTarget;
         }}
@@ -136,16 +177,33 @@ export function Modal({ onClose, labelledBy, width, holdOnBackdrop, children }: 
         }}
       >
         <ModalContext.Provider value={{ dismiss, refused: nudging }}>
+          {overlay}
+          {/*
+           * Panel and footnote are one column, so the hints under 23a's sheet stay with
+           * it however tall the panel turns out to be. The inline width is a variable
+           * rather than a max-width, because a phone sheet has to drop it again and an
+           * inline style cannot be overridden by a class.
+           */}
           <div
-            data-closing={closing}
             className={cn(
-              "mc-lift flex max-h-full w-full flex-col overflow-hidden rounded-[14px]",
-              "bg-paper text-ink shadow-[0_24px_60px_rgba(25,23,19,.28)]",
-              nudging && "mc-nudge",
+              "flex max-h-full w-full min-w-0 flex-col items-center gap-3.5",
+              "max-w-(--mc-modal-width)",
+              phoneSheet && "max-sm:max-w-none max-sm:gap-0",
             )}
-            style={{ maxWidth: width }}
+            style={{ "--mc-modal-width": width } as CSSProperties}
           >
-            {children}
+            <div
+              data-closing={closing}
+              className={cn(
+                "mc-lift flex max-h-full w-full min-h-0 flex-col overflow-hidden rounded-[14px]",
+                "bg-paper text-ink shadow-[0_24px_60px_rgba(25,23,19,.28)]",
+                phoneSheet && "max-sm:rounded-b-none",
+                nudging && "mc-nudge",
+              )}
+            >
+              {children}
+            </div>
+            {footnote}
           </div>
         </ModalContext.Provider>
       </div>

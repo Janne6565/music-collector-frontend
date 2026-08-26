@@ -4,14 +4,19 @@ import { AppShell } from "@/components/layout/AppShell";
 import { Button, PulsingDots, Skeleton } from "@/components/ui";
 import { formatMoney } from "@/features/detail/DetailPage";
 import { Avatar } from "@/features/friends/Avatar";
+import type { DetailFact, SharedDetailItem } from "@/features/friends/SharedDetailModal";
+import { SharedDetailModal } from "@/features/friends/SharedDetailModal";
 import { useProfileLogic } from "@/features/friends/useProfileLogic";
 import { useSharedCoverPhotos } from "@/features/friends/useSharedCoverPhotos";
+import { useSharedDetailLogic } from "@/features/friends/useSharedDetailLogic";
 import { useSharedWishCovers } from "@/features/friends/useSharedWishCovers";
 import { useCollectionStats } from "@/features/library/useLibraryLogic";
-import type { Format } from "@janne6565/music-collector-shared";
-import { FORMAT_LABELS } from "@janne6565/music-collector-shared";
+import { cn } from "@/lib/utils";
+import type { Condition, Format } from "@janne6565/music-collector-shared";
+import { CONDITION_SHORT, FORMAT_LABELS } from "@janne6565/music-collector-shared";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ChevronLeft, Lock, UserCheck, UserPlus } from "lucide-react";
+import type { TFunction } from "i18next";
+import { ChevronLeft, ChevronRight, Lock, UserCheck, UserPlus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 /** Which half of a profile is on screen. Each half has its own address. */
@@ -24,7 +29,14 @@ export type ProfileTab = "collection" | "wishlist";
 export function ProfilePage({
   handle,
   tab,
-}: { readonly handle: string; readonly tab: ProfileTab }) {
+  openId,
+  onOpen,
+}: {
+  readonly handle: string;
+  readonly tab: ProfileTab;
+  readonly openId?: string;
+  readonly onOpen: (id: string | undefined) => void;
+}) {
   const stats = useCollectionStats();
   const logic = useProfileLogic(handle);
   const navigate = useNavigate();
@@ -42,6 +54,8 @@ export function ProfilePage({
           )
         }
         backTo="/friends"
+        openId={openId}
+        onOpen={onOpen}
       />
     </AppShell>
   );
@@ -59,6 +73,8 @@ export function ProfileBody({
   tab,
   onTab,
   backTo,
+  openId,
+  onOpen,
 }: {
   readonly logic: Logic;
   readonly tab: ProfileTab;
@@ -69,9 +85,28 @@ export function ProfileBody({
    */
   readonly onTab: (tab: ProfileTab) => void;
   readonly backTo?: string;
+  /** The record the detail sheet is showing, straight out of the route's search (23a). */
+  readonly openId?: string;
+  readonly onOpen: (id: string | undefined) => void;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const person = logic.person;
+  const collection = tab === "collection";
+  /*
+   * Only the half on screen is resolved. Both lists are fetched as soon as the profile
+   * says they may be read, but the pictures behind them are a request each — and the
+   * wishlist's covers are looked up one album at a time — so the tab that nobody is
+   * looking at is handed nothing to resolve.
+   */
+  const copies = collection ? logic.copies : NO_COPIES;
+  const wishes = collection ? NO_WISHES : logic.wishes;
+  const photos = useSharedCoverPhotos(copies);
+  const covers = useSharedWishCovers(wishes);
+  const detail = useSharedDetailLogic(
+    collection ? copies.map((copy) => copy.id) : wishes.map((wish) => wish.id),
+    openId,
+    onOpen,
+  );
 
   if (logic.loading) {
     return (
@@ -93,7 +128,9 @@ export function ProfileBody({
   }
 
   const name = person.displayName ?? person.handle ?? "";
-  const showing = tab === "collection" ? person.canSeeCollection : person.canSeeWishlist;
+  const showing = collection ? person.canSeeCollection : person.canSeeWishlist;
+  /** The owner's switch on 15f, which the sheet obeys exactly as the tiles do. */
+  const prices = person.pricesVisible !== false;
 
   return (
     <div className="min-h-0 flex-1 overflow-y-auto px-7 pb-10 pt-6">
@@ -155,12 +192,164 @@ export function ProfileBody({
             <Skeleton key={tile} className="aspect-square rounded-lg" />
           ))}
         </div>
-      ) : tab === "collection" ? (
-        <CollectionGrid copies={logic.copies} truncated={logic.copiesTruncated} />
+      ) : collection ? (
+        <CollectionGrid
+          copies={copies}
+          photos={photos}
+          truncated={logic.copiesTruncated}
+          onOpen={onOpen}
+        />
       ) : (
-        <WishRows wishes={logic.wishes} />
+        <WishRows wishes={wishes} covers={covers} onOpen={onOpen} />
+      )}
+
+      {showing && detail.open && (
+        <SharedDetailModal
+          detail={detail}
+          item={
+            collection
+              ? copyDetail(copies[detail.index], photos, t, i18n.language, name, prices)
+              : wishDetail(wishes[detail.index], covers, t)
+          }
+        />
       )}
     </div>
+  );
+}
+
+/**
+ * Stable empties for the half of the page that is not on screen.
+ *
+ * A fresh `[]` each render would restart the effects behind the pictures on every keypress
+ * elsewhere in the tree.
+ */
+const NO_COPIES: readonly SharedCopyDto[] = [];
+const NO_WISHES: readonly SharedWishDto[] = [];
+
+/**
+ * A copy as 23a draws it.
+ *
+ * Every field is optional on the wire and each absent one simply is not in the list, which
+ * is what lets the same sheet hold the full catalogue case and a hand-entered cassette with
+ * a photo and nothing else. Prices obey the owner's switch (15f) rather than being blanked
+ * out: a dash where a price would be still says how much attention the field deserves.
+ */
+function copyDetail(
+  copy: SharedCopyDto | undefined,
+  photos: ReadonlyMap<string, string>,
+  t: TFunction,
+  language: string,
+  owner: string,
+  prices: boolean,
+): SharedDetailItem {
+  const facts: DetailFact[] = [];
+  const push = (key: string, label: string, value: string | undefined, chip?: boolean) => {
+    if (value !== undefined && value !== "") facts.push({ key, label, value, chip });
+  };
+
+  push("year", t("profile.detail.year"), copy?.year?.toString());
+  push(
+    "format",
+    t("profile.detail.format"),
+    copy?.format === undefined ? undefined : FORMAT_LABELS[copy.format],
+  );
+  push("media", t("profile.detail.media"), conditionCode(copy?.condition), true);
+  push("sleeve", t("profile.detail.sleeve"), conditionCode(copy?.sleeveCondition), true);
+  push(
+    "paid",
+    t("profile.detail.paid"),
+    prices && copy?.pricePaidCents !== undefined && copy.currency !== undefined
+      ? formatMoney(copy.pricePaidCents, copy.currency)
+      : undefined,
+  );
+  const added = copy?.createdAt === undefined ? undefined : monthAndYear(copy.createdAt, language);
+  push("added", t("profile.detail.added"), added);
+
+  // 23e: two columns hold four cells at 390px, so the conditions share a line and the date
+  // moves under the rule into the footer.
+  const conditions = [conditionCode(copy?.condition), conditionCode(copy?.sleeveCondition)]
+    .filter((code) => code !== undefined)
+    .join(" · ");
+  const phoneFacts = facts.filter((fact) => !["media", "sleeve", "added"].includes(fact.key));
+  if (conditions !== "")
+    phoneFacts.splice(2, 0, {
+      key: "conditions",
+      label: t("profile.detail.mediaSleeve"),
+      value: conditions,
+      chip: true,
+    });
+
+  return {
+    title: copy?.title ?? "",
+    artistName: copy?.artistName ?? "",
+    art: (
+      <ReleaseArt
+        release={{ coverArtUrl: copy?.coverArtUrl ?? null, format: copy?.format }}
+        format={copy?.format}
+        previewSrc={copy?.id === undefined ? null : (photos.get(copy.id) ?? null)}
+        variant="bleed"
+        loading="eager"
+      />
+    ),
+    facts,
+    phoneFacts,
+    phoneFootnote: added === undefined ? undefined : t("profile.detail.addedOn", { when: added }),
+    note: prices ? t("profile.detail.ownerCopy", { name: owner }) : t("profile.detail.hidden"),
+  };
+}
+
+/** The same sheet with less in it (23c): a wish knows four things and one of them is a hope. */
+function wishDetail(
+  wish: SharedWishDto | undefined,
+  covers: ReadonlyMap<string, string | null>,
+  t: TFunction,
+): SharedDetailItem {
+  const facts: DetailFact[] = [];
+  if (wish?.year !== undefined)
+    facts.push({ key: "year", label: t("profile.detail.year"), value: wish.year.toString() });
+  if (wish?.desiredFormat !== undefined)
+    facts.push({
+      key: "lookingFor",
+      label: t("profile.detail.lookingFor"),
+      value: FORMAT_LABELS[wishFormat(wish)],
+    });
+
+  return {
+    eyebrow: t("profile.detail.wishlist"),
+    title: wish?.title ?? "",
+    artistName: wish?.artistName ?? "",
+    art: (
+      <ReleaseArt
+        release={{
+          coverArtUrl: wish?.albumId === undefined ? null : (covers.get(wish.albumId) ?? null),
+        }}
+        format={wish === undefined ? "OTHER" : wishFormat(wish)}
+        variant="bleed"
+        loading="eager"
+      />
+    ),
+    facts,
+    phoneFacts: facts,
+    note: t("profile.detail.notOwned"),
+  };
+}
+
+/**
+ * The short code for a condition that crossed the wire as a plain string.
+ *
+ * Checked rather than cast, for the same reason `wishFormat` is: a grade these clients do
+ * not know must leave the field out instead of printing `undefined` in a chip.
+ */
+function conditionCode(condition: string | undefined): string | undefined {
+  return condition !== undefined && condition in CONDITION_SHORT
+    ? CONDITION_SHORT[condition as Condition]
+    : undefined;
+}
+
+/** "March 2024" — the resolution an added-on date is worth on somebody else's shelf. */
+function monthAndYear(epochMillis: number, language: string): string {
+  return new Intl.DateTimeFormat(language, { month: "long", year: "numeric" }).format(
+    new Date(epochMillis),
   );
 }
 
@@ -251,15 +440,16 @@ function RelationshipAction({ logic }: { readonly logic: Logic }) {
 
 function CollectionGrid({
   copies,
+  photos,
   truncated,
-}: { readonly copies: readonly SharedCopyDto[]; readonly truncated: boolean }) {
+  onOpen,
+}: {
+  readonly copies: readonly SharedCopyDto[];
+  readonly photos: ReadonlyMap<string, string>;
+  readonly truncated: boolean;
+  readonly onOpen: (id: string) => void;
+}) {
   const { t } = useTranslation();
-  /*
-   * A hand-entered copy points at no catalogue and so can never have cover art — its
-   * picture is a photograph of the record, and without it every such tile on somebody
-   * else's shelf is a blank sleeve. Hooks run before the empty return below.
-   */
-  const photos = useSharedCoverPhotos(copies);
   if (copies.length === 0) {
     return <p className="mt-8 text-center text-[13px] text-ink-muted">{t("profile.emptyShelf")}</p>;
   }
@@ -267,12 +457,32 @@ function CollectionGrid({
     <>
       <div className="mt-5 grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-4">
         {copies.map((copy) => (
-          <article key={copy.id}>
+          /*
+           * A button rather than an article with a heading in it: every tile now opens
+           * something, and the whole tile is the target — a title that could be clicked
+           * while the sleeve above it could not would be the worst of both.
+           */
+          <button
+            key={copy.id}
+            type="button"
+            disabled={copy.id === undefined}
+            onClick={() => copy.id !== undefined && onOpen(copy.id)}
+            className={cn(
+              "group -m-2 block w-full cursor-pointer rounded-xl p-2 text-left",
+              "transition-colors duration-(--mc-quick) hover:bg-surface focus-visible:outline-none",
+            )}
+          >
             {/* The square is the tile, not decoration: ReleaseArt fills its parent and
                 FormatThumb places every part of the sleeve in percentages, so a box with
                 no height collapses the artwork to a strip and the title lands on the row
                 below. Same wrapper the library grid and the skeleton above both use. */}
-            <div className="relative aspect-square">
+            <div
+              className={cn(
+                "relative aspect-square rounded-lg transition-transform duration-(--mc-quick)",
+                "group-hover:-translate-y-0.5",
+                "group-focus-visible:ring-2 group-focus-visible:ring-ink group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-paper",
+              )}
+            >
               <ReleaseArt
                 release={{ coverArtUrl: copy.coverArtUrl ?? null, format: copy.format }}
                 format={copy.format}
@@ -280,8 +490,10 @@ function CollectionGrid({
                 loading="lazy"
               />
             </div>
-            <h3 className="mt-2 truncate text-[13px] font-medium text-ink">{copy.title}</h3>
-            <p className="truncate text-[11.5px] text-ink-muted">
+            <span className="mt-2 block truncate text-[13px] font-medium text-ink">
+              {copy.title}
+            </span>
+            <span className="block truncate text-[11.5px] text-ink-muted">
               {[
                 copy.artistName,
                 copy.format ? FORMAT_LABELS[copy.format] : undefined,
@@ -292,8 +504,8 @@ function CollectionGrid({
               ]
                 .filter(Boolean)
                 .join(" · ")}
-            </p>
-          </article>
+            </span>
+          </button>
         ))}
       </div>
       {truncated && (
@@ -303,13 +515,16 @@ function CollectionGrid({
   );
 }
 
-function WishRows({ wishes }: { readonly wishes: readonly SharedWishDto[] }) {
+function WishRows({
+  wishes,
+  covers,
+  onOpen,
+}: {
+  readonly wishes: readonly SharedWishDto[];
+  readonly covers: ReadonlyMap<string, string | null>;
+  readonly onOpen: (id: string) => void;
+}) {
   const { t } = useTranslation();
-  /*
-   * A wish names an album, and an album carries no artwork of its own — the picture is
-   * resolved rather than sent with the row. Hooks run before the empty return below.
-   */
-  const covers = useSharedWishCovers(wishes);
   if (wishes.length === 0) {
     return (
       <p className="mt-8 text-center text-[13px] text-ink-muted">{t("profile.emptyWishlist")}</p>
@@ -318,26 +533,46 @@ function WishRows({ wishes }: { readonly wishes: readonly SharedWishDto[] }) {
   return (
     <ul className="mt-4 flex list-none flex-col gap-1 p-0">
       {wishes.map((wish) => (
-        <li key={wish.id} className="flex items-center gap-3 rounded-lg px-3 py-2 odd:bg-surface">
-          {/* The wanted format is the silhouette, not the artwork: an entry for the vinyl
-              of a record they already have on CD should look like the thing being hunted.
-              Same 44px thumb as the owner's own list, so the two read as one screen. */}
-          <div className="h-11 w-11 flex-none">
-            <ReleaseArt
-              release={{
-                coverArtUrl: wish.albumId === undefined ? null : (covers.get(wish.albumId) ?? null),
-              }}
-              format={wishFormat(wish)}
-              loading="lazy"
+        <li key={wish.id} className="odd:bg-surface rounded-lg">
+          <button
+            type="button"
+            disabled={wish.id === undefined}
+            onClick={() => wish.id !== undefined && onOpen(wish.id)}
+            className={cn(
+              "group flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-left",
+              "transition-colors duration-(--mc-quick) hover:bg-ink/5",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-inset",
+            )}
+          >
+            {/* The wanted format is the silhouette, not the artwork: an entry for the vinyl
+                of a record they already have on CD should look like the thing being hunted.
+                Same 44px thumb as the owner's own list, so the two read as one screen. */}
+            <div className="h-11 w-11 flex-none">
+              <ReleaseArt
+                release={{
+                  coverArtUrl:
+                    wish.albumId === undefined ? null : (covers.get(wish.albumId) ?? null),
+                }}
+                format={wishFormat(wish)}
+                loading="lazy"
+              />
+            </div>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[13px] font-medium text-ink">{wish.title}</span>
+              <span className="block truncate text-[12px] text-ink-muted">{wish.artistName}</span>
+            </span>
+            <span className="flex-none font-mono text-[11px] uppercase tracking-[0.08em] text-ink-subtle">
+              {wish.desiredFormat ?? ""}
+            </span>
+            {/* Only on the row being pointed at: eleven of these down the page would be a
+                column of chevrons, and the list would stop being a list. */}
+            <ChevronRight
+              size={15}
+              strokeWidth={1.75}
+              aria-hidden
+              className="flex-none text-ink-subtle opacity-0 transition-opacity duration-(--mc-quick) group-hover:opacity-100 group-focus-visible:opacity-100"
             />
-          </div>
-          <span className="min-w-0 flex-1">
-            <span className="block truncate text-[13px] font-medium text-ink">{wish.title}</span>
-            <span className="block truncate text-[12px] text-ink-muted">{wish.artistName}</span>
-          </span>
-          <span className="flex-none font-mono text-[11px] uppercase tracking-[0.08em] text-ink-subtle">
-            {wish.desiredFormat ?? ""}
-          </span>
+          </button>
         </li>
       ))}
     </ul>

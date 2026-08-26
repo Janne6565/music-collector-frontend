@@ -18,7 +18,14 @@ import { useTranslation } from "react-i18next";
 export function PublicProfilePage({
   handle,
   tab,
-}: { readonly handle: string; readonly tab: ProfileTab }) {
+  openId,
+  onOpen,
+}: {
+  readonly handle: string;
+  readonly tab: ProfileTab;
+  readonly openId?: string;
+  readonly onOpen: (id: string | undefined) => void;
+}) {
   const { t } = useTranslation();
   const logic = useProfileLogic(handle.replace(/^@/, ""));
   const navigate = useNavigate();
@@ -62,6 +69,8 @@ export function PublicProfilePage({
                 : { to: "/$handle", params: { handle } },
             )
           }
+          openId={openId}
+          onOpen={onOpen}
         />
       </main>
 

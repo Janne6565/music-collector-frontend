@@ -2,6 +2,7 @@ import type { SharingSettingsDtoCollectionVisibility } from "@/api/generated/mus
 import { Toggle } from "@/components/ui";
 import { useSharingLogic } from "@/features/friends/useSharingLogic";
 import { cn } from "@/lib/utils";
+import { Link } from "@tanstack/react-router";
 import { Check, Copy, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -23,17 +24,49 @@ const CHOICES = [
  * friends-only shelf is the normal case, not an exotic one: what you are hunting for is a
  * much smaller thing to share than what you own.
  */
+/**
+ * The card is drawn here rather than by the caller.
+ *
+ * It used to be a wrapper on the account page, which meant that when this returned null —
+ * the normal state for anybody who has not claimed a handle — the border, background and
+ * padding were still painted and the page showed an empty box with nothing in it.
+ */
+const CARD = "mt-7 rounded-xl border border-line bg-surface p-5";
+
 export function SharingPanel() {
   const { t } = useTranslation();
   const logic = useSharingLogic();
   const settings = logic.settings;
+
+  // Still asking. Drawing the empty state first would tell somebody who *has* a handle
+  // that they need one, for as long as the request takes.
+  if (logic.loading) return null;
+
+  /**
+   * There is nothing to configure until there is a handle to configure it for — but that
+   * is worth saying, not worth hiding. Sharing is the one part of the account somebody
+   * comes looking for deliberately, and a section that silently is not there reads as a
+   * feature that does not exist rather than one waiting on a single step.
+   */
   if (!settings?.handle) {
-    // Nothing to configure until there is a handle to configure it for.
-    return null;
+    return (
+      <section className={CARD}>
+        <h2 className="font-serif text-[19px] leading-none text-ink">{t("sharing.title")}</h2>
+        <p className="mt-1.5 text-[12.5px] leading-normal text-ink-muted">
+          {t("sharing.noHandle.body")}
+        </p>
+        <Link
+          to="/friends"
+          className="mt-3.5 inline-flex h-[30px] items-center rounded-md border border-line px-3 text-xs text-ink transition-colors hover:bg-canvas"
+        >
+          {t("sharing.noHandle.action")}
+        </Link>
+      </section>
+    );
   }
 
   return (
-    <section className="flex flex-col gap-5">
+    <section className={cn(CARD, "flex flex-col gap-5")}>
       <div>
         <h2 className="font-serif text-[19px] leading-none text-ink">{t("sharing.title")}</h2>
         <p className="mt-1.5 text-[12.5px] text-ink-muted">@{settings.handle}</p>

@@ -189,10 +189,9 @@ export function AccountPage() {
 
           {/* Sharing sits with the account rather than with Friends: it is a decision about
               this account, and somebody looking for "who can see my collection" looks here
-              first. It draws nothing until a handle exists to configure it for. */}
-          <div className="mt-7 rounded-xl border border-line bg-surface p-5">
-            <SharingPanel />
-          </div>
+              first. It draws its own card, because until a handle exists there is only a
+              sentence to show and a wrapper here would frame an empty box. */}
+          <SharingPanel />
 
           <SectionTitle>{t("account.section.legal")}</SectionTitle>
           <Card>

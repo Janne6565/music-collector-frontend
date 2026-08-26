@@ -88,6 +88,10 @@ const enCommon = {
   },
   sharing: {
     title: "Sharing",
+    noHandle: {
+      body: "Pick a handle and you can choose who sees your collection and your wishlist. Nothing is shared until you do.",
+      action: "Pick a handle",
+    },
     copy: "Copy",
     copied: "Copied",
     perCopyNote:
@@ -815,6 +819,10 @@ const deCommon: CommonSchema = {
   },
   sharing: {
     title: "Freigabe",
+    noHandle: {
+      body: "Wähl einen Handle, dann kannst du festlegen, wer deine Sammlung und deine Wunschliste sieht. Bis dahin wird nichts geteilt.",
+      action: "Handle wählen",
+    },
     copy: "Kopieren",
     copied: "Kopiert",
     perCopyNote: "Einzelne Exemplare lassen sich unabhängig davon im Exemplar-Fenster verbergen.",

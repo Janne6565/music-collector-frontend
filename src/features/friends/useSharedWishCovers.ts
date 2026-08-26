@@ -39,7 +39,11 @@ export function useSharedWishCovers(
         ...new Set(
           wishes
             .map((wish) => wish.albumId)
-            .filter((albumId): albumId is string => albumId !== undefined)
+            // `!= null` rather than a check for undefined: the generated DTO types every
+            // field optional, but the server sends an explicit null for a wish that names
+            // no pressing. Excluding only undefined let that null through a predicate
+            // swearing it was a string, and the next line called startsWith on it.
+            .filter((albumId): albumId is string => albumId != null)
             .filter((albumId) => !isManualReleaseId(albumId)),
         ),
       ].sort(),
@@ -52,7 +56,9 @@ export function useSharedWishCovers(
         ...new Set(
           wishes
             .map((wish) => wish.releaseId)
-            .filter((releaseId): releaseId is string => releaseId !== undefined)
+            // Null here is the ordinary case, not an edge one: a wish made before entries
+            // remembered their pressing, or one made from an album rather than a pressing.
+            .filter((releaseId): releaseId is string => releaseId != null)
             .filter((releaseId) => !isManualReleaseId(releaseId)),
         ),
       ].sort(),
@@ -82,7 +88,7 @@ export function useSharedWishCovers(
 
     const merged = new Map(byAlbum ?? NONE);
     for (const wish of wishes) {
-      if (wish.albumId === undefined || wish.releaseId === undefined) continue;
+      if (wish.albumId == null || wish.releaseId == null) continue;
       const url = byPressing?.get(wish.releaseId) ?? null;
       if (url !== null) merged.set(wish.albumId, url);
     }

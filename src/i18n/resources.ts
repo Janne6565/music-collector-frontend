@@ -588,6 +588,10 @@ const enCommon = {
       bodyUnknown: "Your copies are saved on this device only.",
       action: "Sign in to sync",
     },
+    menu: {
+      open: "Account menu",
+      soon: "Soon",
+    },
     syncOn: "Signed in · sync on",
     syncPaused: "Sync is waiting — choose what to do with the collection already on this device.",
     finishSetup: "Finish setting up sync",
@@ -633,6 +637,7 @@ const enCommon = {
     keepIt: "Keep it",
   },
   legal: {
+    section: "Legal",
     impressum: "Impressum",
     privacy: "Datenschutzerklärung",
     privacyShort: "Datenschutz",
@@ -1313,6 +1318,10 @@ const deCommon: CommonSchema = {
       bodyUnknown: "Deine Exemplare sind nur auf diesem Gerät gespeichert.",
       action: "Anmelden und synchronisieren",
     },
+    menu: {
+      open: "Kontomenü",
+      soon: "Bald",
+    },
     syncOn: "Angemeldet · Sync an",
     syncPaused: "Sync wartet — entscheide, was mit der Sammlung auf diesem Gerät passieren soll.",
     finishSetup: "Sync einrichten",
@@ -1359,6 +1368,7 @@ const deCommon: CommonSchema = {
     keepIt: "Behalten",
   },
   legal: {
+    section: "Rechtliches",
     impressum: "Impressum",
     privacy: "Datenschutzerklärung",
     privacyShort: "Datenschutz",

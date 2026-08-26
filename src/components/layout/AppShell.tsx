@@ -1,6 +1,6 @@
 import { SidebarAccount } from "@/features/auth/SidebarAccount";
 import type { CollectionStats } from "@janne6565/music-collector-shared";
-import { FORMAT_LABELS, OPERATOR } from "@janne6565/music-collector-shared";
+import { FORMAT_LABELS } from "@janne6565/music-collector-shared";
 import { Link } from "@tanstack/react-router";
 import { Heart, LibraryBig, Users } from "lucide-react";
 import type { ReactNode } from "react";
@@ -50,47 +50,10 @@ function Sidebar({ stats }: { readonly stats: CollectionStats | undefined }) {
             does not exist is worse than no link, so they appear when they work. */}
       </div>
       {stats !== undefined && <FormatCounts stats={stats} />}
+      {/* The legal links live in this block's menu since 19a — the sidebar used to end
+          in two stacked footers, each with its own border and weight. */}
       <SidebarAccount copyCount={stats?.copyCount} />
-      <LegalFooter />
     </nav>
-  );
-}
-
-/**
- * The three links § 5 DDG and Art. 13 DSGVO expect to be reachable from every page.
- *
- * In the sidebar's footer rather than a page footer: the app's panes scroll on their own,
- * so a footer under the content is a footer nobody reaches. The sidebar is on every screen
- * and always ends in the same place.
- */
-function LegalFooter() {
-  const { t } = useTranslation();
-  return (
-    /* No mt-auto of its own: SidebarAccount above already claims the free space, and a
-       second auto margin would split it between the two and leave a gap. */
-    <div className="flex flex-col gap-2.5 pt-4">
-      <div className="flex flex-wrap gap-x-3 gap-y-1.5 text-[11.5px] text-ink-muted">
-        <LegalLink doc="impressum">{t("legal.impressum")}</LegalLink>
-        <LegalLink doc="datenschutz">{t("legal.privacyShort")}</LegalLink>
-        <LegalLink doc="nutzungsbedingungen">{t("legal.termsShort")}</LegalLink>
-      </div>
-      <div className="text-[10.5px] text-ink-subtle">
-        {t("legal.copyright", { year: new Date().getFullYear(), name: OPERATOR.name })}
-      </div>
-    </div>
-  );
-}
-
-function LegalLink({ doc, children }: { readonly doc: string; readonly children: ReactNode }) {
-  return (
-    <Link
-      to="/legal/$doc"
-      params={{ doc }}
-      className="border-b border-ink/15 transition-colors duration-(--mc-quick) hover:border-ink/35 hover:text-ink"
-      activeProps={{ className: "border-ink/25 font-semibold text-ink" }}
-    >
-      {children}
-    </Link>
   );
 }
 

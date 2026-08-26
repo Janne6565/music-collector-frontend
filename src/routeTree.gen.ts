@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccountRouteImport } from './routes/account'
+import { Route as ConfirmRouteImport } from './routes/confirm'
 import { Route as ForgotRouteImport } from './routes/forgot'
 import { Route as ResetRouteImport } from './routes/reset'
 import { Route as SettingsRouteImport } from './routes/settings'
@@ -33,6 +34,11 @@ const IndexRoute = IndexRouteImport.update({
 const AccountRoute = AccountRouteImport.update({
   id: '/account',
   path: '/account',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConfirmRoute = ConfirmRouteImport.update({
+  id: '/confirm',
+  path: '/confirm',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForgotRoute = ForgotRouteImport.update({
@@ -104,6 +110,7 @@ const FriendsHandleWishlistRoute = FriendsHandleWishlistRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/confirm': typeof ConfirmRoute
   '/forgot': typeof ForgotRoute
   '/reset': typeof ResetRoute
   '/settings': typeof SettingsRoute
@@ -121,6 +128,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/confirm': typeof ConfirmRoute
   '/forgot': typeof ForgotRoute
   '/reset': typeof ResetRoute
   '/settings': typeof SettingsRoute
@@ -139,6 +147,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/confirm': typeof ConfirmRoute
   '/forgot': typeof ForgotRoute
   '/reset': typeof ResetRoute
   '/settings': typeof SettingsRoute
@@ -158,6 +167,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/account'
+    | '/confirm'
     | '/forgot'
     | '/reset'
     | '/settings'
@@ -175,6 +185,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/account'
+    | '/confirm'
     | '/forgot'
     | '/reset'
     | '/settings'
@@ -192,6 +203,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/account'
+    | '/confirm'
     | '/forgot'
     | '/reset'
     | '/settings'
@@ -210,6 +222,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccountRoute: typeof AccountRoute
+  ConfirmRoute: typeof ConfirmRoute
   ForgotRoute: typeof ForgotRoute
   ResetRoute: typeof ResetRoute
   SettingsRoute: typeof SettingsRoute
@@ -239,6 +252,13 @@ declare module '@tanstack/react-router' {
       path: '/account'
       fullPath: '/account'
       preLoaderRoute: typeof AccountRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/confirm': {
+      id: '/confirm'
+      path: '/confirm'
+      fullPath: '/confirm'
+      preLoaderRoute: typeof ConfirmRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/forgot': {
@@ -338,6 +358,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountRoute: AccountRoute,
+  ConfirmRoute: ConfirmRoute,
   ForgotRoute: ForgotRoute,
   ResetRoute: ResetRoute,
   SettingsRoute: SettingsRoute,

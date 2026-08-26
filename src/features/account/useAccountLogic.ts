@@ -1,11 +1,11 @@
 import { setAccessToken } from "@/api/axios-instance";
-import { logout, updateProfile } from "@/api/generated/auth/auth";
+import { logout, resendEmailConfirmation, updateProfile } from "@/api/generated/auth/auth";
 import { lookupAlbumCovers, lookupPressingCovers } from "@/api/releases";
 import { toCsv, wishlistToCsv } from "@/domain/csv";
 import { useStore } from "@/local/StoreProvider";
 import { readPhotoBytes } from "@/local/photoBytes";
 import { readLastSyncedAt, readSyncEnabled, writeSyncEnabled } from "@/local/settings";
-import { renamed, signedOut } from "@/store/authSlice";
+import { accountChanged, signedOut } from "@/store/authSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { MC_MIME_TYPE, exportMcArchive, mcFileName } from "@janne6565/music-collector-shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -44,10 +44,19 @@ export function useAccountLogic() {
   const rename = useMutation({
     mutationFn: async (next: string) => updateProfile({ displayName: next.trim() }),
     onSuccess: (user) => {
-      dispatch(renamed(user));
+      dispatch(accountChanged(user));
       // Back to following the account, which now says what was just typed.
       setNameDraft(null);
     },
+  });
+
+  /**
+   * A fresh confirmation link. Silent about whether there was anything to send -- the
+   * server answers the same either way, and an address that is already confirmed is the
+   * state the person wanted rather than an error to report at them.
+   */
+  const resendConfirmation = useMutation({
+    mutationFn: async () => resendEmailConfirmation(),
   });
 
   const syncState = useQuery({
@@ -176,6 +185,11 @@ export function useAccountLogic() {
     savingName: rename.isPending,
     renameFailed: rename.isError,
     email: auth.user?.email ?? null,
+    /** Undefined on an account the server has not described yet; treated as confirmed. */
+    emailConfirmed: auth.user?.emailVerified !== false,
+    resendConfirmation: () => resendConfirmation.mutate(),
+    resendingConfirmation: resendConfirmation.isPending,
+    confirmationSent: resendConfirmation.isSuccess,
     memberSince: auth.user?.createdAt ?? null,
     stats: stats.data,
     syncEnabled: syncState.data?.enabled ?? true,

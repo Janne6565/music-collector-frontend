@@ -12,6 +12,7 @@ import {
   FileText,
   Info,
   LogOut,
+  MailWarning,
   Settings as SettingsIcon,
   ShieldCheck,
   UserRound,
@@ -133,6 +134,28 @@ export function AccountPage() {
           <SectionTitle>{t("account.section.signIn")}</SectionTitle>
           <Card>
             <Row title={t("auth.email")} body={logic.email ?? ""} />
+            {/* Only while there is something to do about it. A permanent "confirmed" row
+                would be a badge for the ordinary state, which is not news. */}
+            {!logic.emailConfirmed && (
+              <Row
+                icon={<MailWarning size={16} strokeWidth={1.75} aria-hidden />}
+                title={t("account.confirmEmail.title")}
+                body={t("account.confirmEmail.body")}
+                trailing={
+                  <Button
+                    variant="secondary"
+                    onClick={logic.resendConfirmation}
+                    loading={logic.resendingConfirmation}
+                    disabled={logic.confirmationSent}
+                    className="h-[34px] flex-none rounded-lg px-3.5 text-[12.5px]"
+                  >
+                    {logic.confirmationSent
+                      ? t("account.confirmEmail.sent")
+                      : t("account.confirmEmail.send")}
+                  </Button>
+                }
+              />
+            )}
             <Row title={t("auth.password")} body={t("account.passwordBody")} />
           </Card>
 

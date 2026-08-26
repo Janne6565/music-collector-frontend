@@ -31,8 +31,12 @@ const authSlice = createSlice({
       state.user = null;
       state.firstSyncPending = false;
     },
-    /** The account came back renamed. Nothing else about the session changes. */
-    renamed(state, action: PayloadAction<UserDto>) {
+    /**
+     * The account came back changed -- renamed, or its address confirmed. Nothing else
+     * about the session changes, which is why one reducer covers both: the server hands
+     * back the whole account either way, and the token the client holds is untouched.
+     */
+    accountChanged(state, action: PayloadAction<UserDto>) {
       state.user = action.payload;
     },
     firstSyncResolved(state) {
@@ -41,5 +45,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { signedIn, signedOut, renamed, firstSyncResolved } = authSlice.actions;
+export const { signedIn, signedOut, accountChanged, firstSyncResolved } = authSlice.actions;
 export default authSlice.reducer;

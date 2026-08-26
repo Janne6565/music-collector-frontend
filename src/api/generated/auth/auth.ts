@@ -14,6 +14,7 @@ import type {
   AuthorizeParams,
   CallbackParams,
   CallbackPostedParams,
+  ConfirmEmailRequest,
   ForgotPasswordRequest,
   LoginRequest,
   OAuthExchangeRequest,
@@ -150,6 +151,32 @@ export const forgotPassword = (
       );
     }
   /**
+ * Open, because the link is followed in whichever browser opened the mail, which is not necessarily one that is signed in. The token is the proof.
+ * @summary Redeem an e-mail confirmation link
+ */
+export const confirmEmail = (
+    confirmEmailRequest: ConfirmEmailRequest,
+ ) => {
+      return customInstance<UserDto>(
+      {url: `/api/v1/auth/confirm-email`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: confirmEmailRequest
+    },
+      );
+    }
+  /**
+ * Answers 204 whether or not there was anything to send -- an address that is already confirmed is not an error, it is the state the caller wanted.
+ * @summary Send a fresh confirmation link
+ */
+export const resendEmailConfirmation = (
+    
+ ) => {
+      return customInstance<void>(
+      {url: `/api/v1/auth/confirm-email/resend`, method: 'POST'
+    },
+      );
+    }
+  /**
  * @summary The signed-in account
  */
 export const me = (
@@ -221,6 +248,8 @@ export type ExchangeResult = NonNullable<Awaited<ReturnType<typeof exchange>>>
 export type LogoutResult = NonNullable<Awaited<ReturnType<typeof logout>>>
 export type LoginResult = NonNullable<Awaited<ReturnType<typeof login>>>
 export type ForgotPasswordResult = NonNullable<Awaited<ReturnType<typeof forgotPassword>>>
+export type ConfirmEmailResult = NonNullable<Awaited<ReturnType<typeof confirmEmail>>>
+export type ResendEmailConfirmationResult = NonNullable<Awaited<ReturnType<typeof resendEmailConfirmation>>>
 export type MeResult = NonNullable<Awaited<ReturnType<typeof me>>>
 export type DeleteAccountResult = NonNullable<Awaited<ReturnType<typeof deleteAccount>>>
 export type UpdateProfileResult = NonNullable<Awaited<ReturnType<typeof updateProfile>>>

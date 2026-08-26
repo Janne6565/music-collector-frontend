@@ -1,5 +1,7 @@
 import type { ReleaseDto } from "@/api/generated/musicCollectorAPI.schemas";
 import { lookupAlbumCovers, releaseDisambiguation, toRelease, toReleases } from "@/api/releases";
+import type { LocalStore } from "@janne6565/music-collector-shared";
+import { rememberArchivedAlbumCovers } from "@janne6565/music-collector-shared";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const albumCovers = vi.hoisted(() => vi.fn());
@@ -131,5 +133,61 @@ describe("lookupAlbumCovers", () => {
   it("asks nothing when there is nothing to ask about", async () => {
     expect(await lookupAlbumCovers([])).toEqual(new Map());
     expect(albumCovers).not.toHaveBeenCalled();
+  });
+
+  /**
+   * The bug this closes: an archive exported from staging and imported into prod showed a
+   * wishlist of blank silhouettes. The albums are real, prod's release mirror had simply
+   * never seen them — and since the covers endpoint calls no catalogue, it never would.
+   */
+  describe("with an imported archive's covers behind it", () => {
+    const ARCHIVED = "https://coverartarchive.org/release-group/a2/front-500";
+
+    /** Only the two methods the cache touches; the rest of the store is not involved. */
+    function settingsOnly(): LocalStore {
+      const settings = new Map<string, string>();
+      return {
+        readSetting: async (key: string) => settings.get(key),
+        writeSetting: async (key: string, value: string) => void settings.set(key, value),
+      } as unknown as LocalStore;
+    }
+
+    async function storeHolding(covers: Record<string, string>) {
+      const store = settingsOnly();
+      await rememberArchivedAlbumCovers(store, covers);
+      return store;
+    }
+
+    it("fills an album this deployment's mirror cannot resolve", async () => {
+      albumCovers.mockResolvedValue([{ albumId: "discogs:2" }]);
+
+      const covers = await lookupAlbumCovers(
+        ["discogs:2"],
+        await storeHolding({ "discogs:2": ARCHIVED }),
+      );
+
+      expect(covers.get("discogs:2")).toBe(ARCHIVED);
+    });
+
+    it("leaves a cover this deployment did resolve alone", async () => {
+      albumCovers.mockResolvedValue([
+        { albumId: "discogs:2", coverArtUrl: "https://covers.example/live.jpg" },
+      ]);
+
+      const covers = await lookupAlbumCovers(
+        ["discogs:2"],
+        await storeHolding({ "discogs:2": ARCHIVED }),
+      );
+
+      expect(covers.get("discogs:2")).toBe("https://covers.example/live.jpg");
+    });
+
+    it("is inert on a device that has never imported one", async () => {
+      albumCovers.mockResolvedValue([{ albumId: "discogs:2" }]);
+
+      const covers = await lookupAlbumCovers(["discogs:2"], settingsOnly());
+
+      expect(covers.get("discogs:2")).toBeNull();
+    });
   });
 });

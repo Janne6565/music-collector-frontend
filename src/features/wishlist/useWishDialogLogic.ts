@@ -142,7 +142,7 @@ export function useWishDialogLogic(
     enabled:
       subject !== null && subject.coverArtUrl === null && !isManualReleaseId(subject.albumId),
     staleTime: 60 * 60 * 1000,
-    queryFn: () => lookupAlbumCovers([subject?.albumId ?? ""]),
+    queryFn: () => lookupAlbumCovers([subject?.albumId ?? ""], store),
   });
 
   // The preview pins its blob until revoked, and the sheet outlives several choices.

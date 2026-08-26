@@ -15,8 +15,19 @@ import type {
   CoverThemeDto,
   ReleaseDto,
 } from "@/api/generated/musicCollectorAPI.schemas";
-import type { Album, Artist, CoverTheme, Format, Release } from "@janne6565/music-collector-shared";
-import { FORMATS } from "@janne6565/music-collector-shared";
+import type {
+  Album,
+  Artist,
+  CoverTheme,
+  Format,
+  LocalStore,
+  Release,
+} from "@janne6565/music-collector-shared";
+import {
+  FORMATS,
+  readArchivedAlbumCovers,
+  withArchivedCovers,
+} from "@janne6565/music-collector-shared";
 /**
  * The boundary between the generated client and the domain.
  *
@@ -202,6 +213,7 @@ const COVER_BATCH = 100;
  */
 export async function lookupAlbumCovers(
   albumIds: readonly string[],
+  store?: LocalStore,
 ): Promise<ReadonlyMap<string, string | null>> {
   const batches: string[][] = [];
   for (let start = 0; start < albumIds.length; start += COVER_BATCH) {
@@ -213,7 +225,12 @@ export async function lookupAlbumCovers(
   for (const dto of pages.flat()) {
     if (dto.albumId !== undefined) covers.set(dto.albumId, dto.coverArtUrl ?? null);
   }
-  return covers;
+  // An imported archive brought the answers the deployment it came from could give. This
+  // mirror may never have heard of those albums — that is not a fact about the record, it
+  // is a fact about which server is being asked — so the archive fills what comes back
+  // null. Optional because a friend's wishlist has no archive of ours to fall back on.
+  if (store === undefined) return covers;
+  return withArchivedCovers(covers, await readArchivedAlbumCovers(store));
 }
 
 /** The same hundred-id cap as the covers endpoint, so a large collection asks in pages. */

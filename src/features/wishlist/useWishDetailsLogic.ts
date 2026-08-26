@@ -60,7 +60,7 @@ export function useWishDetailsLogic(wishId: string, onClose: () => void) {
     queryKey: ["albumCovers", shown === null ? [] : [shown.albumId]],
     enabled: shown !== null && !manual,
     staleTime: 60 * 60 * 1000,
-    queryFn: () => lookupAlbumCovers([shown?.albumId ?? ""]),
+    queryFn: () => lookupAlbumCovers([shown?.albumId ?? ""], store),
   });
 
   const picture = useQuery({

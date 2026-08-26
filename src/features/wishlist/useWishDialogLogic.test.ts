@@ -116,7 +116,9 @@ describe("useWishDialogLogic cover art", () => {
     const { result } = harness(ENTRY);
 
     await waitFor(() => expect(result.current.subjectCoverArtUrl).toBe("https://covers/album.jpg"));
-    expect(lookupAlbumCovers).toHaveBeenCalledWith(["musicbrainz:a1"]);
+    // The store rides along so an imported archive can fill a cover this deployment's
+    // mirror cannot resolve; which ids were asked for is what this test is about.
+    expect(lookupAlbumCovers).toHaveBeenCalledWith(["musicbrainz:a1"], expect.anything());
   });
 
   it("asks nothing for a record no catalogue has", async () => {

@@ -1,5 +1,6 @@
 import { setAccessToken } from "@/api/axios-instance";
 import { logout, updateProfile } from "@/api/generated/auth/auth";
+import { lookupAlbumCovers } from "@/api/releases";
 import { toCsv, wishlistToCsv } from "@/domain/csv";
 import { useStore } from "@/local/StoreProvider";
 import { readPhotoBytes } from "@/local/photoBytes";
@@ -132,6 +133,11 @@ export function useAccountLogic() {
         { collection: toCsv(copies, releases), wishlist: wishlistToCsv(wishlist) },
         (photoId) => readPhotoBytes(store, photoId),
         exportedAt,
+        // The one request an export makes. A wish's cover lives in this deployment's
+        // release mirror rather than in the collection, so an archive that did not ask
+        // would be complete about everything except the wishlist's pictures — which is
+        // exactly what vanishes when the file is imported against a different mirror.
+        (albumIds) => lookupAlbumCovers(albumIds),
       );
       save(
         mcFileName(exportedAt),

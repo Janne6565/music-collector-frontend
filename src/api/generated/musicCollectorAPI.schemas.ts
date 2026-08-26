@@ -133,6 +133,7 @@ export type SyncWishDtoFieldClocks = {[key: string]: string};
 export interface SyncWishDto {
   id?: string;
   albumId?: string;
+  releaseId?: string;
   title?: string;
   artistName?: string;
   year?: number;

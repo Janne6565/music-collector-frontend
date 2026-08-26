@@ -58,6 +58,78 @@ describe("the web sync transport", () => {
     expect(page.copies[0]?.deletedAt).toBeNull();
   });
 
+  /**
+   * The pressing a wish was made from, across the seam in both directions.
+   *
+   * Worth a test of its own because the DTO's fields are all optional: a mapping that
+   * forgot this one would type-check perfectly and simply never send it, and the entry
+   * would go back to wearing whichever pressing the mirror ranks first on every other
+   * device — the exact bug the field exists to fix.
+   */
+  it("carries the pressing a wish was made from, both ways", async () => {
+    push.mockResolvedValue({ copies: [], wishes: [], photos: [], cursor: 9 });
+    const wish = {
+      id: "wish-1",
+      albumId: "musicbrainz:a1",
+      releaseId: "discogs:r1",
+      title: "Konstrukt 5",
+      artistName: "Buntspecht",
+      year: 2025,
+      desiredFormat: "VINYL",
+      note: null,
+      sortIndex: null,
+      createdAt: 1000,
+      deletedAt: null,
+      fieldClocks: {},
+    } as unknown as Parameters<ReturnType<typeof createSyncTransport>["push"]>[1][number];
+
+    await createSyncTransport(store).push([], [wish], []);
+
+    expect(push.mock.calls[0]?.[0].wishes[0].releaseId).toBe("discogs:r1");
+
+    pull.mockResolvedValue({
+      wishes: [
+        {
+          id: "wish-1",
+          albumId: "musicbrainz:a1",
+          releaseId: "discogs:r1",
+          title: "Konstrukt 5",
+          artistName: "Buntspecht",
+          createdAt: 1000,
+          fieldClocks: {},
+        },
+      ],
+      cursor: 5,
+      hasMore: false,
+    });
+
+    const page = await createSyncTransport(store).pull(0);
+
+    expect(page.wishes[0]?.releaseId).toBe("discogs:r1");
+  });
+
+  it("reads an entry from a server too old to know about pressings as having none", async () => {
+    pull.mockResolvedValue({
+      wishes: [
+        {
+          id: "wish-1",
+          albumId: "musicbrainz:a1",
+          title: "Konstrukt 5",
+          artistName: "Buntspecht",
+          createdAt: 1000,
+          fieldClocks: {},
+        },
+      ],
+      cursor: 5,
+      hasMore: false,
+    });
+
+    const page = await createSyncTransport(store).pull(0);
+
+    // Null, not undefined: a field absent from a record reads as one nobody ever set.
+    expect(page.wishes[0]?.releaseId).toBeNull();
+  });
+
   it("keeps the cursor it was given when the server sends none", async () => {
     pull.mockResolvedValue({ copies: [], hasMore: false });
 

@@ -32,6 +32,7 @@ function wishToDto(item: WishlistItem): SyncWishDto {
   return {
     id: item.id,
     albumId: item.albumId,
+    releaseId: item.releaseId ?? undefined,
     title: item.title,
     artistName: item.artistName,
     year: item.year ?? undefined,
@@ -98,6 +99,8 @@ export function wishFromDto(dto: SyncWishDto): WishlistItem | null {
   return {
     id: dto.id,
     albumId: dto.albumId,
+    // Absent means a server older than the field, which reads as no pressing picked.
+    releaseId: dto.releaseId ?? null,
     title: dto.title,
     artistName: dto.artistName,
     year: dto.year ?? null,

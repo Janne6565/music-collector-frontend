@@ -127,10 +127,15 @@ function UndoToast({
     // but it leaves at slow — nobody dismissed it, it simply ran out, and a toast that
     // snaps away reads as an error you missed.
     <output
-      className="mc-lift fixed inset-x-0 bottom-6 z-50 flex justify-center"
+      // The band is full-width so the pill can centre in it, which means the empty air to
+      // either side of the pill is still this element -- and at z-50 it swallowed every
+      // click along the bottom of the window, the profile menu included, for as long as
+      // the toast was up. The band only positions; the pill is the only part that is
+      // actually there to be clicked.
+      className="mc-lift pointer-events-none fixed inset-x-0 bottom-6 z-50 flex justify-center"
       style={{ transitionDuration: `${DURATION.slow}ms` }}
     >
-      <div className="flex items-center gap-4 rounded-xl bg-ink px-4 py-2.5 text-paper shadow-[0_12px_32px_rgba(25,23,19,.34)]">
+      <div className="pointer-events-auto flex items-center gap-4 rounded-xl bg-ink px-4 py-2.5 text-paper shadow-[0_12px_32px_rgba(25,23,19,.34)]">
         {wish === null ? (
           <span className="text-[12.5px]">{t("undo.removed")}</span>
         ) : (

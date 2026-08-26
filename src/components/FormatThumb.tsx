@@ -72,7 +72,13 @@ export function FormatThumb({ format, className, cover, sweep }: FormatThumbProp
       {format === "VINYL" && <Vinyl cover={cover} sweep={sweep} />}
       {format === "CD" && <Disc sleeve={sleeve} />}
       {format === "CASSETTE" && <Cassette sleeve={sleeve} />}
-      {(format === "DIGITAL" || format === "OTHER") && <Digital sleeve={sleeve} />}
+      {format === "DIGITAL" && <Digital sleeve={sleeve} />}
+      {/* `OTHER` wears nothing. It is not a format but the absence of one — the answer for
+          a copy whose release this client cannot describe yet — and the waveform is the
+          furniture of a specific format, so drawing it here both claims a file that was
+          never claimed and stamps nine bars across whatever cover or photo the copy does
+          have. A bare sleeve is what "not known" actually looks like. */}
+      {format === "OTHER" && sleeve}
     </div>
   );
 }

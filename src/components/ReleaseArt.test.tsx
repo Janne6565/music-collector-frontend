@@ -16,6 +16,18 @@ function release(overrides: Partial<Release> = {}): Release {
   } as Release;
 }
 
+/**
+ * The waveform bars, which are the only thing drawn at exactly 4% wide.
+ *
+ * Counted rather than matched by class: what matters is whether they are painted over the
+ * sleeve at all, not how they are styled.
+ */
+function waveformBars(container: HTMLElement): number {
+  return [...container.querySelectorAll<HTMLElement>("div")].filter(
+    (node) => node.style.width === "4%",
+  ).length;
+}
+
 /** The cover is the only <img> the component ever renders. */
 function cover(container: HTMLElement): HTMLImageElement {
   const image = container.querySelector("img");
@@ -24,6 +36,28 @@ function cover(container: HTMLElement): HTMLImageElement {
 }
 
 describe("ReleaseArt", () => {
+  it("draws no furniture over the cover when the format is not known", () => {
+    // `OTHER` is what a copy falls back to when this client cannot describe its release
+    // yet -- on a device that has just signed in, that is the whole shelf. Painting the
+    // waveform there claimed a download nobody entered and stamped nine bars across the
+    // photo the copy did have.
+    const { container } = render(
+      <ReleaseArt release={release({ format: "OTHER" })} format="OTHER" />,
+    );
+
+    expect(waveformBars(container)).toBe(0);
+    // The sleeve still holds the frame; it is only the format furniture that goes.
+    expect(cover(container).getAttribute("src")).toBe("https://covers.example/rel-1.jpg");
+  });
+
+  it("still draws the waveform for an actual download", () => {
+    const { container } = render(
+      <ReleaseArt release={release({ format: "DIGITAL" })} format="DIGITAL" />,
+    );
+
+    expect(waveformBars(container)).toBeGreaterThan(0);
+  });
+
   it("holds the frame with the placeholder until the cover has loaded", () => {
     const { container } = render(<ReleaseArt release={release()} />);
 

@@ -111,7 +111,7 @@ export function SignInPage() {
               </Checkbox>
             )}
 
-            {logic.failed !== null && <AuthErrorMessage error={logic.failed} />}
+            {logic.failed.length > 0 && <AuthErrorMessages errors={logic.failed} />}
 
             <Button
               type="submit"
@@ -237,15 +237,24 @@ function LegalTextLink({ doc, children }: { readonly doc: string; readonly child
   );
 }
 
-function AuthErrorMessage({ error }: { readonly error: AuthError }) {
+/**
+ * Every reason the submit was refused, one line each.
+ *
+ * A form that reports only the first problem makes someone discover the rest one round
+ * trip at a time, which is the same conversation the old single "something went wrong"
+ * was having — just slower.
+ */
+function AuthErrorMessages({ errors }: { readonly errors: readonly AuthError[] }) {
   const { t } = useTranslation();
-  const message =
-    error === "badCredentials"
-      ? t("auth.error.badCredentials")
-      : error === "emailTaken"
-        ? t("auth.error.emailTaken")
-        : t("auth.error.generic");
-  return <p className="text-sm text-accent">{message}</p>;
+  return (
+    <div role="alert" className="flex flex-col gap-1">
+      {errors.map((error) => (
+        <p key={error} className="text-sm text-accent">
+          {t(`auth.error.${error}` as const)}
+        </p>
+      ))}
+    </div>
+  );
 }
 
 interface TextFieldProps {

@@ -1,15 +1,54 @@
 import { setAccessToken } from "@/api/axios-instance";
 import { login, logout, providers, register } from "@/api/generated/auth/auth";
+import { invalidFields } from "@/api/problem";
 import { useStore } from "@/local/StoreProvider";
 import { signedIn, signedOut } from "@/store/authSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { passwordLongEnough } from "@janne6565/music-collector-shared";
 import { useQuery } from "@tanstack/react-query";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useCallback, useState } from "react";
 
 export type AuthMode = "SIGN_IN" | "REGISTER";
-export type AuthError = "badCredentials" | "emailTaken" | "generic";
+export type AuthError =
+  | "badCredentials"
+  | "emailTaken"
+  | "invalidEmail"
+  | "passwordTooShort"
+  | "consentRequired"
+  | "generic";
+
+/**
+ * Which input a rejected field belongs to.
+ *
+ * The server sends the field names it refused, not a message the screen could show — the
+ * wording is looked up here so it arrives in the reader's language. Anything not in this
+ * map falls back to the generic line rather than inventing a sentence for a field this
+ * form does not have.
+ */
+const FIELD_ERRORS: Readonly<Record<string, AuthError>> = {
+  email: "invalidEmail",
+  password: "passwordTooShort",
+  acceptedTerms: "consentRequired",
+  confirmedAge: "consentRequired",
+};
+
+function errorsFrom(error: unknown): AuthError[] {
+  const status = (error as { response?: { status?: number } }).response?.status;
+  if (status === 409) return ["emailTaken"];
+  if (status === 401) return ["badCredentials"];
+  // One line per distinct complaint: both consent ticks map to the same sentence, and
+  // printing it twice would read as two different problems.
+  const named = [
+    ...new Set(
+      invalidFields(error)
+        .map((field) => FIELD_ERRORS[field])
+        .filter((mapped): mapped is AuthError => mapped !== undefined),
+    ),
+  ];
+  return named.length > 0 ? named : ["generic"];
+}
 
 export function useAuthLogic() {
   const dispatch = useAppDispatch();
@@ -32,7 +71,7 @@ export function useAuthLogic() {
    */
   const [agreed, setAgreed] = useState(false);
   const [ageConfirmed, setAgeConfirmed] = useState(false);
-  const [failed, setFailed] = useState<AuthError | null>(null);
+  const [failed, setFailed] = useState<readonly AuthError[]>([]);
 
   // Only providers the server can actually complete a flow with, so an unconfigured one
   // is absent rather than a button that fails when pressed.
@@ -63,12 +102,11 @@ export function useAuthLogic() {
     },
     onSuccess: ({ user, firstSyncPending }) => {
       dispatch(signedIn({ user, firstSyncPending }));
-      setFailed(null);
+      setFailed([]);
       if (!firstSyncPending) void navigate({ to: "/" });
     },
     onError: (error: unknown) => {
-      const status = (error as { response?: { status?: number } }).response?.status;
-      setFailed(status === 409 ? "emailTaken" : status === 401 ? "badCredentials" : "generic");
+      setFailed(errorsFrom(error));
     },
   });
 
@@ -91,7 +129,7 @@ export function useAuthLogic() {
     mode,
     setMode: useCallback((next: AuthMode) => {
       setMode(next);
-      setFailed(null);
+      setFailed([]);
     }, []),
     email,
     setEmail,
@@ -114,7 +152,16 @@ export function useAuthLogic() {
       email.trim().length > 0 &&
       password.length > 0 &&
       (mode === "SIGN_IN" || (agreed && ageConfirmed)),
-    submit: () => submit.mutate(),
+    submit: () => {
+      // The one rule worth checking before the round trip, because the server can only
+      // answer it with the same sentence the field already carries as a hint.
+      if (mode === "REGISTER" && !passwordLongEnough(password)) {
+        setFailed(["passwordTooShort"]);
+        return;
+      }
+      setFailed([]);
+      submit.mutate();
+    },
     submitting: submit.isPending,
     failed,
     signOut: () => signOut.mutate(),

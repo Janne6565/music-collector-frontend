@@ -41,7 +41,7 @@ export function ConfirmStrip() {
   if (!visible || user === null) return null;
 
   return (
-    <aside className="flex flex-none items-start gap-4 border-b border-line bg-canvas px-7 py-3.5">
+    <aside className="mx-7 mb-1 flex flex-none items-start gap-4 rounded-xl border border-line bg-canvas px-4 py-3">
       <div className="min-w-0 flex-1">
         <p className="text-[13px] font-semibold">{t("auth.strip.title", { email: user.email })}</p>
         <p className="mt-1 text-[12px] leading-[1.5] text-ink-muted">{t("auth.strip.body")}</p>

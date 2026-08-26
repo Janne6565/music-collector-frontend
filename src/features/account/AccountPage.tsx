@@ -132,7 +132,12 @@ export function AccountPage() {
 
           <SectionTitle>{t("account.section.signIn")}</SectionTitle>
           <Card>
-            <Row title={t("auth.email")} body={logic.email ?? ""} />
+            {/* One e-mail row, in whichever state it is in. 21c and 21g are not extra rows
+                beside the plain one -- they are what it looks like when there is something
+                to say about the address. */}
+            {logic.emailConfirmed && logic.pendingEmail === null && (
+              <Row title={t("auth.email")} body={logic.email ?? ""} />
+            )}
             {/* 21c. Only while there is something to do about it: a permanent "confirmed"
                 row would be a badge for the ordinary state, which is not news. The address
                 is repeated in full so a typo is findable right here. */}

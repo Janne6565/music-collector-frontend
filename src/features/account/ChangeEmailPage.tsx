@@ -2,6 +2,7 @@ import { changeEmail } from "@/api/generated/auth/auth";
 import { AppShell } from "@/components/layout/AppShell";
 import { Card, SectionTitle } from "@/components/rows";
 import { Button } from "@/components/ui";
+import { useAccountLogic } from "@/features/account/useAccountLogic";
 import { PasswordField } from "@/features/auth/PasswordField";
 import { useAppSelector } from "@/store/hooks";
 import { useMutation } from "@tanstack/react-query";
@@ -26,6 +27,9 @@ export function ChangeEmailPage() {
   const navigate = useNavigate();
   const user = useAppSelector((state) => state.auth.user);
   const status = useAppSelector((state) => state.auth.status);
+  // The sidebar counts come from the same place the account screen reads them, so walking
+  // one click deeper does not empty it out.
+  const { stats } = useAccountLogic();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -40,7 +44,7 @@ export function ChangeEmailPage() {
   const needsPassword = user.hasPassword !== false;
 
   return (
-    <AppShell stats={undefined}>
+    <AppShell stats={stats}>
       <header className="flex flex-none items-center border-b border-line px-8 py-4">
         <span className="text-[12.5px] font-medium text-ink-muted">
           {t("account.changeEmail.title")}

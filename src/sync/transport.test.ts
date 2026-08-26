@@ -83,7 +83,7 @@ describe("the web sync transport", () => {
       fieldClocks: {},
     } as unknown as Parameters<ReturnType<typeof createSyncTransport>["push"]>[1][number];
 
-    await createSyncTransport(store).push([], [wish], []);
+    await createSyncTransport(store).push([], [wish], [], []);
 
     expect(push.mock.calls[0]?.[0].wishes[0].releaseId).toBe("discogs:r1");
 

@@ -65,6 +65,43 @@ export interface SharingSettingsDto {
   handleChangesRemaining?: number;
 }
 
+export interface CoverThemeDto {
+  dominantColor?: string;
+  accentColor?: string;
+  lightness?: number;
+  dark?: boolean;
+}
+
+export type ReleaseDtoFormat = typeof ReleaseDtoFormat[keyof typeof ReleaseDtoFormat];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ReleaseDtoFormat = {
+  VINYL: 'VINYL',
+  CD: 'CD',
+  CASSETTE: 'CASSETTE',
+  DIGITAL: 'DIGITAL',
+  OTHER: 'OTHER',
+} as const;
+
+export interface ReleaseDto {
+  id?: string;
+  albumId?: string;
+  title?: string;
+  artistName?: string;
+  year?: number;
+  format?: ReleaseDtoFormat;
+  label?: string;
+  catalogNumber?: string;
+  country?: string;
+  barcode?: string;
+  releaseDate?: string;
+  trackCount?: number;
+  discCount?: number;
+  coverArtUrl?: string;
+  coverTheme?: CoverThemeDto;
+}
+
 export type SyncCopyDtoFieldClocks = {[key: string]: string};
 
 export interface SyncCopyDto {
@@ -125,6 +162,11 @@ export interface SyncPushRequest {
    * @maxItems 500
    */
   photos?: SyncPhotoDto[];
+  /**
+   * @minItems 0
+   * @maxItems 500
+   */
+  releases?: ReleaseDto[];
   origins?: SyncPushRequestOrigins;
 }
 
@@ -307,13 +349,6 @@ export interface SharedWishlistDto {
   truncated?: boolean;
 }
 
-export interface CoverThemeDto {
-  dominantColor?: string;
-  accentColor?: string;
-  lightness?: number;
-  dark?: boolean;
-}
-
 export interface SharedCollectionDto {
   copies?: SharedCopyDto[];
   total?: number;
@@ -347,36 +382,6 @@ export interface SharedCopyDto {
   pricePaidCents?: number;
   currency?: string;
   createdAt?: number;
-}
-
-export type ReleaseDtoFormat = typeof ReleaseDtoFormat[keyof typeof ReleaseDtoFormat];
-
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const ReleaseDtoFormat = {
-  VINYL: 'VINYL',
-  CD: 'CD',
-  CASSETTE: 'CASSETTE',
-  DIGITAL: 'DIGITAL',
-  OTHER: 'OTHER',
-} as const;
-
-export interface ReleaseDto {
-  id?: string;
-  albumId?: string;
-  title?: string;
-  artistName?: string;
-  year?: number;
-  format?: ReleaseDtoFormat;
-  label?: string;
-  catalogNumber?: string;
-  country?: string;
-  barcode?: string;
-  releaseDate?: string;
-  trackCount?: number;
-  discCount?: number;
-  coverArtUrl?: string;
-  coverTheme?: CoverThemeDto;
 }
 
 export interface ArtistDto {

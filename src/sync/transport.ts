@@ -1,4 +1,5 @@
 import type {
+  ReleaseDto,
   SyncCopyDto,
   SyncPhotoDto,
   SyncWishDto,
@@ -13,6 +14,7 @@ import type {
   LocalStore,
   Photo,
   PushResult,
+  Release,
   SyncPage,
   SyncTransport,
   WishlistItem,
@@ -42,6 +44,32 @@ function wishToDto(item: WishlistItem): SyncWishDto {
     createdAt: item.createdAt,
     deletedAt: item.deletedAt ?? undefined,
     fieldClocks: item.fieldClocks,
+  };
+}
+
+/**
+ * A catalogue row on its way up to the mirror.
+ *
+ * The sampled palette is deliberately not sent: it is something the server works out from
+ * the cover bytes it fetched itself, and a client echoing one back would be guessing on
+ * behalf of every other reader of that release.
+ */
+function releaseToDto(release: Release): ReleaseDto {
+  return {
+    id: release.id,
+    albumId: release.albumId,
+    title: release.title,
+    artistName: release.artistName,
+    year: release.year ?? undefined,
+    format: release.format,
+    label: release.label ?? undefined,
+    catalogNumber: release.catalogNumber ?? undefined,
+    country: release.country ?? undefined,
+    barcode: release.barcode ?? undefined,
+    releaseDate: release.releaseDate ?? undefined,
+    trackCount: release.trackCount ?? undefined,
+    discCount: release.discCount ?? undefined,
+    coverArtUrl: release.coverArtUrl ?? undefined,
   };
 }
 
@@ -219,7 +247,7 @@ export function createSyncTransport(store: SyncStore): SyncTransport {
       return toPage(await pull({ since: cursor }), cursor);
     },
 
-    async push(copies, wishes, photos): Promise<PushResult> {
+    async push(copies, wishes, photos, releases): Promise<PushResult> {
       /*
        * Why each copy exists, answered beside the records rather than on them.
        *
@@ -240,6 +268,10 @@ export function createSyncTransport(store: SyncStore): SyncTransport {
         copies: copies.map(toDto),
         wishes: wishes.map(wishToDto),
         photos: photos.map(photoToDto),
+        // The catalogue behind these copies, which the mirror may never have seen: it only
+        // learns of a release when somebody looks one up through the metadata proxy, and a
+        // Discogs id it is missing can never be fetched by id at all.
+        releases: releases.map(releaseToDto),
         origins,
       });
 

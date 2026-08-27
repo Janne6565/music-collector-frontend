@@ -215,8 +215,9 @@ const enCommon = {
     emptyWishlist: "Nothing on this wishlist yet.",
     truncated: "Showing the most recent copies.",
     tab: {
-      collection: "Collection · {{count}}",
-      wishlist: "Wishlist · {{count}}",
+      /* 16i keeps the count beside the word, in its own span — see TabButton. */
+      collection: "Collection",
+      wishlist: "Wishlist",
     },
     locked: {
       title: "This shelf is for friends",
@@ -1207,8 +1208,8 @@ const deCommon: CommonSchema = {
     emptyWishlist: "Auf dieser Wunschliste steht noch nichts.",
     truncated: "Zeigt die zuletzt hinzugefügten Exemplare.",
     tab: {
-      collection: "Sammlung · {{count}}",
-      wishlist: "Wunschliste · {{count}}",
+      collection: "Sammlung",
+      wishlist: "Wunschliste",
     },
     locked: {
       title: "Dieses Regal ist für Freunde",

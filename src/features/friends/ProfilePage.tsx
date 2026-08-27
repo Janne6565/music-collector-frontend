@@ -165,13 +165,23 @@ export function ProfileBody({
         <RelationshipAction logic={logic} />
       </header>
 
-      <div className="mt-5 flex items-center justify-between gap-4 border-b border-line pb-2">
-        <div className="flex gap-1">
-          <TabButton active={tab === "collection"} onClick={() => onTab("collection")}>
-            {t("profile.tab.collection", { count: person.copyCount ?? 0 })}
+      {/* No rule under it any more: the track around the two halves is what says they are
+          one control, and a border below repeated the job at a second weight. */}
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5">
+        <div className="flex w-full max-w-[300px] flex-none gap-0.5 rounded-[9px] bg-ink/6 p-[3px]">
+          <TabButton
+            active={tab === "collection"}
+            onClick={() => onTab("collection")}
+            count={person.copyCount ?? 0}
+          >
+            {t("profile.tab.collection")}
           </TabButton>
-          <TabButton active={tab === "wishlist"} onClick={() => onTab("wishlist")}>
-            {t("profile.tab.wishlist", { count: person.wishlistCount ?? 0 })}
+          <TabButton
+            active={tab === "wishlist"}
+            onClick={() => onTab("wishlist")}
+            count={person.wishlistCount ?? 0}
+          >
+            {t("profile.tab.wishlist")}
           </TabButton>
         </div>
         {/* Nothing is said about being read-only: a page with no controls on it already
@@ -353,22 +363,48 @@ function monthAndYear(epochMillis: number, language: string): string {
   );
 }
 
+/**
+ * One half of the collection/wishlist switch — screen 16i.
+ *
+ * It used to be two loose buttons of which one wore a pill, which reads as a lit thing
+ * next to an unlit thing rather than as a control with two positions. 16i draws the pair
+ * on a sunken track, each half taking exactly half the width, with the raised white one
+ * as the answer: the shape says "one of these two" before a word is read.
+ *
+ * The count is its own span rather than part of the label. Joined with " · " it was a
+ * second word competing with the first at the same weight; beside it in mono and quieter
+ * it reads as a quantity, and it dims further on the half you are not looking at.
+ */
 function TabButton({
   active,
   onClick,
+  count,
   children,
-}: { readonly active: boolean; readonly onClick: () => void; readonly children: React.ReactNode }) {
+}: {
+  readonly active: boolean;
+  readonly onClick: () => void;
+  readonly count: number;
+  readonly children: React.ReactNode;
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={
+      // The route is what these switch, so the active half is the current page rather
+      // than a pressed button.
+      aria-current={active ? "page" : undefined}
+      className={cn(
+        "flex h-[30px] flex-1 items-center justify-center gap-1.5 rounded-[7px] text-[12.5px]",
+        "transition-colors duration-(--mc-quick)",
         active
-          ? "rounded-md bg-surface px-3 py-1.5 text-[12.5px] font-semibold text-ink"
-          : "rounded-md px-3 py-1.5 text-[12.5px] font-medium text-ink-muted hover:text-ink"
-      }
+          ? "bg-surface font-semibold text-ink shadow-[0_1px_2px_rgba(25,23,19,.08)]"
+          : "font-medium text-ink/55 hover:text-ink",
+      )}
     >
       {children}
+      <span className={cn("font-mono text-[10.5px]", active ? "text-ink-subtle" : "opacity-70")}>
+        {count}
+      </span>
     </button>
   );
 }

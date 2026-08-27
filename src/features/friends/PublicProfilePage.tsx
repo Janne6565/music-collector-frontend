@@ -33,18 +33,23 @@ export function PublicProfilePage({
   return (
     <div className="flex min-h-full flex-col bg-paper text-ink">
       <header className="flex flex-none items-center justify-between gap-3 border-b border-line px-4 py-3 sm:px-7 sm:py-3.5">
-        <div className="flex items-baseline gap-3">
-          <span className="font-serif text-[17px] leading-none">{t("app.name")}</span>
-          <span className="font-mono text-[11px] text-ink-subtle">
+        <div className="flex min-w-0 items-baseline gap-3">
+          <span className="flex-none font-serif text-[17px] leading-none">{t("app.name")}</span>
+          {/* The address is the least of the three things in this row: it repeats what is
+              in the address bar, so on a phone it gives way rather than pushing the way
+              in off the right-hand edge. */}
+          <span className="hidden truncate font-mono text-[11px] text-ink-subtle sm:block">
             {window.location.host}/@{logic.handle}
           </span>
         </div>
         <div className="flex flex-none items-center gap-3">
           {!logic.signedIn && (
             <>
+              {/* Two ways to the same screen. Under 640px the quiet one goes: the button
+                  beside it says the same thing with more of the offer in it. */}
               <Link
                 to="/signin"
-                className="text-[12.5px] text-ink-muted no-underline hover:text-ink"
+                className="hidden text-[12.5px] text-ink-muted no-underline hover:text-ink sm:block"
               >
                 {t("public.signIn")}
               </Link>

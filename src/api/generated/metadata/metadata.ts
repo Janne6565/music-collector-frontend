@@ -20,7 +20,8 @@ import type {
   ReleaseDto,
   ReleasesInGroupParams,
   SearchArtistsParams,
-  SearchParams
+  SearchParams,
+  TracklistDto
 } from '../rekordoAPI.schemas';
 
 import { customInstance } from '../../axios-instance';
@@ -62,6 +63,20 @@ export const getRelease = (
  ) => {
       return customInstance<ReleaseDto>(
       {url: `/api/v1/metadata/releases/${releaseId}`, method: 'GET'
+    },
+      );
+    }
+  /**
+ * Read from the mirror, and from MusicBrainz exactly once per release — the upstream is paced at one request per second, so a detail sheet that re-asked on every open would queue behind every search in the app. Numbering is the catalogue's own and is never recomputed: a double LP reads A1 through D6. Durations are milliseconds and are routinely absent for individual tracks. A track carries an artist only where it differs from the release's, which is a compilation and nothing else.
+
+A release with no tracklist is still a 200: `unavailableReason` says why, and the count the mirror already knew comes back with it, because the sheet states that count whether or not the titles ever arrive. Those reasons are permanent and offer nothing to retry. The catalogue failing to answer is the opposite case and is a 502.
+ * @summary One release's tracklist
+ */
+export const getTracklist = (
+    releaseId: string,
+ ) => {
+      return customInstance<TracklistDto>(
+      {url: `/api/v1/metadata/releases/${releaseId}/tracks`, method: 'GET'
     },
       );
     }
@@ -146,6 +161,7 @@ export const albumCovers = (
   export type SearchResult = NonNullable<Awaited<ReturnType<typeof search>>>
 export type GetReleasesResult = NonNullable<Awaited<ReturnType<typeof getReleases>>>
 export type GetReleaseResult = NonNullable<Awaited<ReturnType<typeof getRelease>>>
+export type GetTracklistResult = NonNullable<Awaited<ReturnType<typeof getTracklist>>>
 export type FindByBarcodeResult = NonNullable<Awaited<ReturnType<typeof findByBarcode>>>
 export type SearchArtistsResult = NonNullable<Awaited<ReturnType<typeof searchArtists>>>
 export type ArtistImageResult = NonNullable<Awaited<ReturnType<typeof artistImage>>>

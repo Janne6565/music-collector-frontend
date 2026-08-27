@@ -326,6 +326,9 @@ function copyDetail(
     phoneFacts,
     phoneFootnote: added === undefined ? undefined : t("profile.detail.addedOn", { when: added }),
     note: prices ? t("profile.detail.ownerCopy", { name: owner }) : t("profile.detail.hidden"),
+    // Catalogue data, so it is the same for every visitor — unlike the grades and the
+    // money above it, which the sheet only fills in for someone who has earned them.
+    releaseId: copy?.releaseId,
   };
 }
 
@@ -362,6 +365,9 @@ function wishDetail(
     facts,
     phoneFacts: facts,
     note: t("profile.detail.notOwned"),
+    // Null on a hand-typed entry, and on every entry made before pressings were recorded:
+    // there is no release to read titles from, so the section is not drawn at all.
+    releaseId: wish?.releaseId,
   };
 }
 

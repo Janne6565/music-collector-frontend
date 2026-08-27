@@ -978,6 +978,37 @@ const enCommon = {
       },
     },
   },
+  /* 26a-26e: the titles under the sleeve, on every detail sheet that has a release. */
+  tracklist: {
+    label: "Tracklist",
+    /* The header count, which is known before the titles are and stays true if they never
+       arrive. The phone (26d) drops the word and keeps the number. */
+    tracks_one: "{{count}} track",
+    tracks_other: "{{count}} tracks",
+    discs_one: "{{count}} disc",
+    discs_other: "{{count}} discs",
+    minutes: "{{count}} min",
+    hoursMinutes: "{{hours}} h {{minutes}} min",
+    reading: "reading catalogue",
+    loading: "Reading the tracklist",
+    none: "none",
+    /* "12\u2033 Vinyl \u00b7 2 of 8". Only drawn when a release has more than one medium. */
+    medium: "{{format}} \u00b7 {{position}} of {{total}}",
+    disc: "Disc",
+    showRemaining_one: "Show the remaining track",
+    showRemaining_other: "Show the remaining {{count}} tracks",
+    showRemainingShort: "Show the remaining {{count}}",
+    absent: {
+      handEntered: "Typed in by hand, so there is no catalogue entry to read a tracklist from.",
+      discogs: "Matched from Discogs, which gives Rekordo the count but not the titles.",
+      notInCatalogue: "No tracklist for this copy. Nothing in the catalogue matches it.",
+    },
+    unreachable:
+      "The catalogue did not answer. The rest of this copy is yours, stored here \u2014 only the titles come from outside.",
+    /* Somebody else's shelf: the sentence about your own record does not apply there. */
+    unreachableShared: "The catalogue did not answer. Only the titles come from outside.",
+    retry: "Try again",
+  },
   common: {
     /* 24h: the accessible name of the phone's back chevron on the account pages. */
     backTo: "Back to {{page}}",
@@ -1984,6 +2015,34 @@ const deCommon: CommonSchema = {
         body: "Zwei- oder dreimal im Jahr, wenn es wirklich etwas Neues gibt. Aus, solange du nicht danach fragst.",
       },
     },
+  },
+  tracklist: {
+    label: "Titelliste",
+    tracks_one: "{{count}} Titel",
+    tracks_other: "{{count}} Titel",
+    discs_one: "{{count}} Tontr\u00e4ger",
+    discs_other: "{{count}} Tontr\u00e4ger",
+    minutes: "{{count}} Min.",
+    hoursMinutes: "{{hours}} Std. {{minutes}} Min.",
+    reading: "Katalog wird gelesen",
+    loading: "Titelliste wird gelesen",
+    none: "keine",
+    medium: "{{format}} \u00b7 {{position}} von {{total}}",
+    disc: "Tontr\u00e4ger",
+    showRemaining_one: "Den restlichen Titel anzeigen",
+    showRemaining_other: "Die restlichen {{count}} Titel anzeigen",
+    showRemainingShort: "Restliche {{count}} anzeigen",
+    absent: {
+      handEntered:
+        "Von Hand eingetragen \u2014 es gibt keinen Katalogeintrag, aus dem sich eine Titelliste lesen lie\u00dfe.",
+      discogs:
+        "Von Discogs \u00fcbernommen: Rekordo bekommt von dort die Anzahl, aber nicht die Titel.",
+      notInCatalogue: "Keine Titelliste f\u00fcr dieses Exemplar. Im Katalog passt nichts dazu.",
+    },
+    unreachable:
+      "Der Katalog hat nicht geantwortet. Alles andere an diesem Exemplar geh\u00f6rt dir und liegt hier \u2014 nur die Titel kommen von au\u00dfen.",
+    unreachableShared: "Der Katalog hat nicht geantwortet. Nur die Titel kommen von au\u00dfen.",
+    retry: "Erneut versuchen",
   },
   common: {
     backTo: "Zurück zu {{page}}",

@@ -1,5 +1,6 @@
 import { Modal, useModalDismiss } from "@/components/ui";
 import type { SharedDetail } from "@/features/friends/useSharedDetailLogic";
+import { Tracklist } from "@/features/tracklist/Tracklist";
 import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import type { ReactNode } from "react";
@@ -34,6 +35,14 @@ export interface SharedDetailItem {
   readonly phoneFootnote?: string;
   /** The quiet word on the right of the footer: whose copy it is, or why a field is gone. */
   readonly note: string;
+  /**
+   * The release behind this record, when it has one (26c).
+   *
+   * Its own field rather than another `DetailFact` because the tracklist is not a fact: it
+   * is a block of its own below the grid, it arrives after the sheet is drawn, and it has
+   * three states the label-over-value shape cannot carry.
+   */
+  readonly releaseId?: string;
 }
 
 const LABEL = "font-mono text-[9.5px] uppercase tracking-[0.16em] text-ink-subtle";
@@ -119,27 +128,31 @@ export function SharedDetailModal({
 
             <Facts facts={item.facts} className="hidden sm:grid" />
             <Facts facts={item.phoneFacts} className="grid sm:hidden" phone />
-
-            <div
-              className={cn(
-                "mt-auto flex items-center justify-between gap-4 pt-6",
-                "max-sm:mt-[18px] max-sm:border-ink/10 max-sm:border-t max-sm:pt-3.5",
-                FOOTER,
-              )}
-            >
-              <span className="max-sm:hidden">
-                {t("profile.detail.position", { index: detail.index + 1, total: detail.total })}
-              </span>
-              <span className="hidden max-sm:inline">{item.phoneFootnote ?? item.note}</span>
-              <span className="max-sm:hidden">{item.note}</span>
-              <span className="hidden max-sm:inline">
-                {t("profile.detail.positionSwipe", {
-                  index: detail.index + 1,
-                  total: detail.total,
-                })}
-              </span>
-            </div>
           </div>
+        </div>
+
+        {/* 26c: full width under both columns, so the sleeve keeps the top of the sheet.
+            Read-only like everything else here — the visitor may have no account at all. */}
+        <Tracklist releaseId={item.releaseId} shared />
+
+        <div
+          className={cn(
+            "mt-auto flex items-center justify-between gap-4 pt-6",
+            "max-sm:mt-[18px] max-sm:border-ink/10 max-sm:border-t max-sm:pt-3.5",
+            FOOTER,
+          )}
+        >
+          <span className="max-sm:hidden">
+            {t("profile.detail.position", { index: detail.index + 1, total: detail.total })}
+          </span>
+          <span className="hidden max-sm:inline">{item.phoneFootnote ?? item.note}</span>
+          <span className="max-sm:hidden">{item.note}</span>
+          <span className="hidden max-sm:inline">
+            {t("profile.detail.positionSwipe", {
+              index: detail.index + 1,
+              total: detail.total,
+            })}
+          </span>
         </div>
       </div>
     </Modal>

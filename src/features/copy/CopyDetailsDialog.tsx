@@ -11,6 +11,7 @@ import { useCopyDetailsLogic } from "@/features/copy/useCopyDetailsLogic";
 import { ConditionScale } from "@/features/detail/ConditionScale";
 import { PhotoManager } from "@/features/photos/PhotoManager";
 import { usePhotoStripLogic } from "@/features/photos/usePhotoStripLogic";
+import { Tracklist } from "@/features/tracklist/Tracklist";
 import { cn } from "@/lib/utils";
 import type { Format } from "@janne6565/rekordo-shared";
 import { FORMAT_LABELS } from "@janne6565/rekordo-shared";
@@ -115,227 +116,248 @@ export function CopyDetailsDialog({
       </div>
 
       <form
-        // Stacked under 640px (24f): the sleeve column is 180px wide and the fields
-        // beside it would be left with 150px, which is narrower than a date.
-        className="flex min-h-0 flex-1 flex-col gap-5 overflow-auto px-4 py-5 sm:flex-row sm:gap-6 sm:px-6 sm:py-5.5"
+        className="flex min-h-0 flex-1 flex-col overflow-auto px-4 py-5 sm:px-6 sm:py-5.5"
         onSubmit={(event) => {
           event.preventDefault();
           logic.save();
         }}
         id={`${titleId}-form`}
       >
-        {/* The sleeve while adding (8d), the whole image list while editing (12b): the
+        {/* Stacked under 640px (24f): the sleeve column is 180px wide and the fields
+            beside it would be left with 150px, which is narrower than a date. */}
+        <div className="flex flex-col gap-5 sm:flex-row sm:gap-6">
+          {/* The sleeve while adding (8d), the whole image list while editing (12b): the
             pictures of a copy are worth managing where its other answers are, and the add
             step has none of them yet. */}
-        <div className="flex-none">
-          {editing ? (
-            <PhotoManager logic={photos} release={release} />
-          ) : (
-            <div className="h-45 w-45 max-sm:mx-auto">
-              <ReleaseArt
-                release={release}
-                format={logic.fields.format === "" ? undefined : logic.fields.format}
-                loading="eager"
-              />
+          <div className="flex-none">
+            {editing ? (
+              <PhotoManager logic={photos} release={release} />
+            ) : (
+              <div className="h-45 w-45 max-sm:mx-auto">
+                <ReleaseArt
+                  release={release}
+                  format={logic.fields.format === "" ? undefined : logic.fields.format}
+                  loading="eager"
+                />
+              </div>
+            )}
+            <div className="mt-4.5 font-mono text-[10px] uppercase tracking-[0.08em] text-ink-subtle">
+              {t("copyDetails.format")}
             </div>
-          )}
-          <div className="mt-4.5 font-mono text-[10px] uppercase tracking-[0.08em] text-ink-subtle">
-            {t("copyDetails.format")}
-          </div>
-          {/* Editable on every copy: the archive answers for the pressing, but what is on
+            {/* Editable on every copy: the archive answers for the pressing, but what is on
               your shelf can be a tape of a record it only lists as vinyl. Picking the
               catalogue's own format again puts the copy back to following it. */}
-          <FormatChips
-            format={logic.fields.format === "" ? (release?.format ?? "OTHER") : logic.fields.format}
-            onSelect={(format) => logic.set("format", format)}
-          />
-          {/* Said only where it is surprising: the header above still names the archive's
+            <FormatChips
+              format={
+                logic.fields.format === "" ? (release?.format ?? "OTHER") : logic.fields.format
+              }
+              onSelect={(format) => logic.set("format", format)}
+            />
+            {/* Said only where it is surprising: the header above still names the archive's
               pressing, and this is why the two lines disagree. */}
-          {release !== undefined &&
-            logic.fields.format !== "" &&
-            logic.fields.format !== release.format && (
-              <p className="mt-1.5 text-[11px] text-ink-subtle">
-                {t("copyDetails.formatDiffers", { format: FORMAT_LABELS[release.format] })}
-              </p>
-            )}
-        </div>
+            {release !== undefined &&
+              logic.fields.format !== "" &&
+              logic.fields.format !== release.format && (
+                <p className="mt-1.5 text-[11px] text-ink-subtle">
+                  {t("copyDetails.formatDiffers", { format: FORMAT_LABELS[release.format] })}
+                </p>
+              )}
+          </div>
 
-        <div className="min-w-0 flex-1">
-          {/* Only a hand-entered copy carries its pressing's facts, and only it can
+          <div className="min-w-0 flex-1">
+            {/* Only a hand-entered copy carries its pressing's facts, and only it can
               correct them — no archive is ever going to fix a typo in a bootleg. */}
-          {logic.manual && (
-            <div className="mb-5 border-b border-line pb-5">
-              <div className="font-mono text-[10px] uppercase tracking-[0.1em] text-ink-subtle">
-                {t("manual.pressing")}
+            {logic.manual && (
+              <div className="mb-5 border-b border-line pb-5">
+                <div className="font-mono text-[10px] uppercase tracking-[0.1em] text-ink-subtle">
+                  {t("manual.pressing")}
+                </div>
+                <div className="mt-2.5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <Field label={t("manual.artist")} required>
+                    {(id) => (
+                      <input
+                        id={id}
+                        value={logic.fields.artist}
+                        onChange={(event) => logic.set("artist", event.target.value)}
+                        className={MANUAL_INPUT}
+                      />
+                    )}
+                  </Field>
+                  <Field label={t("manual.title")} required>
+                    {(id) => (
+                      <input
+                        id={id}
+                        value={logic.fields.title}
+                        onChange={(event) => logic.set("title", event.target.value)}
+                        className={MANUAL_INPUT}
+                      />
+                    )}
+                  </Field>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-3">
+                  <Field label={t("manual.year")} className="w-20 flex-none">
+                    {(id) => (
+                      <input
+                        id={id}
+                        inputMode="numeric"
+                        maxLength={4}
+                        value={logic.fields.year}
+                        onChange={(event) => logic.set("year", event.target.value)}
+                        className={cn(MANUAL_INPUT, "font-mono")}
+                      />
+                    )}
+                  </Field>
+                  <Field label={t("manual.label")} className="min-w-0 flex-1">
+                    {(id) => (
+                      <input
+                        id={id}
+                        value={logic.fields.label}
+                        onChange={(event) => logic.set("label", event.target.value)}
+                        placeholder={t("manual.optional")}
+                        className={MANUAL_INPUT}
+                      />
+                    )}
+                  </Field>
+                  <Field label={t("manual.catalogNumber")} className="min-w-0 flex-1">
+                    {(id) => (
+                      <input
+                        id={id}
+                        value={logic.fields.catalogNumber}
+                        onChange={(event) => logic.set("catalogNumber", event.target.value)}
+                        placeholder={t("manual.optional")}
+                        className={MANUAL_INPUT}
+                      />
+                    )}
+                  </Field>
+                </div>
               </div>
-              <div className="mt-2.5 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <Field label={t("manual.artist")} required>
-                  {(id) => (
-                    <input
-                      id={id}
-                      value={logic.fields.artist}
-                      onChange={(event) => logic.set("artist", event.target.value)}
-                      className={MANUAL_INPUT}
-                    />
-                  )}
-                </Field>
-                <Field label={t("manual.title")} required>
-                  {(id) => (
-                    <input
-                      id={id}
-                      value={logic.fields.title}
-                      onChange={(event) => logic.set("title", event.target.value)}
-                      className={MANUAL_INPUT}
-                    />
-                  )}
-                </Field>
-              </div>
-              <div className="mt-3 flex flex-wrap gap-3">
-                <Field label={t("manual.year")} className="w-20 flex-none">
-                  {(id) => (
-                    <input
-                      id={id}
-                      inputMode="numeric"
-                      maxLength={4}
-                      value={logic.fields.year}
-                      onChange={(event) => logic.set("year", event.target.value)}
-                      className={cn(MANUAL_INPUT, "font-mono")}
-                    />
-                  )}
-                </Field>
-                <Field label={t("manual.label")} className="min-w-0 flex-1">
-                  {(id) => (
-                    <input
-                      id={id}
-                      value={logic.fields.label}
-                      onChange={(event) => logic.set("label", event.target.value)}
-                      placeholder={t("manual.optional")}
-                      className={MANUAL_INPUT}
-                    />
-                  )}
-                </Field>
-                <Field label={t("manual.catalogNumber")} className="min-w-0 flex-1">
-                  {(id) => (
-                    <input
-                      id={id}
-                      value={logic.fields.catalogNumber}
-                      onChange={(event) => logic.set("catalogNumber", event.target.value)}
-                      placeholder={t("manual.optional")}
-                      className={MANUAL_INPUT}
-                    />
-                  )}
-                </Field>
-              </div>
-            </div>
-          )}
+            )}
 
-          {/* Two grades side by side is 167px each at 390px, and the scale under them
+            {/* Two grades side by side is 167px each at 390px, and the scale under them
               needs every pixel of the row it draws. One column under 640px. */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <ConditionScale
-              scope="MEDIA"
-              label={t("copyDetails.mediaCondition")}
-              value={logic.fields.condition}
-              onChange={(value) => logic.set("condition", value)}
-            />
-            {/* Right-hand column: the help panel is wider than the column, so it hangs
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <ConditionScale
+                scope="MEDIA"
+                label={t("copyDetails.mediaCondition")}
+                value={logic.fields.condition}
+                onChange={(value) => logic.set("condition", value)}
+              />
+              {/* Right-hand column: the help panel is wider than the column, so it hangs
                 from the right edge instead of running off the side of the modal. */}
-            <ConditionScale
-              scope="SLEEVE"
-              align="end"
-              label={t("copyDetails.sleeveCondition")}
-              value={logic.fields.sleeveCondition}
-              onChange={(value) => logic.set("sleeveCondition", value)}
-            />
+              <ConditionScale
+                scope="SLEEVE"
+                align="end"
+                label={t("copyDetails.sleeveCondition")}
+                value={logic.fields.sleeveCondition}
+                onChange={(value) => logic.set("sleeveCondition", value)}
+              />
 
-            <Field
-              label={t("copyDetails.price")}
-              error={logic.priceInvalid ? t("editor.badPrice") : null}
-            >
-              {(id) => (
-                <div className="flex h-10 items-center gap-2 rounded-[9px] border border-line bg-surface px-3.25">
-                  <span className="text-[13px] text-ink-subtle">€</span>
+              <Field
+                label={t("copyDetails.price")}
+                error={logic.priceInvalid ? t("editor.badPrice") : null}
+              >
+                {(id) => (
+                  <div className="flex h-10 items-center gap-2 rounded-[9px] border border-line bg-surface px-3.25">
+                    <span className="text-[13px] text-ink-subtle">€</span>
+                    <input
+                      id={id}
+                      inputMode="decimal"
+                      value={logic.fields.price}
+                      onChange={(event) => logic.set("price", event.target.value)}
+                      placeholder="0.00"
+                      className="min-w-0 flex-1 bg-transparent text-[13.5px] outline-none placeholder:text-ink-subtle"
+                    />
+                  </div>
+                )}
+              </Field>
+
+              <Field
+                label={t("copyDetails.date")}
+                error={logic.dateInvalid ? t("editor.badDate") : null}
+              >
+                {(id) => (
+                  <div className="flex h-10 items-center justify-between rounded-[9px] border border-line bg-surface px-3.25">
+                    <input
+                      id={id}
+                      type="date"
+                      value={logic.fields.purchasedOn}
+                      onChange={(event) => logic.set("purchasedOn", event.target.value)}
+                      className="min-w-0 flex-1 bg-transparent text-[13.5px] outline-none"
+                    />
+                    <Calendar
+                      size={15}
+                      strokeWidth={1.75}
+                      className="text-ink-subtle"
+                      aria-hidden
+                    />
+                  </div>
+                )}
+              </Field>
+
+              <Field label={t("copyDetails.where")}>
+                {(id) => (
                   <input
                     id={id}
-                    inputMode="decimal"
-                    value={logic.fields.price}
-                    onChange={(event) => logic.set("price", event.target.value)}
-                    placeholder="0.00"
-                    className="min-w-0 flex-1 bg-transparent text-[13.5px] outline-none placeholder:text-ink-subtle"
+                    value={logic.fields.purchasedAt}
+                    onChange={(event) => logic.set("purchasedAt", event.target.value)}
+                    placeholder={t("editor.wherePlaceholder")}
+                    className="h-10 w-full rounded-[9px] border border-line bg-surface px-3.25 text-[13.5px] outline-none placeholder:text-ink-subtle"
                   />
-                </div>
-              )}
-            </Field>
+                )}
+              </Field>
 
-            <Field
-              label={t("copyDetails.date")}
-              error={logic.dateInvalid ? t("editor.badDate") : null}
-            >
-              {(id) => (
-                <div className="flex h-10 items-center justify-between rounded-[9px] border border-line bg-surface px-3.25">
-                  <input
-                    id={id}
-                    type="date"
-                    value={logic.fields.purchasedOn}
-                    onChange={(event) => logic.set("purchasedOn", event.target.value)}
-                    className="min-w-0 flex-1 bg-transparent text-[13.5px] outline-none"
-                  />
-                  <Calendar size={15} strokeWidth={1.75} className="text-ink-subtle" aria-hidden />
+              <fieldset>
+                <legend className="font-mono text-[10px] uppercase tracking-[0.1em] text-ink-subtle">
+                  {t("copyDetails.rating")}
+                </legend>
+                <div className="flex h-10 items-center gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      // Pressing the current rating clears it — otherwise a mis-tap sticks.
+                      onClick={() =>
+                        logic.set("rating", logic.fields.rating === star ? null : star)
+                      }
+                      aria-label={t("editor.rate", { count: star })}
+                      aria-pressed={star <= (logic.fields.rating ?? 0)}
+                    >
+                      <Star
+                        size={19}
+                        strokeWidth={1.5}
+                        className={
+                          star <= (logic.fields.rating ?? 0) ? "text-accent" : "text-ink/20"
+                        }
+                        fill={star <= (logic.fields.rating ?? 0) ? "currentColor" : "none"}
+                      />
+                    </button>
+                  ))}
                 </div>
-              )}
-            </Field>
+              </fieldset>
+            </div>
 
-            <Field label={t("copyDetails.where")}>
+            <Field label={t("detail.notes")} className="mt-4.5">
               {(id) => (
-                <input
+                <textarea
                   id={id}
-                  value={logic.fields.purchasedAt}
-                  onChange={(event) => logic.set("purchasedAt", event.target.value)}
-                  placeholder={t("editor.wherePlaceholder")}
-                  className="h-10 w-full rounded-[9px] border border-line bg-surface px-3.25 text-[13.5px] outline-none placeholder:text-ink-subtle"
+                  rows={3}
+                  value={logic.fields.notes}
+                  onChange={(event) => logic.set("notes", event.target.value)}
+                  placeholder={t("editor.notesPlaceholder")}
+                  className="w-full resize-y rounded-[9px] border border-line bg-surface p-3.25 text-[13px] leading-relaxed outline-none placeholder:text-ink-subtle"
                 />
               )}
             </Field>
-
-            <fieldset>
-              <legend className="font-mono text-[10px] uppercase tracking-[0.1em] text-ink-subtle">
-                {t("copyDetails.rating")}
-              </legend>
-              <div className="flex h-10 items-center gap-1">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button
-                    key={star}
-                    type="button"
-                    // Pressing the current rating clears it — otherwise a mis-tap sticks.
-                    onClick={() => logic.set("rating", logic.fields.rating === star ? null : star)}
-                    aria-label={t("editor.rate", { count: star })}
-                    aria-pressed={star <= (logic.fields.rating ?? 0)}
-                  >
-                    <Star
-                      size={19}
-                      strokeWidth={1.5}
-                      className={star <= (logic.fields.rating ?? 0) ? "text-accent" : "text-ink/20"}
-                      fill={star <= (logic.fields.rating ?? 0) ? "currentColor" : "none"}
-                    />
-                  </button>
-                ))}
-              </div>
-            </fieldset>
           </div>
-
-          <Field label={t("detail.notes")} className="mt-4.5">
-            {(id) => (
-              <textarea
-                id={id}
-                rows={3}
-                value={logic.fields.notes}
-                onChange={(event) => logic.set("notes", event.target.value)}
-                placeholder={t("editor.notesPlaceholder")}
-                className="w-full resize-y rounded-[9px] border border-line bg-surface p-3.25 text-[13px] leading-relaxed outline-none placeholder:text-ink-subtle"
-              />
-            )}
-          </Field>
         </div>
+
+        {/* 26a: full width under the facts, so the sleeve keeps the top half of the sheet
+            to itself. Last, because it is the one block on here nobody has to answer. */}
+        <Tracklist
+          releaseId={release?.id}
+          trackCount={release?.trackCount}
+          discCount={release?.discCount}
+        />
       </form>
 
       {/*

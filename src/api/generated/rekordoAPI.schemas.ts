@@ -478,6 +478,37 @@ export interface SharedCopyDto {
   createdAt?: number;
 }
 
+export interface TrackDto {
+  number?: string;
+  title?: string;
+  lengthMs?: number;
+  artistName?: string;
+}
+
+export interface TrackMediumDto {
+  position?: number;
+  format?: string;
+  title?: string;
+  tracks?: TrackDto[];
+}
+
+export type TracklistDtoUnavailableReason = typeof TracklistDtoUnavailableReason[keyof typeof TracklistDtoUnavailableReason];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const TracklistDtoUnavailableReason = {
+  DISCOGS: 'DISCOGS',
+  NOT_IN_CATALOGUE: 'NOT_IN_CATALOGUE',
+} as const;
+
+export interface TracklistDto {
+  releaseId?: string;
+  trackCount?: number;
+  discCount?: number;
+  media?: TrackMediumDto[];
+  unavailableReason?: TracklistDtoUnavailableReason;
+}
+
 export interface ArtistDto {
   mbid?: string;
   name?: string;

@@ -1,6 +1,7 @@
 import { ReleaseArt } from "@/components/ReleaseArt";
 import { Button, Modal, ModalClose, useModalDismiss } from "@/components/ui";
 import { formatRelativeTime } from "@/domain/relativeTime";
+import { Tracklist } from "@/features/tracklist/Tracklist";
 import { useWishDetailsLogic } from "@/features/wishlist/useWishDetailsLogic";
 import { cn } from "@/lib/utils";
 import type { WishFormat } from "@janne6565/rekordo-shared";
@@ -265,6 +266,14 @@ export function WishDetailsDialog({ wishId, onClose, onFound, onSeeCopy }: WishD
             </div>
 
             <Pressings logic={logic} />
+
+            {/* 26c: the same section as the copy sheet, on a record nobody owns yet. An
+                entry typed in by hand, or made before pressings were recorded, names no
+                release at all — there is nothing to read a tracklist from and nothing to
+                label, so the section is not there rather than empty. */}
+            <div className="px-[22px] pb-1">
+              <Tracklist releaseId={entry.releaseId ?? undefined} />
+            </div>
           </div>
 
           <Footer logic={logic} onClose={onClose} onFound={onFound} />

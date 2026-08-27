@@ -1,11 +1,5 @@
-import type {
-  Copy,
-  LocalStore,
-  Photo,
-  Release,
-  WishlistItem,
-} from "@janne6565/music-collector-shared";
-import { createWishlistItem } from "@janne6565/music-collector-shared";
+import type { Copy, LocalStore, Photo, Release, WishlistItem } from "@janne6565/rekordo-shared";
+import { createWishlistItem } from "@janne6565/rekordo-shared";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { createElement } from "react";

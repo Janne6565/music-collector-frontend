@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { DURATION } from "@janne6565/music-collector-shared";
+import { DURATION } from "@janne6565/rekordo-shared";
 import { X } from "lucide-react";
 import {
   type CSSProperties,

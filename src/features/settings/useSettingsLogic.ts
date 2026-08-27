@@ -15,7 +15,7 @@ import {
   writeSyncEnabled,
 } from "@/local/settings";
 import { useAppSelector } from "@/store/hooks";
-import type { LegalLanguage } from "@janne6565/music-collector-shared";
+import type { LegalLanguage } from "@janne6565/rekordo-shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

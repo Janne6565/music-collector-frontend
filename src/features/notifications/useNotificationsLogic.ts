@@ -1,13 +1,13 @@
-import type {
-  NotificationPreferenceDto,
-  NotificationPreferenceDtoCategory,
-} from "@/api/generated/musicCollectorAPI.schemas";
 import {
   devices,
   muteDevice,
   preferences,
   updatePreference,
 } from "@/api/generated/notifications/notifications";
+import type {
+  NotificationPreferenceDto,
+  NotificationPreferenceDtoCategory,
+} from "@/api/generated/rekordoAPI.schemas";
 import { useAccountLogic } from "@/features/account/useAccountLogic";
 import { useAppSelector } from "@/store/hooks";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";

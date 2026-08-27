@@ -2,7 +2,7 @@ import { Button } from "@/components/ui";
 import type { ProfileTab } from "@/features/friends/ProfilePage";
 import { ProfileBody } from "@/features/friends/ProfilePage";
 import { useProfileLogic } from "@/features/friends/useProfileLogic";
-import { OPERATOR, OPERATOR_ONE_LINE } from "@janne6565/music-collector-shared";
+import { OPERATOR, OPERATOR_ONE_LINE } from "@janne6565/rekordo-shared";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { ShieldCheck } from "lucide-react";
 import type { ReactNode } from "react";

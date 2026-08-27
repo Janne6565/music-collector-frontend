@@ -1,17 +1,8 @@
 import { useStore } from "@/local/StoreProvider";
 import { rememberCopyOrigins } from "@/local/dexieStore";
 import { readDefaultCurrency } from "@/local/settings";
-import type {
-  Condition,
-  CopyDraft,
-  Format,
-  ManualRelease,
-} from "@janne6565/music-collector-shared";
-import {
-  createManualCopy,
-  createPhoto,
-  parseMoneyToCents,
-} from "@janne6565/music-collector-shared";
+import type { Condition, CopyDraft, Format, ManualRelease } from "@janne6565/rekordo-shared";
+import { createManualCopy, createPhoto, parseMoneyToCents } from "@janne6565/rekordo-shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
 

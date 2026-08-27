@@ -1,6 +1,6 @@
 // The shelf is mostly translated strings, so the real bundle is what it is rendered with.
 import "@/i18n/config";
-import type { SharedCopyDto } from "@/api/generated/musicCollectorAPI.schemas";
+import type { SharedCopyDto } from "@/api/generated/rekordoAPI.schemas";
 import { ProfileBody } from "@/features/friends/ProfilePage";
 import type { useProfileLogic } from "@/features/friends/useProfileLogic";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";

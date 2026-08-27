@@ -2,7 +2,7 @@ import { lookupAlbumCovers, lookupPressingCovers } from "@/api/releases";
 import { useWishPhotos } from "@/features/wishlist/useWishPhotos";
 import { useStore } from "@/local/StoreProvider";
 import { readWishlistSort, writeWishlistSort } from "@/local/settings";
-import type { WishPatch, WishSort, WishlistItem } from "@janne6565/music-collector-shared";
+import type { WishPatch, WishSort, WishlistItem } from "@janne6565/rekordo-shared";
 import {
   applyWishPatch,
   hasManualOrder,
@@ -12,7 +12,7 @@ import {
   sortWishlist,
   tombstonePhoto,
   tombstoneWishlistItem,
-} from "@janne6565/music-collector-shared";
+} from "@janne6565/rekordo-shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 

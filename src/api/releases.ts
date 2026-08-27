@@ -14,7 +14,7 @@ import type {
   ArtistDto,
   CoverThemeDto,
   ReleaseDto,
-} from "@/api/generated/musicCollectorAPI.schemas";
+} from "@/api/generated/rekordoAPI.schemas";
 import type {
   Album,
   Artist,
@@ -22,12 +22,8 @@ import type {
   Format,
   LocalStore,
   Release,
-} from "@janne6565/music-collector-shared";
-import {
-  FORMATS,
-  readArchivedAlbumCovers,
-  withArchivedCovers,
-} from "@janne6565/music-collector-shared";
+} from "@janne6565/rekordo-shared";
+import { FORMATS, readArchivedAlbumCovers, withArchivedCovers } from "@janne6565/rekordo-shared";
 /**
  * The boundary between the generated client and the domain.
  *

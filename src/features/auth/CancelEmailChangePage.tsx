@@ -31,7 +31,7 @@ export function CancelEmailChangePage() {
   return (
     <div className="flex min-h-full items-start justify-center bg-paper px-4 pt-8 pb-10 sm:items-center sm:px-6 sm:py-16">
       <div className="w-full max-w-[440px]">
-        <div className="font-serif text-[19px] leading-none">Music Collector</div>
+        <div className="font-serif text-[19px] leading-none">Rekordo</div>
         <div className="mt-5 h-px bg-line" />
         <h1 className="mt-8 font-serif text-[30px] leading-[1.15]">
           {t(`auth.cancelChange.${state}.title`)}

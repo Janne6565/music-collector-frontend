@@ -10,7 +10,7 @@ import {
   legalDocument,
   sectionChip,
   sectionLabel,
-} from "@janne6565/music-collector-shared";
+} from "@janne6565/rekordo-shared";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { ShieldCheck } from "lucide-react";

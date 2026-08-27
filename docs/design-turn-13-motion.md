@@ -1,11 +1,11 @@
 # Design prompt — turn 13: motion and polish
 
 Paste into Claude Design, project `a1b6280a-eae4-4ab0-aab3-68ea4a303c9b`
-(`Music Collector.dc.html`). Written 2026-08-25, after turn 12.
+(`Rekordo.dc.html`). Written 2026-08-25, after turn 12.
 
 ---
 
-This is **turn 13 of Music Collector: motion and polish**. Nothing in it should move a
+This is **turn 13 of Rekordo: motion and polish**. Nothing in it should move a
 box. Every screen through turn 12 is built and shipped and I am happy with the layouts —
 what I want from this turn is how the app *arrives*: transitions, entrances, exits, and
 the small pieces of state change that currently just snap.

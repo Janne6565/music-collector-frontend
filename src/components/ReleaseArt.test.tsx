@@ -1,5 +1,5 @@
 import { ReleaseArt } from "@/components/ReleaseArt";
-import type { Release } from "@janne6565/music-collector-shared";
+import type { Release } from "@janne6565/rekordo-shared";
 import { fireEvent, render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 

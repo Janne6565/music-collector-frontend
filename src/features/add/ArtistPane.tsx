@@ -8,8 +8,8 @@ import {
   useDiscographyLogic,
 } from "@/features/add/useDiscographyLogic";
 import { cn } from "@/lib/utils";
-import type { Album, Artist, Release } from "@janne6565/music-collector-shared";
-import { FORMAT_LABELS } from "@janne6565/music-collector-shared";
+import type { Album, Artist, Release } from "@janne6565/rekordo-shared";
+import { FORMAT_LABELS } from "@janne6565/rekordo-shared";
 import { ChevronDown, ChevronLeft, ChevronUp, Plus, Search } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

@@ -1,6 +1,6 @@
 const enCommon = {
   app: {
-    name: "Music Collector",
+    name: "Rekordo",
     tagline: "Your records, tapes, discs and files in one place.",
   },
   nav: {
@@ -623,7 +623,7 @@ const enCommon = {
       done: {
         title: "Address confirmed",
         body: "{{email}} can now receive a password reset and the security notices for this account. Nothing else changed, and nothing needs doing here.",
-        open: "Open Music Collector",
+        open: "Open Rekordo",
         backToLibrary: "Back to your library",
         closeTab: "Close this tab",
       },
@@ -640,7 +640,7 @@ const enCommon = {
       truncated: {
         title: "The link arrived cut short",
         body: "The address in the bar is missing its last few characters, which some mail apps do when they wrap a long line. Copy the whole line from the mail, including everything after the last slash.",
-        exampleHead: "musiccollector.app/confirm/",
+        exampleHead: "rekordo.jannekeipert.de/confirm/",
         exampleTail: "4d71-9ba2-06fc-31e8",
         exampleNote: "— the part in dark is what got lost",
       },
@@ -997,7 +997,7 @@ type CommonSchema = DeepStringSchema<typeof enCommon>;
 
 const deCommon: CommonSchema = {
   app: {
-    name: "Music Collector",
+    name: "Rekordo",
     tagline: "Deine Platten, Kassetten, CDs und Dateien an einem Ort.",
   },
   nav: {
@@ -1627,7 +1627,7 @@ const deCommon: CommonSchema = {
       done: {
         title: "Adresse bestätigt",
         body: "{{email}} kann jetzt einen Passwort-Reset und die Sicherheitshinweise zu diesem Konto empfangen. Sonst hat sich nichts geändert, und hier ist nichts weiter zu tun.",
-        open: "Music Collector öffnen",
+        open: "Rekordo öffnen",
         backToLibrary: "Zurück zur Sammlung",
         closeTab: "Tab schließen",
       },
@@ -1644,7 +1644,7 @@ const deCommon: CommonSchema = {
       truncated: {
         title: "Der Link kam abgeschnitten an",
         body: "In der Adresszeile fehlen die letzten Zeichen — manche Mail-Programme kürzen lange Zeilen beim Umbruch. Kopiere die ganze Zeile aus der Mail, inklusive allem nach dem letzten Schrägstrich.",
-        exampleHead: "musiccollector.app/confirm/",
+        exampleHead: "rekordo.jannekeipert.de/confirm/",
         exampleTail: "4d71-9ba2-06fc-31e8",
         exampleNote: "— der dunkle Teil ist der, der verloren ging",
       },

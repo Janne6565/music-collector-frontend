@@ -1,5 +1,5 @@
 import { createSyncTransport } from "@/sync/transport";
-import type { LocalStore } from "@janne6565/music-collector-shared";
+import type { LocalStore } from "@janne6565/rekordo-shared";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const pull = vi.fn();

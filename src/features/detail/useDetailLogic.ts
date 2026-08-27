@@ -2,8 +2,8 @@ import { lookupRelease } from "@/api/releases";
 import { useUndo } from "@/features/detail/UndoDelete";
 import { markBackNavigation } from "@/lib/motion";
 import { useStore } from "@/local/StoreProvider";
-import type { Copy, CopyDraft, Release } from "@janne6565/music-collector-shared";
-import { DURATION, applyCopyPatch, tombstoneCopy } from "@janne6565/music-collector-shared";
+import type { Copy, CopyDraft, Release } from "@janne6565/rekordo-shared";
+import { DURATION, applyCopyPatch, tombstoneCopy } from "@janne6565/rekordo-shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 

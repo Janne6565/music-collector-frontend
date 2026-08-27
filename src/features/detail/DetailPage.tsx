@@ -9,13 +9,13 @@ import { type ShownImage, resolveShown } from "@/features/photos/shownImage";
 import { usePhotoStripLogic } from "@/features/photos/usePhotoStripLogic";
 import { markBackNavigation } from "@/lib/motion";
 import { cn } from "@/lib/utils";
-import type { Copy, Release } from "@janne6565/music-collector-shared";
+import type { Copy, Release } from "@janne6565/rekordo-shared";
 import {
   CONDITION_SHORT,
   FORMAT_LABELS,
   catalogArtShown,
   copyFormat,
-} from "@janne6565/music-collector-shared";
+} from "@janne6565/rekordo-shared";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft, PencilLine, Plus, Star } from "lucide-react";
 import { type ReactNode, useState } from "react";

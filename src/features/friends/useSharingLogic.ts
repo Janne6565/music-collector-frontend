@@ -2,7 +2,7 @@ import { availability, claim } from "@/api/generated/handles/handles";
 import type {
   SharingSettingsDto,
   SharingSettingsDtoCollectionVisibility,
-} from "@/api/generated/musicCollectorAPI.schemas";
+} from "@/api/generated/rekordoAPI.schemas";
 import { read, update } from "@/api/generated/sharing/sharing";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";

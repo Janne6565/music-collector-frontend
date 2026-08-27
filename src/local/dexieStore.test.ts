@@ -1,5 +1,5 @@
 import { computeStats, sortCopies } from "@/local/dexieStore";
-import type { Copy, Release } from "@janne6565/music-collector-shared";
+import type { Copy, Release } from "@janne6565/rekordo-shared";
 import { describe, expect, it } from "vitest";
 
 function release(id: string, overrides: Partial<Release> = {}): Release {

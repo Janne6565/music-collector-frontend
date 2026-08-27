@@ -1,7 +1,7 @@
-import type { ReleaseDto } from "@/api/generated/musicCollectorAPI.schemas";
+import type { ReleaseDto } from "@/api/generated/rekordoAPI.schemas";
 import { lookupAlbumCovers, releaseDisambiguation, toRelease, toReleases } from "@/api/releases";
-import type { LocalStore } from "@janne6565/music-collector-shared";
-import { rememberArchivedAlbumCovers } from "@janne6565/music-collector-shared";
+import type { LocalStore } from "@janne6565/rekordo-shared";
+import { rememberArchivedAlbumCovers } from "@janne6565/rekordo-shared";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const albumCovers = vi.hoisted(() => vi.fn());

@@ -6,7 +6,7 @@ import { PasswordField } from "@/features/auth/PasswordField";
 import { Route } from "@/routes/reset";
 import { signedIn } from "@/store/authSlice";
 import { useAppDispatch } from "@/store/hooks";
-import { passwordLongEnough } from "@janne6565/music-collector-shared";
+import { passwordLongEnough } from "@janne6565/rekordo-shared";
 import { useMutation } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";

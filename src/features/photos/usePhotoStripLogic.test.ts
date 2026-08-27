@@ -1,8 +1,8 @@
 import "fake-indexeddb/auto";
 import { DexieLocalStore } from "@/local/dexieStore";
-import type { Hlc } from "@janne6565/music-collector-shared";
-import type { Release } from "@janne6565/music-collector-shared";
-import { createCopy, createPhoto, hlcInitial, hlcTick } from "@janne6565/music-collector-shared";
+import type { Hlc } from "@janne6565/rekordo-shared";
+import type { Release } from "@janne6565/rekordo-shared";
+import { createCopy, createPhoto, hlcInitial, hlcTick } from "@janne6565/rekordo-shared";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
 import Dexie from "dexie";

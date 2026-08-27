@@ -12,8 +12,8 @@ import {
 import { useArtistSearchLogic } from "@/features/add/useArtistSearchLogic";
 import { WishDialog } from "@/features/wishlist/WishDialog";
 import { cn } from "@/lib/utils";
-import type { Format, Release, WishlistItem } from "@janne6565/music-collector-shared";
-import { FORMAT_LABELS } from "@janne6565/music-collector-shared";
+import type { Format, Release, WishlistItem } from "@janne6565/rekordo-shared";
+import { FORMAT_LABELS } from "@janne6565/rekordo-shared";
 import {
   ArrowUpLeft,
   Clock,

@@ -1,9 +1,9 @@
-import type { ActivityEntryDto } from "@/api/generated/musicCollectorAPI.schemas";
+import type { ActivityEntryDto } from "@/api/generated/rekordoAPI.schemas";
 import { ReleaseArt } from "@/components/ReleaseArt";
 import { Skeleton } from "@/components/ui";
 import { formatRelativeTime } from "@/domain/relativeTime";
 import { Avatar } from "@/features/friends/Avatar";
-import { FORMAT_LABELS } from "@janne6565/music-collector-shared";
+import { FORMAT_LABELS } from "@janne6565/rekordo-shared";
 import { Link } from "@tanstack/react-router";
 import { Trans, useTranslation } from "react-i18next";
 

@@ -37,7 +37,7 @@ export function useYourDataLogic() {
       const body = signedIn ? await fetchAccountExport() : await localExport();
       download(
         new Blob([JSON.stringify(body, null, 2)], { type: "application/json" }),
-        `music-collector-export-${today()}.json`,
+        `rekordo-export-${today()}.json`,
       );
     },
   });
@@ -48,7 +48,7 @@ export function useYourDataLogic() {
       const releases = await store.getReleases(copies.map((copy) => copy.releaseId));
       download(
         new Blob([toCsv(copies, releases)], { type: "text/csv;charset=utf-8" }),
-        `music-collector-${today()}.csv`,
+        `rekordo-${today()}.csv`,
       );
     },
   });

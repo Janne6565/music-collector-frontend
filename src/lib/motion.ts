@@ -1,9 +1,4 @@
-import {
-  DURATION,
-  MARK_HOLD,
-  SETTLE_MAX_MOVES,
-  cssEasing,
-} from "@janne6565/music-collector-shared";
+import { DURATION, MARK_HOLD, SETTLE_MAX_MOVES, cssEasing } from "@janne6565/rekordo-shared";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 /**

@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui";
 import { useFirstSyncLogic } from "@/features/auth/useFirstSyncLogic";
 import { cn } from "@/lib/utils";
-import type { FirstSyncStrategy } from "@janne6565/music-collector-shared";
+import type { FirstSyncStrategy } from "@janne6565/rekordo-shared";
 import { Check, FileDown } from "lucide-react";
 import { useTranslation } from "react-i18next";
 

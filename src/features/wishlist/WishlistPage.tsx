@@ -10,8 +10,8 @@ import { WishDialog } from "@/features/wishlist/WishDialog";
 import { useRowDrag } from "@/features/wishlist/useRowDrag";
 import { useWishlistLogic } from "@/features/wishlist/useWishlistLogic";
 import { cn } from "@/lib/utils";
-import type { WishSort, WishlistItem } from "@janne6565/music-collector-shared";
-import { CHOOSABLE_WISH_SORTS, FORMAT_LABELS } from "@janne6565/music-collector-shared";
+import type { WishSort, WishlistItem } from "@janne6565/rekordo-shared";
+import { CHOOSABLE_WISH_SORTS, FORMAT_LABELS } from "@janne6565/rekordo-shared";
 import { useNavigate } from "@tanstack/react-router";
 import {
   Check,

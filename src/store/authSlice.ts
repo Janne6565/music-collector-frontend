@@ -1,4 +1,4 @@
-import type { UserDto } from "@/api/generated/musicCollectorAPI.schemas";
+import type { UserDto } from "@/api/generated/rekordoAPI.schemas";
 import { type PayloadAction, createSlice } from "@reduxjs/toolkit";
 
 export type AuthStatus = "unknown" | "anonymous" | "signedIn";

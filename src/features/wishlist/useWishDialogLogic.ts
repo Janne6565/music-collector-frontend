@@ -1,7 +1,7 @@
 import { lookupAlbumCovers, lookupPressingCovers, searchReleases } from "@/api/releases";
 import { ACCEPTED_IMAGES, type ImageRejection, rejectionFor } from "@/features/wishlist/coverImage";
 import { useStore } from "@/local/StoreProvider";
-import type { Release, WishFormat, WishlistItem } from "@janne6565/music-collector-shared";
+import type { Release, WishFormat, WishlistItem } from "@janne6565/rekordo-shared";
 import {
   applyWishPatch,
   asWishFormat,
@@ -10,7 +10,7 @@ import {
   isManualReleaseId,
   manualReleaseId,
   tombstonePhoto,
-} from "@janne6565/music-collector-shared";
+} from "@janne6565/rekordo-shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 

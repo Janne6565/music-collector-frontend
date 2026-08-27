@@ -1,4 +1,4 @@
-import type { HandleAvailabilityDtoReason } from "@/api/generated/musicCollectorAPI.schemas";
+import type { HandleAvailabilityDtoReason } from "@/api/generated/rekordoAPI.schemas";
 import { Button, FieldSpinner } from "@/components/ui";
 import { useHandleClaimLogic } from "@/features/friends/useSharingLogic";
 import { cn } from "@/lib/utils";

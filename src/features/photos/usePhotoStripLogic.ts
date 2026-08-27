@@ -1,13 +1,13 @@
 import type { ShownImage } from "@/features/photos/shownImage";
 import { useStore } from "@/local/StoreProvider";
-import type { CatalogArtChoice, Photo } from "@janne6565/music-collector-shared";
+import type { CatalogArtChoice, Photo } from "@janne6565/rekordo-shared";
 import {
   applyCopyPatch,
   copyPreviewSrc,
   createPhoto,
   reorderPhoto,
   tombstonePhoto,
-} from "@janne6565/music-collector-shared";
+} from "@janne6565/rekordo-shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 

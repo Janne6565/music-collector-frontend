@@ -3,7 +3,7 @@ import type {
   SyncCopyDto,
   SyncPhotoDto,
   SyncWishDto,
-} from "@/api/generated/musicCollectorAPI.schemas";
+} from "@/api/generated/rekordoAPI.schemas";
 import { pull, push } from "@/api/generated/sync/sync";
 import { downloadPhotoBytes, uploadPhotoBytes } from "@/api/photos";
 import { lookupReleases } from "@/api/releases";
@@ -18,8 +18,8 @@ import type {
   SyncPage,
   SyncTransport,
   WishlistItem,
-} from "@janne6565/music-collector-shared";
-import { SyncEngine } from "@janne6565/music-collector-shared";
+} from "@janne6565/rekordo-shared";
+import { SyncEngine } from "@janne6565/rekordo-shared";
 
 /**
  * The web app's half of sync: the Orval client, and the DTO shapes it speaks.

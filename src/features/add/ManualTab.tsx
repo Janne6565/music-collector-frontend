@@ -1,13 +1,8 @@
 import { Button, Field } from "@/components/ui";
 import { useManualEntryLogic } from "@/features/add/useManualEntryLogic";
 import { cn } from "@/lib/utils";
-import type { Condition, Format } from "@janne6565/music-collector-shared";
-import {
-  CONDITIONS,
-  CONDITION_LABELS,
-  FORMATS,
-  FORMAT_LABELS,
-} from "@janne6565/music-collector-shared";
+import type { Condition, Format } from "@janne6565/rekordo-shared";
+import { CONDITIONS, CONDITION_LABELS, FORMATS, FORMAT_LABELS } from "@janne6565/rekordo-shared";
 import { ImagePlus, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

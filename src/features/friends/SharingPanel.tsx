@@ -1,4 +1,4 @@
-import type { SharingSettingsDtoCollectionVisibility } from "@/api/generated/musicCollectorAPI.schemas";
+import type { SharingSettingsDtoCollectionVisibility } from "@/api/generated/rekordoAPI.schemas";
 import { Toggle } from "@/components/ui";
 import { useSharingLogic } from "@/features/friends/useSharingLogic";
 import { cn } from "@/lib/utils";

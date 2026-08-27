@@ -2,7 +2,7 @@ import type {
   FriendRequestDto,
   ProfileSummaryDto,
   SharingSettingsDtoCollectionVisibility,
-} from "@/api/generated/musicCollectorAPI.schemas";
+} from "@/api/generated/rekordoAPI.schemas";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button, PulsingDots } from "@/components/ui";
 import { ActivityFeed } from "@/features/friends/ActivityFeed";

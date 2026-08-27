@@ -1,4 +1,4 @@
-import type { Copy } from "@janne6565/music-collector-shared";
+import type { Copy } from "@janne6565/rekordo-shared";
 
 /**
  * Currency, which the app has always had and never let anybody choose.

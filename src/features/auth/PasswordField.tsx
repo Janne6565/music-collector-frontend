@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { passwordStrength } from "@janne6565/music-collector-shared";
+import { passwordStrength } from "@janne6565/rekordo-shared";
 import { Eye, EyeOff, Lock } from "lucide-react";
 import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";

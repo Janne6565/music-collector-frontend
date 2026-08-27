@@ -189,7 +189,7 @@ body {
 /* ------------------------------------------------------------------------------------
  * Motion — turn 13.
  *
- * The values are mirrored from @janne6565/music-collector-shared's `motion.ts`, which is
+ * The values are mirrored from @janne6565/rekordo-shared's `motion.ts`, which is
  * where the two clients agree on them; they are repeated here because a stylesheet cannot
  * import TypeScript, and `src/lib/motion.ts` asserts that these match at build time.
  *

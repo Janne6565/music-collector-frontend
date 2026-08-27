@@ -2,7 +2,7 @@ import "fake-indexeddb/auto";
 import { toCsv } from "@/domain/csv";
 import { DexieLocalStore } from "@/local/dexieStore";
 import { readPhotoBytes } from "@/local/photoBytes";
-import type { ClockSource, Release } from "@janne6565/music-collector-shared";
+import type { ClockSource, Release } from "@janne6565/rekordo-shared";
 import {
   applyCopyPatch,
   createCopy,
@@ -18,7 +18,7 @@ import {
   tombstoneCopy,
   tombstonePhoto,
   tombstoneWishlistItem,
-} from "@janne6565/music-collector-shared";
+} from "@janne6565/rekordo-shared";
 import Dexie from "dexie";
 import { beforeEach, describe, expect, it } from "vitest";
 

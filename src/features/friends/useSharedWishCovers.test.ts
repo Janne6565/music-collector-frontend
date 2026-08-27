@@ -1,4 +1,4 @@
-import type { SharedWishDto } from "@/api/generated/musicCollectorAPI.schemas";
+import type { SharedWishDto } from "@/api/generated/rekordoAPI.schemas";
 import { useSharedWishCovers } from "@/features/friends/useSharedWishCovers";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";

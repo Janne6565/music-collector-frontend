@@ -6,7 +6,7 @@ import type {
   Format,
   LibraryFilter,
   Release,
-} from "@janne6565/music-collector-shared";
+} from "@janne6565/rekordo-shared";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
 

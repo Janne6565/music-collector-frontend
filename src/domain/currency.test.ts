@@ -1,5 +1,5 @@
 import { currencyChipLabel, formatMoney, spendByCurrency } from "@/domain/currency";
-import type { Copy } from "@janne6565/music-collector-shared";
+import type { Copy } from "@janne6565/rekordo-shared";
 import { describe, expect, it } from "vitest";
 
 function copy(pricePaidCents: number | null, currency: string): Copy {

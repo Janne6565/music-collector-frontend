@@ -6,7 +6,7 @@ on:
     tags: ["v*.*.*"]
 
 env:
-  IMAGE: ghcr.io/janne6565/music-collector-frontend
+  IMAGE: ghcr.io/janne6565/rekordo-frontend
 
 jobs:
   build:
@@ -48,7 +48,7 @@ jobs:
         with:
           context: .
           push: true
-          # Reading @janne6565/music-collector-shared from GitHub Packages.
+          # Reading @janne6565/rekordo-shared from GitHub Packages.
           secrets: |
             npm_token=${{ secrets.GITHUB_TOKEN }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -60,10 +60,10 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Check out music-collector-deployment
+      - name: Check out rekordo-deployment
         uses: actions/checkout@v4
         with:
-          repository: Janne6565/music-collector-deployment
+          repository: Janne6565/rekordo-deployment
           # Deploy key scoped to that one repo; checkout configures the SSH remote
           # so the push below needs no extra auth.
           ssh-key: ${{ secrets.DEPLOY_REPO_SSH_KEY }}

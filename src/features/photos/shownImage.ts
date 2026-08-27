@@ -1,5 +1,5 @@
 import type { PhotoTile } from "@/features/photos/usePhotoStripLogic";
-import type { CatalogArtChoice } from "@janne6565/music-collector-shared";
+import type { CatalogArtChoice } from "@janne6565/rekordo-shared";
 
 /**
  * Which of a copy's images the large frame is showing.

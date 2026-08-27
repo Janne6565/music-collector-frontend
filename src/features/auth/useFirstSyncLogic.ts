@@ -4,7 +4,7 @@ import { useStore } from "@/local/StoreProvider";
 import { firstSyncResolved } from "@/store/authSlice";
 import { useAppDispatch } from "@/store/hooks";
 import { createSyncEngine, fromDto } from "@/sync/transport";
-import type { FirstSyncStrategy } from "@janne6565/music-collector-shared";
+import type { FirstSyncStrategy } from "@janne6565/rekordo-shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
@@ -61,7 +61,7 @@ export function useFirstSyncLogic() {
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = url;
-      anchor.download = `music-collector-local-${new Date().toISOString().slice(0, 10)}.csv`;
+      anchor.download = `rekordo-local-${new Date().toISOString().slice(0, 10)}.csv`;
       anchor.click();
       setTimeout(() => URL.revokeObjectURL(url), 0);
     },

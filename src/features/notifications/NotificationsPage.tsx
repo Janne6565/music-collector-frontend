@@ -1,4 +1,4 @@
-import type { NotificationPreferenceDtoCategory } from "@/api/generated/musicCollectorAPI.schemas";
+import type { NotificationPreferenceDtoCategory } from "@/api/generated/rekordoAPI.schemas";
 import { AppShell } from "@/components/layout/AppShell";
 import { BackBar } from "@/components/layout/BackBar";
 import { Toggle } from "@/components/ui";

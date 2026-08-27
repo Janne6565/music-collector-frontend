@@ -4,7 +4,7 @@ import { invalidFields } from "@/api/problem";
 import { useStore } from "@/local/StoreProvider";
 import { signedIn, signedOut } from "@/store/authSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { passwordLongEnough } from "@janne6565/music-collector-shared";
+import { passwordLongEnough } from "@janne6565/rekordo-shared";
 import { useQuery } from "@tanstack/react-query";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";

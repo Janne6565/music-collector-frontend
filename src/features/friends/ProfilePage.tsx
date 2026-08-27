@@ -1,4 +1,4 @@
-import type { SharedCopyDto, SharedWishDto } from "@/api/generated/musicCollectorAPI.schemas";
+import type { SharedCopyDto, SharedWishDto } from "@/api/generated/rekordoAPI.schemas";
 import { ReleaseArt } from "@/components/ReleaseArt";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button, PulsingDots, Skeleton } from "@/components/ui";
@@ -12,8 +12,8 @@ import { useSharedDetailLogic } from "@/features/friends/useSharedDetailLogic";
 import { useSharedWishCovers } from "@/features/friends/useSharedWishCovers";
 import { useCollectionStats } from "@/features/library/useLibraryLogic";
 import { cn } from "@/lib/utils";
-import type { Condition, Format } from "@janne6565/music-collector-shared";
-import { CONDITION_SHORT, FORMAT_LABELS } from "@janne6565/music-collector-shared";
+import type { Condition, Format } from "@janne6565/rekordo-shared";
+import { CONDITION_SHORT, FORMAT_LABELS } from "@janne6565/rekordo-shared";
 import { Link, useNavigate } from "@tanstack/react-router";
 import type { TFunction } from "i18next";
 import { ChevronLeft, ChevronRight, Lock, UserCheck, UserPlus } from "lucide-react";

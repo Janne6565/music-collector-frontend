@@ -1,10 +1,4 @@
-import type {
-  Condition,
-  Copy,
-  Format,
-  Release,
-  WishlistItem,
-} from "@janne6565/music-collector-shared";
+import type { Condition, Copy, Format, Release, WishlistItem } from "@janne6565/rekordo-shared";
 import {
   CONDITIONS,
   DEFAULT_WISH_SORT,
@@ -14,7 +8,7 @@ import {
   hasManualOrder,
   parseMoneyToCents,
   sortWishlist,
-} from "@janne6565/music-collector-shared";
+} from "@janne6565/rekordo-shared";
 /**
  * The collection as a spreadsheet: one row per copy.
  *
@@ -26,7 +20,7 @@ import {
  * `releaseId` leads the row on purpose: it is what makes the export re-importable. The
  * human-readable columns beside it are for the person, not for the parser.
  *
- * Mirrored verbatim in music-collector-mobile; keep the two in step.
+ * Mirrored verbatim in rekordo-mobile; keep the two in step.
  */
 
 export const CSV_COLUMNS = [

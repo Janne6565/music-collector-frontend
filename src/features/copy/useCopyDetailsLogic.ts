@@ -1,12 +1,12 @@
 import { useStore } from "@/local/StoreProvider";
 import { useAppSelector } from "@/store/hooks";
-import type { Condition, Format, ManualRelease, Release } from "@janne6565/music-collector-shared";
+import type { Condition, Format, ManualRelease, Release } from "@janne6565/rekordo-shared";
 import {
   applyCopyPatch,
   isManualCopy,
   parseIsoDate,
   parseMoneyToCents,
-} from "@janne6565/music-collector-shared";
+} from "@janne6565/rekordo-shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 

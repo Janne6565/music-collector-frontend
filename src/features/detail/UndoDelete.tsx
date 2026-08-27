@@ -1,11 +1,6 @@
 import { Button } from "@/components/ui";
 import { useStore } from "@/local/StoreProvider";
-import {
-  DURATION,
-  UNDO_HOLD,
-  restoreCopy,
-  restoreWishlistItem,
-} from "@janne6565/music-collector-shared";
+import { DURATION, UNDO_HOLD, restoreCopy, restoreWishlistItem } from "@janne6565/rekordo-shared";
 import { useQueryClient } from "@tanstack/react-query";
 import { HeartOff } from "lucide-react";
 import {

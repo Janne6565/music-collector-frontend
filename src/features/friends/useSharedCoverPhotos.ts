@@ -1,4 +1,4 @@
-import type { SharedCopyDto } from "@/api/generated/musicCollectorAPI.schemas";
+import type { SharedCopyDto } from "@/api/generated/rekordoAPI.schemas";
 import { downloadPhotoBytes } from "@/api/photos";
 import { useEffect, useState } from "react";
 

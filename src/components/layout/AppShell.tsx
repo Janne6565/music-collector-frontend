@@ -1,7 +1,7 @@
 import { TabBar } from "@/components/layout/TabBar";
 import { SidebarAccount } from "@/features/auth/SidebarAccount";
-import type { CollectionStats } from "@janne6565/music-collector-shared";
-import { FORMAT_LABELS } from "@janne6565/music-collector-shared";
+import type { CollectionStats } from "@janne6565/rekordo-shared";
+import { FORMAT_LABELS } from "@janne6565/rekordo-shared";
 import { Link } from "@tanstack/react-router";
 import { Heart, LibraryBig, Users } from "lucide-react";
 import type { ReactNode } from "react";

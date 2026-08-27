@@ -15,9 +15,9 @@ import {
 import { useCoverPhotos } from "@/features/photos/useCoverPhotos";
 import { useMark, useSettle } from "@/lib/motion";
 import { cn } from "@/lib/utils";
-import type { Format } from "@janne6565/music-collector-shared";
-import { catalogArtShown, copyFormat, copyPreviewSrc } from "@janne6565/music-collector-shared";
-import { FORMAT_LABELS } from "@janne6565/music-collector-shared";
+import type { Format } from "@janne6565/rekordo-shared";
+import { catalogArtShown, copyFormat, copyPreviewSrc } from "@janne6565/rekordo-shared";
+import { FORMAT_LABELS } from "@janne6565/rekordo-shared";
 import { Link } from "@tanstack/react-router";
 import { ArrowDownNarrowWide, Check, Plus, Search, X } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";

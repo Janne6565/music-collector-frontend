@@ -8,8 +8,8 @@ import {
 } from "@/features/photos/shownImage";
 import type { PhotoStripLogic } from "@/features/photos/usePhotoStripLogic";
 import { cn } from "@/lib/utils";
-import type { Release } from "@janne6565/music-collector-shared";
-import { catalogArtShown } from "@janne6565/music-collector-shared";
+import type { Release } from "@janne6565/rekordo-shared";
+import { catalogArtShown } from "@janne6565/rekordo-shared";
 import { ImagePlus, Star, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

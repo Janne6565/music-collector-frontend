@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import type { Format } from "@janne6565/music-collector-shared";
+import type { Format } from "@janne6565/rekordo-shared";
 import type { CSSProperties, ReactNode } from "react";
 
 interface FormatThumbProps {

@@ -1,6 +1,6 @@
 import { useStore } from "@/local/StoreProvider";
 import { readDocumentLanguage, writeDocumentLanguage } from "@/local/settings";
-import type { LegalLanguage } from "@janne6565/music-collector-shared";
+import type { LegalLanguage } from "@janne6565/rekordo-shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";

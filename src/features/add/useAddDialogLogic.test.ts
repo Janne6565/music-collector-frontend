@@ -1,5 +1,5 @@
 import { searchReleases } from "@/api/releases";
-import type { LocalStore, Release } from "@janne6565/music-collector-shared";
+import type { LocalStore, Release } from "@janne6565/rekordo-shared";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook } from "@testing-library/react";
 import { createElement } from "react";

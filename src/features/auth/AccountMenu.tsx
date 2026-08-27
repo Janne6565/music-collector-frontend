@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { OPERATOR } from "@janne6565/music-collector-shared";
+import { OPERATOR } from "@janne6565/rekordo-shared";
 import { Link } from "@tanstack/react-router";
 import { LogOut, Settings, User } from "lucide-react";
 import type { ReactNode } from "react";

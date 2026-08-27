@@ -1,6 +1,6 @@
-import type { SharedWishDto } from "@/api/generated/musicCollectorAPI.schemas";
+import type { SharedWishDto } from "@/api/generated/rekordoAPI.schemas";
 import { lookupAlbumCovers, lookupPressingCovers } from "@/api/releases";
-import { isManualReleaseId } from "@janne6565/music-collector-shared";
+import { isManualReleaseId } from "@janne6565/rekordo-shared";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 

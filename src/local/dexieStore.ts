@@ -7,7 +7,7 @@ import type {
   Photo,
   Release,
   WishlistItem,
-} from "@janne6565/music-collector-shared";
+} from "@janne6565/rekordo-shared";
 import {
   FORMATS,
   copyFormat,
@@ -15,7 +15,7 @@ import {
   manualRelease,
   manualReleaseCopyId,
   manualReleaseId,
-} from "@janne6565/music-collector-shared";
+} from "@janne6565/rekordo-shared";
 import Dexie, { type EntityTable } from "dexie";
 
 const DEVICE_ID_KEY = "deviceId";
@@ -68,6 +68,11 @@ class MusicCollectorDb extends Dexie {
   copyOrigins!: EntityTable<CopyOriginRow, "id">;
 
   constructor() {
+    // The IndexedDB database name, deliberately still the pre-Rekordo one. It is the
+    // handle to the collection already sitting in people's browsers, and this app is
+    // local-first: a visitor with no account has nothing anywhere else. Renaming it
+    // would not migrate that data, it would hide it behind a name nothing reads, and
+    // the app would open on an empty library. Same reasoning as the versions below.
     super("music-collector");
     // Only fields that are queried or sorted need indexing; the rest ride along in the row.
     // Versions 1 and 2 are history: they describe databases that exist on people's

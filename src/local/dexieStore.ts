@@ -461,6 +461,16 @@ export class DexieLocalStore implements LocalStore {
   }
 
   /**
+   * Whether the bytes are here, without reading them.
+   *
+   * Counted rather than fetched: `get` would materialise the whole buffer, and the sync
+   * sweep asks this about every photo in the collection on every pass.
+   */
+  async hasPhotoBytes(id: string): Promise<boolean> {
+    return (await this.db.photoBytes.where(":id").equals(id).count()) > 0;
+  }
+
+  /**
    * The stored bytes themselves, without the `Blob` wrapper `getPhotoBytes` puts on them.
    *
    * The archive wants bytes; every screen wants a Blob to point an `<img>` at. Dexie holds

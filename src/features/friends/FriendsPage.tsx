@@ -33,7 +33,7 @@ export function FriendsPage() {
   if (!logic.signedIn) {
     return (
       <AppShell stats={stats}>
-        <SignedOutNotice />
+        <SignedOutFind logic={logic} />
       </AppShell>
     );
   }
@@ -161,27 +161,71 @@ function FoundAndPending({ logic }: { readonly logic: Logic }) {
   );
 }
 
-function SignedOutNotice() {
+/**
+ * What the Friends tab is for somebody with no account: the search, and nothing else.
+ *
+ * Looking a collector up is the one social thing that needs no account — a handle is
+ * handed out precisely so it can be typed by somebody who has not signed up yet, and a
+ * page that answers that with a login wall makes the link useless. Everything the search
+ * leads to is already guest-safe: the profile behind a result draws the locked shelf or
+ * the open one on the server's verdict, and offers sign-in in place of the Add button.
+ *
+ * The rest of the page stays behind the account, because it has nothing to show without
+ * one — an empty feed, an empty rail and no requests are three ways of saying "sign in".
+ */
+function SignedOutFind({ logic }: { readonly logic: Logic }) {
   const { t } = useTranslation();
+  const nothingFound = logic.searched && !logic.searching && logic.results.length === 0;
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-3 px-7 text-center">
-      <h1 className="font-serif text-[24px]">{t("friends.signedOut.title")}</h1>
-      <p className="max-w-sm text-[13px] leading-relaxed text-ink-muted">
-        {t("friends.signedOut.body")}
-      </p>
-      <Link to="/signin" className="mt-1">
-        <Button className="h-9 rounded-lg px-4 text-[13px]">{t("friends.signedOut.action")}</Button>
-      </Link>
+    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pt-7 pb-8 sm:px-7">
+      <div className="mx-auto w-full max-w-md">
+        <h1 className="font-serif text-2xl leading-none sm:text-[26px]">
+          {t("friends.signedOut.title")}
+        </h1>
+        <p className="mt-2.5 text-[13px] leading-relaxed text-ink-muted">
+          {t("friends.signedOut.body")}
+        </p>
+
+        <div className="mt-5">
+          <SearchField logic={logic} full />
+        </div>
+
+        {logic.queryTooShort && (
+          <p className="mt-2.5 text-[12px] text-ink-subtle">{t("friends.signedOut.tooShort")}</p>
+        )}
+        {nothingFound && (
+          <p className="mt-2.5 text-[12px] text-ink-subtle">{t("friends.signedOut.noMatches")}</p>
+        )}
+        {logic.results.length > 0 && (
+          <div className="mt-4">
+            <Results logic={logic} />
+          </div>
+        )}
+
+        {/* The offer, kept as a footnote rather than the screen: what a stranger came here
+            to do is above it, and this is what they would gain by staying. */}
+        <div className="mt-8 rounded-xl border border-line bg-surface px-4 py-3.5">
+          <p className="text-[12.5px] leading-relaxed text-ink-muted">
+            {t("friends.signedOut.invitation")}
+          </p>
+          <Link to="/signin" className="mt-3 inline-block no-underline">
+            <Button className="h-9 rounded-lg px-4 text-[13px]">
+              {t("friends.signedOut.action")}
+            </Button>
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }
 
 type Logic = ReturnType<typeof useFriendsLogic>;
 
-function SearchField({ logic }: { readonly logic: Logic }) {
+/** `full` is the signed-out pane, where the field is the page rather than a header slot. */
+function SearchField({ logic, full }: { readonly logic: Logic; readonly full?: boolean }) {
   const { t } = useTranslation();
   return (
-    <div className="relative w-72 flex-none">
+    <div className={cn("relative", full === true ? "w-full" : "w-72 flex-none")}>
       <Search
         size={14}
         strokeWidth={1.75}
@@ -232,8 +276,9 @@ function PersonRow({
         <div className="flex items-center gap-1 truncate text-[11.5px] text-ink-muted">
           {person.collectionPrivate && <Lock size={11} strokeWidth={2} aria-hidden />}@
           {person.handle}
-          {person.copyCount !== undefined &&
-            ` · ${t("friends.copies", { count: person.copyCount })}`}
+          {/* Null rather than undefined when the shelf is closed, and `!== undefined`
+              rendered the bare word "copies" for every private collector. */}
+          {person.copyCount != null && ` · ${t("friends.copies", { count: person.copyCount })}`}
         </div>
       </Link>
       <RelationshipButton person={person} logic={logic} />
@@ -252,6 +297,13 @@ function RelationshipButton({
 }: { readonly person: ProfileSummaryDto; readonly logic: Logic }) {
   const { t } = useTranslation();
   const flat = "flex-none rounded-md px-2.5 py-1 text-[11.5px] font-medium";
+
+  // A stranger gets no verdict to act on — the server answers the same for everybody when
+  // nobody is asking — and the whole row already leads to the shelf, which is the only
+  // thing they can do here. The invitation to sign in is under the list, said once.
+  if (!logic.signedIn) {
+    return null;
+  }
 
   switch (person.relationship) {
     case "FRIENDS":

@@ -36,6 +36,7 @@ function logicWith(overrides: Record<string, unknown> = {}): ReturnType<typeof u
     results: [{ id: "p-1", handle: "martaknopf", displayName: "Marta Knopf", copyCount: 31 }],
     searching: false,
     queryTooShort: false,
+    searched: true,
     entries: [],
     loading: false,
     friends: [],
@@ -110,5 +111,25 @@ describe("FriendsPage under 640px", () => {
 
     const find = screen.getByRole("button", { name: /Find/ });
     expect(find.getAttribute("aria-current")).toBe("true");
+  });
+});
+
+describe("FriendsPage with no account", () => {
+  it("still searches, and offers sign-in instead of an Add button", () => {
+    // The regression this exists for: the whole page was a login wall, so a handle handed
+    // to somebody without an account led to a screen that could not look it up.
+    mocked.logic.mockReturnValue(logicWith({ signedIn: false }));
+    render(<FriendsPage />);
+
+    expect(screen.getByLabelText("Find a collector by handle")).toBeTruthy();
+    expect(screen.getByText("Marta Knopf")).toBeTruthy();
+    expect(screen.queryByText("Add")).toBeNull();
+  });
+
+  it("says nobody goes by a handle that found nothing", () => {
+    mocked.logic.mockReturnValue(logicWith({ signedIn: false, results: [], searched: true }));
+    render(<FriendsPage />);
+
+    expect(screen.getByText("Nobody goes by that handle.")).toBeTruthy();
   });
 });

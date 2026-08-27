@@ -20,9 +20,10 @@ const MIN_QUERY = 3;
  * The Friends page (15g) and the People panel behind it.
  *
  * Everything social needs an account, so every query here is gated on being signed in
- * rather than firing and collecting 401s. Search is the exception on the server — anybody
- * may run it — but this page is only ever reached by someone who has signed in, so it is
- * gated with the rest.
+ * rather than firing and collecting 401s. Search is the exception, on the server and now
+ * here too: looking somebody up is what a handle is handed out for, and a visitor who has
+ * to make an account before they can even find the shelf they were pointed at has been
+ * asked to pay before being shown anything.
  */
 export function useFriendsLogic() {
   const signedIn = useAppSelector((state) => state.auth.status === "signedIn");
@@ -51,7 +52,9 @@ export function useFriendsLogic() {
   const results = useQuery({
     queryKey: ["friends", "search", trimmed],
     queryFn: async () => await searchProfiles({ q: trimmed }),
-    enabled: signedIn && trimmed.length >= MIN_QUERY,
+    // Deliberately not gated on `signedIn`: the endpoint is open, and the answer it gives
+    // a stranger is the same one minus the relationship verdicts.
+    enabled: trimmed.length >= MIN_QUERY,
     // The list belongs to the previous keystroke until the next answer lands. Without it
     // the results empty out between every letter, which reads as "no matches" over and over.
     placeholderData: keepPreviousData,
@@ -116,6 +119,8 @@ export function useFriendsLogic() {
     results: trimmed.length >= MIN_QUERY ? (results.data ?? []) : [],
     searching: results.isFetching,
     queryTooShort: trimmed.length > 0 && trimmed.length < MIN_QUERY,
+    /** Whether a real query has been asked — the difference between "nothing yet" and "nobody". */
+    searched: trimmed.length >= MIN_QUERY,
     ask,
     acceptRequest,
     declineRequest,

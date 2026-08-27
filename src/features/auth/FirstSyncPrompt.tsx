@@ -18,7 +18,7 @@ export function FirstSyncPrompt() {
   const logic = useFirstSyncLogic();
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-lg flex-col justify-center gap-5 px-6 py-12">
+    <main className="mx-auto flex min-h-full max-w-lg flex-col justify-center gap-5 px-6 py-12">
       <div>
         <h1 className="font-serif text-[26px] leading-[1.15]">
           {t("firstSync.title", { count: logic.localCount })}

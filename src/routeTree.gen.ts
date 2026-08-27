@@ -14,6 +14,7 @@ import { Route as ForgotRouteImport } from './routes/forgot'
 import { Route as ResetRouteImport } from './routes/reset'
 import { Route as SigninRouteImport } from './routes/signin'
 import { Route as WishlistRouteImport } from './routes/wishlist'
+import { Route as YouRouteImport } from './routes/you'
 import { Route as HandleIndexRouteImport } from './routes/$handle.index'
 import { Route as HandleWishlistRouteImport } from './routes/$handle.wishlist'
 import { Route as AccountIndexRouteImport } from './routes/account.index'
@@ -52,6 +53,11 @@ const SigninRoute = SigninRouteImport.update({
 const WishlistRoute = WishlistRouteImport.update({
   id: '/wishlist',
   path: '/wishlist',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const YouRoute = YouRouteImport.update({
+  id: '/you',
+  path: '/you',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HandleIndexRoute = HandleIndexRouteImport.update({
@@ -131,6 +137,7 @@ export interface FileRoutesByFullPath {
   '/reset': typeof ResetRoute
   '/signin': typeof SigninRoute
   '/wishlist': typeof WishlistRoute
+  '/you': typeof YouRoute
   '/$handle/wishlist': typeof HandleWishlistRoute
   '/account/email': typeof AccountEmailRoute
   '/confirm/$token': typeof ConfirmTokenRoute
@@ -152,6 +159,7 @@ export interface FileRoutesByTo {
   '/reset': typeof ResetRoute
   '/signin': typeof SigninRoute
   '/wishlist': typeof WishlistRoute
+  '/you': typeof YouRoute
   '/$handle/wishlist': typeof HandleWishlistRoute
   '/account/email': typeof AccountEmailRoute
   '/confirm/$token': typeof ConfirmTokenRoute
@@ -174,6 +182,7 @@ export interface FileRoutesById {
   '/reset': typeof ResetRoute
   '/signin': typeof SigninRoute
   '/wishlist': typeof WishlistRoute
+  '/you': typeof YouRoute
   '/$handle/wishlist': typeof HandleWishlistRoute
   '/account/email': typeof AccountEmailRoute
   '/confirm/$token': typeof ConfirmTokenRoute
@@ -197,6 +206,7 @@ export interface FileRouteTypes {
     | '/reset'
     | '/signin'
     | '/wishlist'
+    | '/you'
     | '/$handle/wishlist'
     | '/account/email'
     | '/confirm/$token'
@@ -218,6 +228,7 @@ export interface FileRouteTypes {
     | '/reset'
     | '/signin'
     | '/wishlist'
+    | '/you'
     | '/$handle/wishlist'
     | '/account/email'
     | '/confirm/$token'
@@ -239,6 +250,7 @@ export interface FileRouteTypes {
     | '/reset'
     | '/signin'
     | '/wishlist'
+    | '/you'
     | '/$handle/wishlist'
     | '/account/email'
     | '/confirm/$token'
@@ -261,6 +273,7 @@ export interface RootRouteChildren {
   ResetRoute: typeof ResetRoute
   SigninRoute: typeof SigninRoute
   WishlistRoute: typeof WishlistRoute
+  YouRoute: typeof YouRoute
   HandleWishlistRoute: typeof HandleWishlistRoute
   AccountEmailRoute: typeof AccountEmailRoute
   ConfirmTokenRoute: typeof ConfirmTokenRoute
@@ -312,6 +325,13 @@ declare module '@tanstack/react-router' {
       path: '/wishlist'
       fullPath: '/wishlist'
       preLoaderRoute: typeof WishlistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/you': {
+      id: '/you'
+      path: '/you'
+      fullPath: '/you'
+      preLoaderRoute: typeof YouRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$handle/': {
@@ -421,6 +441,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetRoute: ResetRoute,
   SigninRoute: SigninRoute,
   WishlistRoute: WishlistRoute,
+  YouRoute: YouRoute,
   HandleWishlistRoute: HandleWishlistRoute,
   AccountEmailRoute: AccountEmailRoute,
   ConfirmTokenRoute: ConfirmTokenRoute,

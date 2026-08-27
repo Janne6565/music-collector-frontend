@@ -19,9 +19,9 @@ export function ForgotPasswordPage() {
   });
 
   return (
-    <div className="flex min-h-screen bg-paper">
+    <div className="flex min-h-full bg-paper">
       <AuthBrandPanel mode="SIGN_IN" />
-      <main className="flex flex-1 items-center justify-center px-6 py-12">
+      <main className="flex flex-1 items-start justify-center px-4 pt-7 pb-10 sm:items-center sm:px-6 sm:py-12">
         <div className="w-full max-w-[380px]">
           <h1 className="font-serif text-[32px] leading-[1.1]">{t("auth.forgotTitle")}</h1>
 

@@ -44,8 +44,32 @@ export function LegalDocumentPage({ documentId }: { readonly documentId: LegalDo
   const document = legalDocument(documentId);
 
   return (
-    <AppShell stats={stats.data}>
-      <div className="min-h-0 flex-1 overflow-auto px-14 py-11">
+    // 24j: no tab bar. These are the pages strangers open from a shared link, usually
+    // without an account — a row of four destinations under a privacy policy is an
+    // invitation to an app they have not asked for.
+    <AppShell stats={stats.data} phoneBottom="none">
+      <div className="min-h-0 flex-1 overflow-auto px-5 py-7 sm:px-14 sm:py-11">
+        {/*
+         * The rail's document list has nowhere to stand under 1024px, so the three
+         * documents become a strip above the text. It scrolls sideways rather than
+         * wrapping: "Nutzungsbedingungen" is one word and does not break.
+         */}
+        <div className="mb-5 flex gap-4 overflow-x-auto border-b border-line pb-2.5 lg:hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {LEGAL_DOCUMENTS.map((entry) => (
+            <Link
+              key={entry.id}
+              to="/legal/$doc"
+              params={{ doc: SLUG_OF[entry.id] }}
+              className={
+                entry.id === documentId
+                  ? "-mb-2.5 flex-none border-b-2 border-ink pb-2.5 text-[13px] font-semibold"
+                  : "flex-none pb-2.5 text-[13px] font-medium text-ink-muted"
+              }
+            >
+              {entry.title[language]}
+            </Link>
+          ))}
+        </div>
         <div className="flex max-w-[960px] gap-14">
           <article className="min-w-0 flex-1 md:max-w-[620px]">
             <DocumentBody document={document} language={language} />

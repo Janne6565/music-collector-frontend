@@ -57,29 +57,36 @@ export function WishlistPage() {
 
   return (
     <AppShell stats={stats}>
-      <header className="flex flex-none items-start justify-between gap-4 px-7 pt-6 pb-4">
+      <header className="flex flex-none items-start justify-between gap-4 px-4 pt-5 pb-3.5 sm:px-7 sm:pt-6 sm:pb-4">
         <div>
-          <h1 className="font-serif text-[26px] leading-none">{t("nav.wishlist")}</h1>
+          <h1 className="font-serif text-2xl leading-none sm:text-[26px]">{t("nav.wishlist")}</h1>
           <p className="mt-1.5 text-[12.5px] text-ink-muted">
             {t("wishlist.count", { count: logic.count })}
           </p>
         </div>
         <div className="flex flex-none items-center gap-2.5">
           <SortMenu logic={logic} />
-          <Button onClick={() => setSheet(true)} className="h-9 rounded-lg px-4 text-[13px]">
+          {/* The word does not fit beside the sort control at 390px, and the icon is the
+              same one the library's header uses for the same act. */}
+          <Button
+            onClick={() => setSheet(true)}
+            aria-label={t("wishlist.addToWishlist")}
+            className="size-11 rounded-xl p-0 sm:h-9 sm:w-auto sm:rounded-lg sm:px-4 sm:text-[13px]"
+          >
             <Plus size={15} strokeWidth={2} aria-hidden />
-            {t("wishlist.addToWishlist")}
+            <span className="max-sm:hidden">{t("wishlist.addToWishlist")}</span>
           </Button>
         </div>
       </header>
 
-      <div className="min-h-0 flex-1 overflow-auto px-7 pb-8">
+      <div className="min-h-0 flex-1 overflow-auto px-4 pb-8 sm:px-7">
         {logic.loading ? null : logic.count === 0 ? (
           <EmptyWishlist onAdd={() => setSheet(true)} />
         ) : (
           <>
+            {/* 24d: no column heads under 640px — there are no columns left to head. */}
             <div
-              className="grid items-center gap-x-3 border-b border-line pb-2 font-mono text-[10px] uppercase tracking-[0.12em] text-ink-subtle"
+              className="hidden items-center gap-x-3 border-b border-line pb-2 font-mono text-[10px] tracking-[0.12em] text-ink-subtle uppercase sm:grid"
               style={{ gridTemplateColumns: GRID }}
             >
               <span />
@@ -109,7 +116,10 @@ export function WishlistPage() {
               />
             ))}
 
-            <p className="pt-4 text-[11.5px] text-ink-muted">{t("wishlist.dragHint")}</p>
+            {/* Dragging is a pointer gesture; the phone reorders from the sort sheet. */}
+            <p className="hidden pt-4 text-[11.5px] text-ink-muted sm:block">
+              {t("wishlist.dragHint")}
+            </p>
           </>
         )}
       </div>
@@ -272,7 +282,10 @@ function Row({
       onDrop={onDrop}
       onDragEnd={onDragEnd}
       className={cn(
-        "group grid cursor-pointer items-center gap-x-3 rounded-lg border-b border-line px-2 py-2.5",
+        // A flex row of 72px under 640px, the table above it (24d). The inline grid
+        // template below is inert while this is a flex container.
+        "group flex min-h-[72px] cursor-pointer items-center gap-3 rounded-lg border-b border-line px-1 py-2.5",
+        "sm:grid sm:min-h-0 sm:gap-x-3 sm:px-2",
         "transition-[opacity,background-color] hover:bg-canvas/60",
         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-ink",
         lifted && "opacity-40",
@@ -287,12 +300,12 @@ function Row({
         onMouseDown={onArm}
         onClick={(event) => event.stopPropagation()}
         aria-label={t("wishlist.reorder")}
-        className="cursor-grab text-ink-subtle opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
+        className="hidden cursor-grab text-ink-subtle opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 sm:block"
       >
         <GripVertical size={15} strokeWidth={1.75} aria-hidden />
       </button>
 
-      <div className="h-11 w-11">
+      <div className="h-12 w-12 flex-none sm:h-11 sm:w-11">
         {/* The wanted format is the silhouette, not the artwork: an entry for the vinyl of
             a record you already have on CD should look like the thing you are hunting. */}
         <ReleaseArt
@@ -303,34 +316,58 @@ function Row({
         />
       </div>
 
-      <div className="min-w-0">
-        <div className="truncate text-[13.5px] font-semibold leading-tight">{item.title}</div>
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-[13.5px] leading-tight font-semibold">{item.title}</div>
+        {/*
+         * 24k's identity line: what it is above, what tells it apart below, joined with
+         * " · " and missing parts left out silently. The format is part of it under 640px
+         * because the column that carried it is gone.
+         */}
         <div className="truncate text-[11.5px] leading-snug text-ink-muted">
-          {item.artistName}
-          {item.year !== null && ` · ${item.year}`}
+          {[
+            item.artistName,
+            item.year === null ? null : String(item.year),
+            item.desiredFormat === null
+              ? t("wishlist.anyFormat")
+              : FORMAT_LABELS[item.desiredFormat],
+          ]
+            .filter((part): part is string => part !== null)
+            .join(" · ")}
+        </div>
+        <div className="truncate text-[11.5px] leading-snug text-ink-muted sm:hidden">
+          {item.note}
         </div>
       </div>
 
-      <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-ink-muted">
+      <span className="hidden font-mono text-[10px] tracking-[0.06em] text-ink-muted uppercase sm:inline">
         {item.desiredFormat === null ? t("wishlist.anyFormat") : FORMAT_LABELS[item.desiredFormat]}
       </span>
 
-      <span className="truncate text-[12px] text-ink-muted">{item.note ?? "—"}</span>
+      <span className="hidden truncate text-[12px] text-ink-muted sm:inline">
+        {item.note ?? "—"}
+      </span>
 
-      <span className="font-mono text-[10px] text-ink-subtle">
+      {/* "Added" is the column 24d drops: it is in the entry's own sheet, and it is never
+          the reason somebody opens this list in a shop. */}
+      <span className="hidden font-mono text-[10px] text-ink-subtle sm:inline">
         {formatRelativeTime(item.createdAt, language)}
       </span>
 
       {/* Quiet until the row is under the pointer: a column that shouts on every row is one
           you read past. Never folds — a label on two lines pushed the row out of line. */}
-      <div className="flex justify-end opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+      {/*
+       * Always visible under 640px. It was a hover affordance, and hover is the one thing
+       * a phone does not have — this is also the reason the list gets opened in a shop at
+       * all, so it cannot be the thing that is hidden.
+       */}
+      <div className="flex flex-none justify-end opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100">
         <Button
           onClick={(event) => {
             // The row opens the entry; this button does its own thing instead.
             event.stopPropagation();
             onFound();
           }}
-          className="h-8 flex-none whitespace-nowrap rounded-lg px-3 text-[12px]"
+          className="h-11 flex-none rounded-lg px-3 text-[12px] whitespace-nowrap sm:h-8"
         >
           <Check size={14} strokeWidth={2} aria-hidden />
           {t("wishlist.foundIt")}

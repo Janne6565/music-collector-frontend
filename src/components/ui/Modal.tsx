@@ -67,6 +67,18 @@ interface ModalProps {
    */
   readonly phoneSheet?: boolean;
   /**
+   * How tall the phone sheet is allowed to be — 24f's correction to 23e's single height.
+   *
+   * `auto` grows with its content and stops at 60%: a question with two buttons that took
+   * the whole screen would read as a page. `large` is 92%, for anything with fields in it,
+   * because a form that opens at its content height jumps the moment the keyboard appears.
+   * `full` is the whole screen with a header of its own — and then there is nothing left
+   * to drag, so it loses the handle and closes by its own X.
+   *
+   * Ignored above 640px, where the panel is a centred box and `width` governs.
+   */
+  readonly sheetHeight?: "auto" | "large" | "full";
+  /**
    * Chrome painted on the dim itself rather than in the panel — 23a's prev/next.
    *
    * It lives inside the <dialog>, because an element outside it is inert while a modal is
@@ -98,6 +110,7 @@ export function Modal({
   holdOnBackdrop,
   align = "top",
   phoneSheet = false,
+  sheetHeight = "auto",
   overlay,
   footnote,
   children,
@@ -189,6 +202,11 @@ export function Modal({
               "flex max-h-full w-full min-w-0 flex-col items-center gap-3.5",
               "max-w-(--mc-modal-width)",
               phoneSheet && "max-sm:max-w-none max-sm:gap-0",
+              // The height lives on this column, not on the panel: a panel asking for
+              // `h-full` inside an auto-height parent resolves against nothing and
+              // collapses back to its content.
+              phoneSheet && sheetHeight === "large" && "max-sm:h-[92%]",
+              phoneSheet && sheetHeight === "full" && "max-sm:h-full",
             )}
             style={{ "--mc-modal-width": width } as CSSProperties}
           >
@@ -198,9 +216,17 @@ export function Modal({
                 "mc-lift flex max-h-full w-full min-h-0 flex-col overflow-hidden rounded-[14px]",
                 "bg-paper text-ink shadow-[0_24px_60px_rgba(25,23,19,.28)]",
                 phoneSheet && "max-sm:rounded-b-none",
+                phoneSheet && sheetHeight === "auto" && "max-sm:max-h-[60%]",
+                phoneSheet && sheetHeight !== "auto" && "max-sm:min-h-0 max-sm:flex-1",
+                phoneSheet && sheetHeight === "full" && "max-sm:rounded-t-none",
                 nudging && "mc-nudge",
               )}
             >
+              {phoneSheet && sheetHeight !== "full" && (
+                <div className="flex flex-none justify-center pt-2 sm:hidden" aria-hidden>
+                  <span className="h-1 w-9 rounded-full bg-ink/15" />
+                </div>
+              )}
               {children}
             </div>
             {footnote}

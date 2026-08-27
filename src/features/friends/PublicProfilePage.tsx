@@ -31,8 +31,8 @@ export function PublicProfilePage({
   const navigate = useNavigate();
 
   return (
-    <div className="flex min-h-screen flex-col bg-paper text-ink">
-      <header className="flex flex-none items-center justify-between gap-4 border-b border-line px-7 py-3.5">
+    <div className="flex min-h-full flex-col bg-paper text-ink">
+      <header className="flex flex-none items-center justify-between gap-3 border-b border-line px-4 py-3 sm:px-7 sm:py-3.5">
         <div className="flex items-baseline gap-3">
           <span className="font-serif text-[17px] leading-none">{t("app.name")}</span>
           <span className="font-mono text-[11px] text-ink-subtle">
@@ -89,7 +89,7 @@ export function PublicProfilePage({
 function PublicFooter() {
   const { t } = useTranslation();
   return (
-    <footer className="mx-auto flex w-full max-w-5xl flex-none flex-wrap items-end justify-between gap-8 border-t border-line px-7 py-5">
+    <footer className="mx-auto flex w-full max-w-5xl flex-none flex-wrap items-end justify-between gap-6 border-t border-line px-4 py-5 sm:gap-8 sm:px-7">
       <div className="flex flex-col gap-2">
         <div className="flex flex-wrap gap-x-5 gap-y-2 text-[12.5px] font-medium">
           <FooterLink doc="impressum">{t("legal.impressum")}</FooterLink>

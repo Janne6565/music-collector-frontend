@@ -35,12 +35,25 @@ export interface RowProps {
 
 export function Row({ icon, title, body, trailing }: RowProps) {
   return (
-    <div className="flex items-center justify-between gap-4 border-b border-line px-4 py-3.5 last:border-b-0">
+    /*
+     * 24k: the control drops onto a line of its own under 640px.
+     *
+     * The deck asks for that only where the label is wider than half the row, which is a
+     * measurement no stylesheet can make — and which changes with the language, since the
+     * German labels here run 30–40% longer than the English ones. So the phone stacks
+     * every row: predictable in both languages, and never a picker squeezed into 90px
+     * because a translation grew. Above 640px the row is unchanged.
+     */
+    <div className="flex flex-col gap-2.5 border-b border-line px-4 py-3.5 last:border-b-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
       <div className="flex min-w-0 items-center gap-2.5">
         {icon !== undefined && <span className="flex-none text-ink-subtle">{icon}</span>}
         <div className="min-w-0">
-          <div className="text-[13px] font-semibold">{title}</div>
-          <div className="truncate text-[11.5px] text-ink-muted">{body}</div>
+          <div className="text-[13px] font-semibold text-pretty">{title}</div>
+          {/* Wraps on a phone rather than truncating: it is the sentence that says what
+              the control above it does, and half of it is not the sentence. */}
+          <div className="text-[11.5px] text-ink-muted max-sm:leading-[1.5] sm:truncate">
+            {body}
+          </div>
         </div>
       </div>
       {trailing}
@@ -61,13 +74,15 @@ export function LinkRow({ to, params, icon, title, body }: LinkRowProps) {
     <Link
       to={to}
       params={params}
-      className="flex items-center justify-between gap-4 border-b border-line px-4 py-3.5 no-underline transition-colors duration-(--mc-quick) last:border-b-0 hover:bg-canvas"
+      className="flex min-h-13 items-center justify-between gap-4 border-b border-line px-4 py-3.5 no-underline transition-colors duration-(--mc-quick) last:border-b-0 hover:bg-canvas"
     >
       <div className="flex min-w-0 items-center gap-2.5">
         <span className="flex-none text-ink-subtle">{icon}</span>
         <div className="min-w-0">
-          <div className="text-[13px] font-semibold">{title}</div>
-          <div className="truncate text-[11.5px] text-ink-muted">{body}</div>
+          <div className="text-[13px] font-semibold text-pretty">{title}</div>
+          <div className="text-[11.5px] text-ink-muted max-sm:leading-[1.5] sm:truncate">
+            {body}
+          </div>
         </div>
       </div>
       <ChevronRight

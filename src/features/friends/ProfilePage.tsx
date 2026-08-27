@@ -133,7 +133,7 @@ export function ProfileBody({
   const prices = person.pricesVisible !== false;
 
   return (
-    <div className="min-h-0 flex-1 overflow-y-auto px-7 pb-10 pt-6">
+    <div className="min-h-0 flex-1 overflow-y-auto px-4 pt-5 pb-10 sm:px-7 sm:pt-6">
       {backTo && (
         <Link
           to={backTo}
@@ -187,7 +187,7 @@ export function ProfileBody({
       {!showing ? (
         <LockedShelf logic={logic} tab={tab} />
       ) : logic.loadingLists ? (
-        <div className="mt-5 grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-4">
+        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-[repeat(auto-fill,minmax(150px,1fr))] sm:gap-4">
           {[0, 1, 2, 3, 4, 5].map((tile) => (
             <Skeleton key={tile} className="aspect-square rounded-lg" />
           ))}
@@ -455,7 +455,7 @@ function CollectionGrid({
   }
   return (
     <>
-      <div className="mt-5 grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-4">
+      <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-[repeat(auto-fill,minmax(150px,1fr))] sm:gap-4">
         {copies.map((copy) => (
           /*
            * A button rather than an article with a heading in it: every tile now opens

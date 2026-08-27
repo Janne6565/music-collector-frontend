@@ -35,7 +35,14 @@ export function WishDialog({ onClose, entry = null, release = null }: WishDialog
   const titleId = useId();
 
   return (
-    <Modal onClose={onClose} labelledBy={titleId} width="520px" holdOnBackdrop>
+    <Modal
+      onClose={onClose}
+      labelledBy={titleId}
+      width="520px"
+      holdOnBackdrop
+      phoneSheet
+      sheetHeight="large"
+    >
       <div className="flex flex-none items-start justify-between gap-4 px-6 pt-5.5">
         <div className="min-w-0">
           <h2 id={titleId} className="font-serif text-2xl leading-[1.1]">

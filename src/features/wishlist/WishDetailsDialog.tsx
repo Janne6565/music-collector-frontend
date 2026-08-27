@@ -110,7 +110,14 @@ export function WishDetailsDialog({ wishId, onClose, onFound, onSeeCopy }: WishD
   }).format(added);
 
   return (
-    <Modal onClose={onClose} labelledBy={titleId} width="720px" holdOnBackdrop={logic.removing}>
+    <Modal
+      onClose={onClose}
+      labelledBy={titleId}
+      width="720px"
+      holdOnBackdrop={logic.removing}
+      phoneSheet
+      sheetHeight="large"
+    >
       {logic.satisfied ? (
         <SatisfiedElsewhere
           logic={logic}

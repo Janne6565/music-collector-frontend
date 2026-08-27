@@ -87,5 +87,7 @@ export function useLibraryLogic() {
     handleFormat,
     handleSearch,
     cycleSort,
+    /** 24b: the phone picks a mode from a sheet rather than cycling through three. */
+    setSort,
   };
 }

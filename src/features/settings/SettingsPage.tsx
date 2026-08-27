@@ -1,4 +1,5 @@
 import { AppShell } from "@/components/layout/AppShell";
+import { BackBar } from "@/components/layout/BackBar";
 import { Card, LinkRow, Row, SectionTitle } from "@/components/rows";
 import { Toggle, buttonClassName } from "@/components/ui";
 import { CURRENCIES, currencyChipLabel } from "@/domain/currency";
@@ -40,14 +41,14 @@ export function SettingsPage() {
   const storage = useStorageEstimate();
 
   return (
-    <AppShell stats={logic.stats}>
-      <header className="flex flex-none items-center justify-between border-b border-line px-8 py-4">
-        <span className="text-[12.5px] font-medium text-ink-muted">{t("nav.settings")}</span>
-      </header>
+    <AppShell stats={logic.stats} phoneBottom="none">
+      <BackBar to="/you" label={t("you.title")} />
 
-      <div className="min-h-0 flex-1 overflow-auto px-8 pb-10 pt-8">
+      <div className="min-h-0 flex-1 overflow-auto px-4 pt-6 pb-10 sm:px-8 sm:pt-8">
         <div className="max-w-[720px]">
-          <h1 className="font-serif text-[32px] leading-[1.05]">{t("nav.settings")}</h1>
+          <h1 className="font-serif text-[26px] leading-[1.08] sm:text-[32px] sm:leading-[1.05]">
+            {t("nav.settings")}
+          </h1>
           <p className="mt-2 max-w-[560px] text-[13.5px] leading-relaxed text-pretty text-ink-muted">
             {logic.signedIn ? t("settings.scope.signedIn") : t("settings.scope.anonymous")}
           </p>
@@ -305,7 +306,8 @@ function SettingRow({
 
   return (
     <div className="border-b border-line last:border-b-0">
-      <div className="flex items-center justify-between gap-4 px-4 py-3.5">
+      {/* 24k: label and explanation first, control on its own line under 640px. */}
+      <div className="flex flex-col gap-2.5 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
         <div className="flex min-w-0 items-center gap-2.5">
           <span
             className={cn(
@@ -317,7 +319,10 @@ function SettingRow({
           </span>
           <div className="min-w-0">
             <div
-              className={cn("text-[13px] font-semibold", (dimmed || loading) && "text-ink-muted")}
+              className={cn(
+                "text-[13px] font-semibold text-pretty",
+                (dimmed || loading) && "text-ink-muted",
+              )}
             >
               {title}
             </div>
@@ -326,7 +331,7 @@ function SettingRow({
             ) : (
               <div
                 className={cn(
-                  "truncate text-[11.5px]",
+                  "text-[11.5px] max-sm:leading-[1.5] sm:truncate",
                   dimmed ? "text-ink-subtle" : "text-ink-muted",
                 )}
               >
@@ -335,7 +340,7 @@ function SettingRow({
             )}
           </div>
         </div>
-        <div className="flex flex-none items-center gap-2.5">
+        <div className="flex flex-none items-center gap-2.5 max-sm:justify-between">
           {state === "saved" && (
             <span className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.08em] text-accent">
               <Check size={12} strokeWidth={2.25} aria-hidden />

@@ -1,6 +1,7 @@
 import { ReleaseArt } from "@/components/ReleaseArt";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button, Skeleton } from "@/components/ui";
+import { Modal } from "@/components/ui/Modal";
 import { AddDialog } from "@/features/add/AddDialog";
 import { ConfirmStrip } from "@/features/auth/ConfirmStrip";
 import { CopyDetailsDialog } from "@/features/copy/CopyDetailsDialog";
@@ -8,6 +9,7 @@ import { useUndo } from "@/features/detail/UndoDelete";
 import {
   type FormatFilter,
   type LibraryRow,
+  type SortKey,
   useLibraryLogic,
 } from "@/features/library/useLibraryLogic";
 import { useCoverPhotos } from "@/features/photos/useCoverPhotos";
@@ -17,8 +19,8 @@ import type { Format } from "@janne6565/music-collector-shared";
 import { catalogArtShown, copyFormat, copyPreviewSrc } from "@janne6565/music-collector-shared";
 import { FORMAT_LABELS } from "@janne6565/music-collector-shared";
 import { Link } from "@tanstack/react-router";
-import { ArrowDownNarrowWide, Search } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowDownNarrowWide, Check, Plus, Search, X } from "lucide-react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 const FILTERS: readonly FormatFilter[] = ["ALL", "VINYL", "CD", "CASSETTE", "DIGITAL"];
@@ -46,7 +48,11 @@ const SKELETON_CARDS: readonly (readonly [string, string])[] = [
 ];
 
 /** Shared so the skeleton grid cannot drift away from the real one. */
-const GRID_CLASS = "grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-x-4 gap-y-5";
+const GRID_CLASS =
+  "grid grid-cols-2 gap-x-3 gap-y-3.5 " +
+  // 24b: two columns at 390px puts the cover at 171px. The auto-fill above 640px is
+  // unchanged — a desktop window is where "as many as fit" is the right answer.
+  "sm:grid-cols-[repeat(auto-fill,minmax(150px,1fr))] sm:gap-x-4 sm:gap-y-5";
 
 export function LibraryPage() {
   const { t } = useTranslation();
@@ -79,7 +85,7 @@ export function LibraryPage() {
 
   return (
     <AppShell stats={logic.stats}>
-      <header className="flex flex-none items-center gap-4 border-b border-line px-7 py-4">
+      <header className="hidden flex-none items-center gap-4 border-b border-line px-7 py-4 sm:flex">
         <label className="flex h-9 flex-1 items-center gap-2 rounded-lg border border-line bg-surface px-3.5">
           <Search size={16} strokeWidth={1.75} className="flex-none text-ink-subtle" aria-hidden />
           <input
@@ -103,7 +109,7 @@ export function LibraryPage() {
         </Button>
       </header>
 
-      <div className="flex flex-none items-baseline justify-between px-7 pt-4 pb-1.5">
+      <div className="hidden flex-none items-baseline justify-between px-7 pt-4 pb-1.5 sm:flex">
         <h1 className="font-serif text-[26px] leading-none">{t("library.title")}</h1>
         {logic.stats === undefined ? (
           logic.loading && (
@@ -124,7 +130,7 @@ export function LibraryPage() {
           about the collection you are looking at. */}
       <ConfirmStrip />
 
-      <div className="flex flex-none gap-1.5 px-7 pb-3">
+      <div className="hidden flex-none gap-1.5 px-7 pb-3 sm:flex">
         {FILTERS.map((filter) => (
           <FilterChip
             key={filter}
@@ -136,8 +142,22 @@ export function LibraryPage() {
         ))}
       </div>
 
-      <div className="min-h-0 flex-1 overflow-auto px-7 pb-7">
-        <LibraryBody {...logic} onAdd={() => setAdding(true)} marked={mark.marked} />
+      {/*
+       * One scrolling pane, and on a phone the header travels inside it (24b): the title
+       * pulls away as you scroll, the search row and the chips stay. A filter you cannot
+       * see is a bug, which is why the chips are the part that sticks.
+       *
+       * No horizontal padding of its own under 640px — the sticky block has to reach both
+       * edges or the grid shows through its gutters as it passes underneath.
+       */}
+      <div className="min-h-0 flex-1 overflow-auto pb-7 sm:px-7">
+        <h1 className="px-4 pt-4 pb-2.5 font-serif text-2xl leading-none sm:hidden">
+          {t("library.title")}
+        </h1>
+        <PhoneHeader logic={logic} onAdd={() => setAdding(true)} />
+        <div className="px-4 sm:px-0">
+          <LibraryBody {...logic} onAdd={() => setAdding(true)} marked={mark.marked} />
+        </div>
       </div>
 
       {adding && <AddDialog onClose={() => setAdding(false)} onAdded={setDetailsFor} />}
@@ -162,6 +182,146 @@ export function LibraryPage() {
         />
       )}
     </AppShell>
+  );
+}
+
+/**
+ * The library's chrome under 640px — screen 24b.
+ *
+ * Three rows, all of which stay while the grid scrolls under them: search with the two
+ * things you do to a shelf beside it, the format chips, and a line that says how much you
+ * are looking at and in what order. That last line is doing real work — the sort control
+ * is an icon here, so the counter is the only place the current order is written down.
+ */
+function PhoneHeader({
+  logic,
+  onAdd,
+}: { readonly logic: ReturnType<typeof useLibraryLogic>; readonly onAdd: () => void }) {
+  const { t } = useTranslation();
+  const [sorting, setSorting] = useState(false);
+
+  return (
+    <div className="sticky top-0 z-10 bg-paper pb-2.5 sm:hidden">
+      <div className="flex items-center gap-2 px-4 pb-2">
+        <label className="flex h-11 flex-1 items-center gap-2 rounded-xl border border-line bg-surface px-3">
+          <Search size={17} strokeWidth={2} className="flex-none text-ink-subtle" aria-hidden />
+          <input
+            type="search"
+            value={logic.search}
+            onChange={(event) => logic.handleSearch(event.target.value)}
+            placeholder={t("library.searchShort")}
+            className="min-w-0 flex-1 bg-transparent text-[13.5px] outline-none placeholder:text-ink-subtle"
+          />
+        </label>
+        <button
+          type="button"
+          onClick={() => setSorting(true)}
+          aria-label={t("library.sortedBy", { sort: t(`library.sort.${sortKey(logic.sort)}`) })}
+          className="flex size-11 flex-none items-center justify-center rounded-xl border border-line bg-surface"
+        >
+          <ArrowDownNarrowWide size={18} strokeWidth={1.9} aria-hidden />
+        </button>
+        <button
+          type="button"
+          onClick={onAdd}
+          aria-label={t("library.addItem")}
+          className="flex size-11 flex-none items-center justify-center rounded-xl bg-ink text-paper"
+        >
+          <Plus size={20} strokeWidth={2} aria-hidden />
+        </button>
+      </div>
+
+      {/*
+       * Scrolls sideways rather than wrapping. Four formats fit at 390px in English and
+       * do not in German ("Kassette"), and a chip row that becomes two rows moves the grid
+       * down by 44px the first time somebody switches language.
+       */}
+      <div className="flex gap-1.75 overflow-x-auto px-4 pb-2.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {FILTERS.filter((filter) => filter !== "ALL").map((filter) => {
+          const format = filter as Format;
+          const count = logic.stats?.byFormat[format];
+          const active = logic.format === filter;
+          return (
+            <button
+              key={filter}
+              type="button"
+              // The active chip clears itself. There is no "All" chip on a phone: it spent
+              // a whole cell saying "no filter", which is what the row already looks like.
+              onClick={() => logic.handleFormat(active ? "ALL" : filter)}
+              className={cn(
+                "flex h-[34px] flex-none items-center gap-1.5 rounded-full px-3.25 text-xs",
+                active
+                  ? "bg-ink font-semibold text-paper"
+                  : "border border-line bg-surface font-medium text-ink/62",
+                // Dimmed, not hidden and not disabled: it says this shelf has none of
+                // these, and it still filters to the empty state if you insist.
+                count === 0 && !active && "opacity-50",
+              )}
+            >
+              {FORMAT_LABELS[format]}
+              {active && <X size={13} strokeWidth={2.4} aria-hidden />}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="px-4 font-mono text-[11px] tracking-[0.05em] text-ink-subtle uppercase">
+        {logic.stats !== undefined &&
+          `${t("you.copies", { count: logic.stats.copyCount })} · ${t(`library.sort.${sortKey(logic.sort)}`)}`}
+      </div>
+
+      {sorting && (
+        <SortSheet
+          sort={logic.sort}
+          onPick={(next) => {
+            logic.setSort(next);
+            setSorting(false);
+          }}
+          onClose={() => setSorting(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+/** 24k: sorting is a sheet on a phone, because an icon that cycles cannot say what it did. */
+function SortSheet({
+  sort,
+  onPick,
+  onClose,
+}: {
+  readonly sort: SortKey;
+  readonly onPick: (next: SortKey) => void;
+  readonly onClose: () => void;
+}) {
+  const { t } = useTranslation();
+  const titleId = useId();
+  const options: readonly SortKey[] = ["ADDED_DESC", "ARTIST_ASC", "YEAR_DESC"];
+
+  return (
+    <Modal onClose={onClose} labelledBy={titleId} width="360px" align="center" phoneSheet>
+      <div className="p-4.5">
+        <h2 id={titleId} className="font-serif text-lg leading-none">
+          {t("library.sortTitle")}
+        </h2>
+        <div className="mt-3.5 overflow-hidden rounded-[10px] border border-line">
+          {options.map((option) => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => onPick(option)}
+              className={cn(
+                "flex h-[50px] w-full items-center justify-between border-b border-line px-3.5",
+                "text-sm font-medium last:border-b-0 hover:bg-canvas",
+              )}
+            >
+              {t(`library.sort.${sortKey(option)}`)}
+              {option === sort && <Check size={16} strokeWidth={2.2} className="text-accent" />}
+            </button>
+          ))}
+        </div>
+      </div>
+    </Modal>
   );
 }
 
@@ -294,11 +454,21 @@ function GridItem({
           previewSrc={previewSrc}
           allowCatalogArt={allowCatalogArt}
         />
+        {/* 24b puts the format on the artwork itself under 640px. On the desktop grid the
+            sidebar's format list is right there; on a phone that list is a tab away. */}
+        <span className="absolute bottom-1.75 left-1.75 font-mono text-[8px] tracking-[0.06em] text-ink-subtle uppercase sm:hidden">
+          {FORMAT_LABELS[copyFormat(row.copy, row.release)]}
+        </span>
       </div>
-      <div className="mt-1.5 truncate text-[12.5px] font-semibold leading-tight group-hover:text-accent">
+      {/*
+       * Wraps under 640px instead of truncating. Two columns is 171px of cover, and
+       * "Selected Ambient Works 85–92" truncated at that width is four words of a title
+       * nobody can tell apart from the next one. Above it, the desktop keeps one line.
+       */}
+      <div className="mt-1.75 text-[13px] leading-tight font-semibold text-pretty group-hover:text-accent sm:mt-1.5 sm:truncate sm:text-[12.5px]">
         {row.release?.title ?? "—"}
       </div>
-      <div className="truncate text-[11.5px] leading-tight text-ink-muted">
+      <div className="truncate text-[12px] leading-tight text-ink-muted sm:text-[11.5px]">
         {row.release === undefined
           ? ""
           : `${row.release.artistName} · ${row.release.year ?? t("common.unknownYear")}`}

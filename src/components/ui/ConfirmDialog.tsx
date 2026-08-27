@@ -31,7 +31,7 @@ export function ConfirmDialog({
   const titleId = useId();
 
   return (
-    <Modal onClose={onCancel} labelledBy={titleId} width="380px">
+    <Modal onClose={onCancel} labelledBy={titleId} width="380px" phoneSheet>
       <div className="px-6 pt-5.5 pb-4.5">
         <h2 id={titleId} className="font-serif text-lg leading-[1.15]">
           {title}
@@ -62,11 +62,13 @@ function ConfirmActions({
   const dismiss = useModalDismiss();
 
   return (
-    <div className="flex flex-none justify-end gap-2.5 border-t border-line bg-surface px-6 py-3.5">
+    // Stacked under 640px, and reversed with it: "Delete account permanently" does not
+    // fit in half of 390px, and the action you came for belongs under the thumb.
+    <div className="flex flex-none flex-col-reverse gap-2.5 border-t border-line bg-surface px-6 py-3.5 pb-safe sm:flex-row sm:justify-end sm:pb-3.5">
       <Button
         variant="secondary"
         onClick={dismiss}
-        className="h-[34px] rounded-lg px-3.5 text-[12.5px]"
+        className="h-11 rounded-lg px-3.5 text-[13px] sm:h-[34px] sm:text-[12.5px]"
       >
         {cancelLabel}
       </Button>
@@ -75,7 +77,7 @@ function ConfirmActions({
           onConfirm();
           dismiss();
         }}
-        className="h-[34px] rounded-lg px-3.5 text-[12.5px]"
+        className="h-11 rounded-lg px-3.5 text-[13px] sm:h-[34px] sm:text-[12.5px]"
       >
         {confirmLabel}
       </Button>

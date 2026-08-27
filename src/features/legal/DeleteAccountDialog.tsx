@@ -41,7 +41,7 @@ export function DeleteAccountDialog({
   const confirmed = isDeletionConfirmed(typed);
 
   return (
-    <Modal onClose={onCancel} labelledBy={titleId} width="400px" holdOnBackdrop>
+    <Modal onClose={onCancel} labelledBy={titleId} width="400px" holdOnBackdrop phoneSheet>
       <div className="px-6 pt-5.5 pb-5">
         <h2 id={titleId} className="font-serif text-[25px] leading-[1.15]">
           {t("legal.delete.title")}

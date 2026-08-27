@@ -9,6 +9,15 @@ const enCommon = {
     friends: "Friends",
     artists: "Artists",
     settings: "Settings",
+    /* The phone's fourth tab (24a) and the label on the tab bar itself. */
+    you: "You",
+    tabs: "Sections",
+  },
+  you: {
+    title: "You",
+    copies: "{{count}} copy",
+    copies_other: "{{count}} copies",
+    section: { account: "Account" },
   },
   format: {
     all: "All",
@@ -19,6 +28,8 @@ const enCommon = {
     other: "Other",
   },
   friends: {
+    /* 24g: the two panes the sidebar rail becomes on a phone. */
+    tab: { activity: "Activity", find: "Find" },
     title: "Friends",
     searchPlaceholder: "Find a collector by handle",
     results: "Results",
@@ -247,6 +258,9 @@ const enCommon = {
     formats: "Formats",
     counts: "{{copies}} copies · {{releases}} releases",
     searchPlaceholder: "Search artist, title, catalog number",
+    /* 24b: the phone's field is 200px wide — the long placeholder is unreadable in it. */
+    searchShort: "Search",
+    sortTitle: "Sort by",
     addItem: "Add item",
     sortedBy: "Sorted by {{sort}}",
     sort: {
@@ -443,6 +457,10 @@ const enCommon = {
     },
   },
   artists: {
+    /* 24e: the phone's pressing line says these out loud rather than leaving a gap. */
+    unknownYear: "Year unknown",
+    unknownCountry: "Country unknown",
+    noCatalog: "no catalogue number",
     badge: "Artist",
     sectionCount: "Artists · {{count}} found",
     sortedBy: "Sorted by match",
@@ -533,6 +551,9 @@ const enCommon = {
     back: "Library",
     breadcrumb: "You are here",
     notFound: "That item is no longer in your collection.",
+    /* 24c: the row under the phone's fact grid, naming what was folded away. */
+    showEmpty: "Show 1 empty field ({{fields}})",
+    showEmpty_other: "Show {{count}} empty fields ({{fields}})",
     mediaCondition: "Media",
     sleeveCondition: "Sleeve",
     paid: "Paid",
@@ -953,6 +974,8 @@ const enCommon = {
     },
   },
   common: {
+    /* 24h: the accessible name of the phone's back chevron on the account pages. */
+    backTo: "Back to {{page}}",
     unknownYear: "Year unknown",
     save: "Save",
     cancel: "Cancel",
@@ -978,6 +1001,14 @@ const deCommon: CommonSchema = {
     friends: "Freunde",
     artists: "Künstler",
     settings: "Einstellungen",
+    you: "Du",
+    tabs: "Bereiche",
+  },
+  you: {
+    title: "Du",
+    copies: "{{count}} Exemplar",
+    copies_other: "{{count}} Exemplare",
+    section: { account: "Konto" },
   },
   format: {
     all: "Alle",
@@ -988,6 +1019,7 @@ const deCommon: CommonSchema = {
     other: "Sonstige",
   },
   friends: {
+    tab: { activity: "Aktivität", find: "Finden" },
     title: "Freunde",
     searchPlaceholder: "Sammler:in über Handle finden",
     results: "Treffer",
@@ -1218,6 +1250,8 @@ const deCommon: CommonSchema = {
     formats: "Formate",
     counts: "{{copies}} Exemplare · {{releases}} Veröffentlichungen",
     searchPlaceholder: "Künstler, Titel, Katalognummer suchen",
+    searchShort: "Suchen",
+    sortTitle: "Sortieren nach",
     addItem: "Hinzufügen",
     sortedBy: "Sortiert nach {{sort}}",
     sort: {
@@ -1422,6 +1456,9 @@ const deCommon: CommonSchema = {
     },
   },
   artists: {
+    unknownYear: "Jahr unbekannt",
+    unknownCountry: "Land unbekannt",
+    noCatalog: "keine Katalognummer",
     badge: "Künstler",
     sectionCount: "Künstler · {{count}} gefunden",
     sortedBy: "Nach Treffer sortiert",
@@ -1513,6 +1550,8 @@ const deCommon: CommonSchema = {
     back: "Sammlung",
     breadcrumb: "Du bist hier",
     notFound: "Dieses Exemplar ist nicht mehr in deiner Sammlung.",
+    showEmpty: "1 leeres Feld anzeigen ({{fields}})",
+    showEmpty_other: "{{count}} leere Felder anzeigen ({{fields}})",
     mediaCondition: "Tonträger",
     sleeveCondition: "Hülle",
     paid: "Bezahlt",
@@ -1938,6 +1977,7 @@ const deCommon: CommonSchema = {
     },
   },
   common: {
+    backTo: "Zurück zu {{page}}",
     unknownYear: "Jahr unbekannt",
     save: "Speichern",
     cancel: "Abbrechen",

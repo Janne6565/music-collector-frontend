@@ -40,12 +40,38 @@
   }
 }
 
+/*
+ * Turn 24's first rule: height measures nothing on a phone.
+ *
+ * Three things stack at the bottom of a phone browser — the home indicator, Safari's own
+ * bar (80px, 44px once you have scrolled) and our tab bar — and only the first is a fixed
+ * number. So no layout is allowed a viewport unit: the shell is a percentage-height flex
+ * column with exactly one scrolling pane in it, and everything else sizes from content.
+ * That chain has to start here, because a percentage height resolves against nothing if
+ * the ancestors have no height of their own.
+ */
+html,
+body,
+#root {
+  height: 100%;
+}
+
 body {
   margin: 0;
   background: var(--color-paper);
   color: var(--color-ink);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+}
+
+/*
+ * The bottom inset, once, so no component has to remember the env() spelling.
+ *
+ * `viewport-fit=cover` in the document head is what makes env() report anything but zero;
+ * without it this is 0px everywhere, which is also the correct value on a desktop.
+ */
+@theme {
+  --spacing-safe: env(safe-area-inset-bottom, 0px);
 }
 
 /*

@@ -59,7 +59,7 @@ export function ConfirmEmailPage() {
         : "pending";
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-paper px-6 py-16">
+    <div className="flex min-h-full items-start justify-center bg-paper px-4 pt-8 pb-10 sm:items-center sm:px-6 sm:py-16">
       <div className="w-full max-w-[440px]">
         <div className="font-serif text-[19px] leading-none">Music Collector</div>
         <div className="mt-5 h-px bg-line" />

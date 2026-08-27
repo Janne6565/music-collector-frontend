@@ -5,7 +5,7 @@ import { PasswordField } from "@/features/auth/PasswordField";
 import type { AuthError } from "@/features/auth/useAuthLogic";
 import { useAuthLogic } from "@/features/auth/useAuthLogic";
 import { Link } from "@tanstack/react-router";
-import { ChevronLeft, HardDrive, Mail, User } from "lucide-react";
+import { ChevronLeft, Disc3, HardDrive, Mail, User } from "lucide-react";
 import type { ReactNode } from "react";
 import { useId } from "react";
 import { Trans, useTranslation } from "react-i18next";
@@ -22,10 +22,10 @@ export function SignInPage() {
   const registering = logic.mode === "REGISTER";
 
   return (
-    <div className="flex min-h-screen bg-paper">
+    <div className="flex min-h-full bg-paper">
       <AuthBrandPanel mode={logic.mode} />
 
-      <main className="flex flex-1 items-center justify-center p-13 px-6 py-12">
+      <main className="flex flex-1 items-start justify-center px-4 pt-7 pb-10 sm:items-center sm:px-6 sm:py-12">
         <div className="w-full max-w-[380px]">
           {/* Screens 4c and 4d both open with a way back. Sign-in is reachable from a
               library you were already looking at, and landing in it by accident should
@@ -37,7 +37,16 @@ export function SignInPage() {
             <ChevronLeft size={15} strokeWidth={1.9} aria-hidden />
             {t("common.back")}
           </Link>
-          <h1 className="font-serif text-[32px] leading-[1.1]">
+          {/*
+           * 24i: the brand panel beside this card is gone under 768px and cannot be
+           * replaced — so the wordmark carries it here, as one line above the heading.
+           * Without it the sign-in screen on a phone belongs to no product in particular.
+           */}
+          <div className="mb-3 flex items-center gap-2 text-ink-muted md:hidden">
+            <Disc3 size={17} strokeWidth={1.6} aria-hidden />
+            <span className="font-serif text-[15px]">{t("app.name")}</span>
+          </div>
+          <h1 className="font-serif text-[26px] leading-[1.12] sm:text-[32px] sm:leading-[1.1]">
             {registering ? t("auth.createTitle") : t("auth.signInTitle")}
           </h1>
           <p className="mt-2 text-[13.5px] text-ink-muted">

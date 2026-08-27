@@ -1,3 +1,4 @@
+import { TabBar } from "@/components/layout/TabBar";
 import { SidebarAccount } from "@/features/auth/SidebarAccount";
 import type { CollectionStats } from "@janne6565/music-collector-shared";
 import { FORMAT_LABELS } from "@janne6565/music-collector-shared";
@@ -8,15 +9,32 @@ import { useTranslation } from "react-i18next";
 
 interface AppShellProps {
   readonly stats: CollectionStats | undefined;
+  /**
+   * What the phone gets at the bottom of the screen (24a).
+   *
+   * `tabs` is the four destinations. `none` is for the two kinds of screen that are a
+   * level below them: the item detail, which puts its own Edit bar there, and the account
+   * pages, which carry a back link at the top instead — five visible destinations with
+   * none of them active is worse than none.
+   *
+   * Above 640px this changes nothing: the sidebar is always there.
+   */
+  readonly phoneBottom?: "tabs" | "none";
   readonly children: ReactNode;
 }
 
 /** The sidebar layout from screen 1f, shared by the library and the item detail. */
-export function AppShell({ stats, children }: AppShellProps) {
+export function AppShell({ stats, phoneBottom = "tabs", children }: AppShellProps) {
   return (
-    <div className="flex h-screen bg-paper text-ink">
+    // h-full rather than h-screen: the height chain starts at <html> so that iOS Safari's
+    // collapsing bar cannot resize the shell out from under a scroll position. See the
+    // note on the chain in styles.css — under 640px no layout gets a viewport unit.
+    <div className="flex h-full bg-paper text-ink">
       <Sidebar stats={stats} />
-      <div className="flex min-w-0 flex-1 flex-col">{children}</div>
+      <div className="flex min-w-0 flex-1 flex-col">
+        {children}
+        {phoneBottom === "tabs" && <TabBar />}
+      </div>
     </div>
   );
 }
@@ -29,8 +47,11 @@ function Sidebar({ stats }: { readonly stats: CollectionStats | undefined }) {
      * that blinks when the pane beside it changes is the fastest way to make a cross-fade
      * look like a page load. Its own view-transition-name is what takes it out of the
      * root's group.
+     *
+     * Hidden rather than unmounted under 640px so that it stays the same element across a
+     * resize, and so the phone tab bar is never a second copy of a live sidebar.
      */
-    <nav className="mc-vt-sidebar flex w-56 flex-none flex-col gap-6 border-r border-line p-4 pt-5">
+    <nav className="mc-vt-sidebar hidden w-56 flex-none flex-col gap-6 border-r border-line p-4 pt-5 sm:flex">
       <div className="font-serif text-xl leading-none">{t("app.name")}</div>
       <div className="flex flex-col gap-0.5">
         <SidebarLink

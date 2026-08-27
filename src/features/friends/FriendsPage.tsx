@@ -13,6 +13,7 @@ import { useCollectionStats } from "@/features/library/useLibraryLogic";
 import { cn } from "@/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { Lock, Search, UserPlus } from "lucide-react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 /**
@@ -26,6 +27,8 @@ export function FriendsPage() {
   const { t } = useTranslation();
   const logic = useFriendsLogic();
   const stats = useCollectionStats();
+  /** Which of 24g's two phone tabs was picked, or null while the default still holds. */
+  const [tab, setTab] = useState<"ACTIVITY" | "FIND" | null>(null);
 
   if (!logic.signedIn) {
     return (
@@ -57,15 +60,50 @@ export function FriendsPage() {
     );
   }
 
+  // Nothing to read means nothing to come back to, so a first visit opens on Find.
+  const pane = tab ?? (logic.entries.length === 0 && !logic.loading ? "FIND" : "ACTIVITY");
+
   return (
     <AppShell stats={stats}>
-      <header className="flex flex-none items-center justify-between gap-4 px-7 pt-6 pb-4">
-        <h1 className="font-serif text-[26px] leading-none">{t("friends.title")}</h1>
-        <SearchField logic={logic} />
+      <header className="flex flex-none items-center justify-between gap-4 px-4 pt-5 pb-3.5 sm:px-7 sm:pt-6 sm:pb-4">
+        <h1 className="font-serif text-2xl leading-none sm:text-[26px]">{t("friends.title")}</h1>
+        {/* The search field is in the "Find" tab under 640px — see the tab strip below. */}
+        <div className="hidden sm:block">
+          <SearchField logic={logic} />
+        </div>
       </header>
 
-      <div className="flex min-h-0 flex-1 gap-6 overflow-y-auto px-7 pb-8">
-        <main className="min-w-0 flex-1">
+      {/*
+       * 24g: the 256px rail cannot stand beside the feed at 390px, so the two become two
+       * tabs. "Find" starts selected while there is nothing to read — suggestions are
+       * useless during reading and are the whole screen on a first visit.
+       */}
+      <div className="flex flex-none gap-5 border-b border-line px-4 sm:hidden">
+        {(["ACTIVITY", "FIND"] as const).map((tab) => (
+          <button
+            key={tab}
+            type="button"
+            onClick={() => setTab(tab)}
+            aria-current={pane === tab}
+            className={cn(
+              "h-11 text-[13px]",
+              pane === tab
+                ? "-mb-px border-b-2 border-ink font-semibold"
+                : "font-medium text-ink-muted",
+            )}
+          >
+            {t(tab === "ACTIVITY" ? "friends.tab.activity" : "friends.tab.find")}
+            {tab === "FIND" && logic.incoming.length > 0 && (
+              <span className="ml-1.5 rounded-full bg-accent px-1.5 py-0.5 font-mono text-[10px] text-paper">
+                {logic.incoming.length}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex min-h-0 flex-1 gap-6 overflow-y-auto px-4 pb-8 sm:px-7">
+        <main className={cn("min-w-0 flex-1", pane === "FIND" && "max-sm:hidden")}>
           {logic.results.length > 0 && <Results logic={logic} />}
           {logic.incoming.map((invite: FriendRequestDto) => (
             <RequestCard
@@ -85,7 +123,11 @@ export function FriendsPage() {
           </p>
         </main>
 
-        <aside className="w-64 flex-none">
+        <aside className={cn("w-full flex-none sm:w-64", pane === "ACTIVITY" && "max-sm:hidden")}>
+          {/* The rail's own search box, which the header gives up under 640px. */}
+          <div className="pt-4 pb-1 sm:hidden">
+            <SearchField logic={logic} />
+          </div>
           <PeopleRail logic={logic} />
         </aside>
       </div>

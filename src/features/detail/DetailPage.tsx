@@ -8,10 +8,16 @@ import { PhotoStrip } from "@/features/photos/PhotoStrip";
 import { type ShownImage, resolveShown } from "@/features/photos/shownImage";
 import { usePhotoStripLogic } from "@/features/photos/usePhotoStripLogic";
 import { markBackNavigation } from "@/lib/motion";
+import { cn } from "@/lib/utils";
 import type { Copy, Release } from "@janne6565/music-collector-shared";
-import { CONDITION_SHORT, FORMAT_LABELS, copyFormat } from "@janne6565/music-collector-shared";
+import {
+  CONDITION_SHORT,
+  FORMAT_LABELS,
+  catalogArtShown,
+  copyFormat,
+} from "@janne6565/music-collector-shared";
 import { Link } from "@tanstack/react-router";
-import { ArrowLeft, PencilLine, Star } from "lucide-react";
+import { ArrowLeft, PencilLine, Plus, Star } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -88,8 +94,10 @@ export function DetailPage({ copyId }: { readonly copyId: string }) {
         : null;
 
   return (
-    <AppShell stats={stats}>
-      <header className="flex flex-none items-center justify-between gap-4 border-b border-line bg-paper px-8 py-4">
+    // The tab bar gives way to this page's own bar (24c): the record is one level below
+    // the four destinations, and Edit is the thing you came here to press.
+    <AppShell stats={stats} phoneBottom="none">
+      <header className="hidden flex-none items-center justify-between gap-4 border-b border-line bg-paper px-8 py-4 sm:flex">
         <div className="flex min-w-0 items-center gap-3.5">
           {/* 12a leads with the way out, spelled: an arrow and the word, not a bare
               chevron sitting in front of the trail. The breadcrumb that follows is the
@@ -122,8 +130,22 @@ export function DetailPage({ copyId }: { readonly copyId: string }) {
       </header>
 
       <div className="min-h-0 flex-1 overflow-auto bg-paper text-ink">
-        <div className="flex gap-10 p-8">
-          <div className="flex-none">
+        <div className="flex flex-col sm:flex-row sm:gap-10 sm:p-8">
+          {/*
+           * 24c: on a phone the sleeve is the first thing on the screen and it costs no
+           * margin — full width, cropped to 320px. The desktop keeps its 340px square
+           * beside the text, where a bleeding image would fight the sidebar.
+           */}
+          <PhoneHero
+            copy={copy}
+            release={release}
+            previewSrc={heroSrc}
+            allowCatalogArt={photos.catalogArt !== "HIDDEN"}
+            photos={photos}
+            shown={currentImage}
+            onShow={setShown}
+          />
+          <div className="hidden flex-none sm:block">
             <Cover
               copy={copy}
               release={release}
@@ -133,15 +155,27 @@ export function DetailPage({ copyId }: { readonly copyId: string }) {
             <PhotoStrip logic={photos} release={release} shown={currentImage} onShow={setShown} />
           </div>
 
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 px-4 pt-4 pb-6 sm:px-0 sm:pt-0 sm:pb-0">
             <Header copy={copy} release={release} />
 
+            <PhoneFields copy={copy} />
             <Fields copy={copy} />
 
             <Notes copy={copy} saving={logic.saving} onKeep={(notes) => logic.save({ notes })} />
             {otherCopies.length > 0 && <OtherCopies copies={otherCopies} />}
           </div>
         </div>
+      </div>
+
+      {/* The bar the tab bar stepped aside for. One action, the width of the screen. */}
+      <div className="flex flex-none gap-2 border-t border-line bg-paper/95 px-4 pt-2.5 pb-3 pb-safe sm:hidden">
+        <Button
+          onClick={() => setEditing(true)}
+          className="h-12 flex-1 rounded-xl text-sm font-bold"
+        >
+          <PencilLine size={16} strokeWidth={2} aria-hidden />
+          {t("detail.edit")}
+        </Button>
       </div>
 
       {/* Screen 12b — the add flow's step two, reached from here instead. Removing the
@@ -180,6 +214,109 @@ function Breadcrumb({ release }: { readonly release: Release | undefined }) {
   );
 }
 
+/**
+ * The phone's hero — screen 24c.
+ *
+ * The sleeve runs edge to edge and is cropped to 320px rather than shown whole. A square
+ * at 390px would be 390px tall and push the title off the fold; the crop keeps the record
+ * first and the title visible under it, which is the order the deck asks for.
+ *
+ * The way back and the pictures both sit *on* the artwork, in blurred pills: the header
+ * bar this page has above 640px would be a second horizontal band over a photograph.
+ */
+function PhoneHero({
+  copy,
+  release,
+  previewSrc,
+  allowCatalogArt,
+  photos,
+  shown,
+  onShow,
+}: {
+  readonly copy: Copy;
+  readonly release: Release | undefined;
+  readonly previewSrc: string | null;
+  readonly allowCatalogArt: boolean;
+  readonly photos: ReturnType<typeof usePhotoStripLogic>;
+  readonly shown: ShownImage;
+  readonly onShow: (shown: ShownImage) => void;
+}) {
+  const { t } = useTranslation();
+  const hasCatalog = catalogArtShown(
+    { catalogArt: photos.catalogArt },
+    release?.coverArtUrl != null && release.coverArtUrl !== "",
+  );
+  /*
+   * Four at most. The deck stops at four and sends the rest to a screen of their own;
+   * until that screen exists the strip simply ends, because five 44px tiles plus their
+   * gaps are wider than the 390px they would have to sit in.
+   */
+  const tiles = photos.tiles.slice(0, hasCatalog ? 3 : 4);
+
+  return (
+    <div className="relative h-80 overflow-hidden sm:hidden">
+      <ReleaseArt
+        release={release}
+        format={copyFormat(copy, release)}
+        loading="eager"
+        variant="bleed"
+        previewSrc={previewSrc}
+        allowCatalogArt={allowCatalogArt}
+      />
+      {/* So a pale sleeve cannot swallow the tiles sitting on its bottom edge. */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[70px] bg-gradient-to-b from-transparent to-paper/90" />
+
+      <Link
+        to="/"
+        viewTransition
+        onClick={markBackNavigation}
+        className="absolute top-3.5 left-3.5 flex h-10 items-center gap-1.5 rounded-full bg-paper/92 pr-3.5 pl-2.5 text-[12.5px] font-semibold backdrop-blur-sm"
+      >
+        <ArrowLeft size={17} strokeWidth={2.2} aria-hidden />
+        {/* One level, not two: 12a's "artist / title" trail has no room here, and the
+            artist is in the meta line under the title anyway. */}
+        {t("nav.library")}
+      </Link>
+
+      {(tiles.length > 0 || hasCatalog) && (
+        <div className="absolute bottom-2.5 left-4 flex gap-1.5">
+          {tiles.map(({ photo, src }) => (
+            <button
+              type="button"
+              key={photo.id}
+              onClick={() => onShow({ kind: "PHOTO", id: photo.id })}
+              aria-label={t("photos.show")}
+              aria-current={shown.kind === "PHOTO" && shown.id === photo.id ? "true" : undefined}
+              className={cn(
+                "relative size-11 overflow-hidden rounded-[7px] shadow-[0_1px_3px_rgba(0,0,0,.15)]",
+                shown.kind === "PHOTO" && shown.id === photo.id
+                  ? "ring-2 ring-accent"
+                  : "ring-1 ring-ink/10",
+              )}
+            >
+              {src !== null && <img src={src} alt="" className="size-full object-cover" />}
+            </button>
+          ))}
+          {hasCatalog && (
+            <button
+              type="button"
+              onClick={() => onShow({ kind: "CATALOG" })}
+              aria-label={t("photos.show")}
+              aria-current={shown.kind === "CATALOG" ? "true" : undefined}
+              className={cn(
+                "relative size-11 overflow-hidden rounded-[7px] bg-surface shadow-[0_1px_3px_rgba(0,0,0,.15)]",
+                shown.kind === "CATALOG" ? "ring-2 ring-accent" : "ring-1 ring-ink/10",
+              )}
+            >
+              <ReleaseArt release={release} variant="bleed" />
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Cover({
   copy,
   release,
@@ -214,10 +351,12 @@ function Header({ copy, release }: { readonly copy: Copy; readonly release: Rele
         <Badge strong>{FORMAT_LABELS[copyFormat(copy, release)]}</Badge>
         {copy.condition !== null && <Badge>{CONDITION_SHORT[copy.condition]}</Badge>}
       </div>
-      <h1 className="mt-3.5 font-serif text-[38px] leading-[1.05]">{release?.title ?? "—"}</h1>
+      <h1 className="mt-3.5 font-serif text-[30px] leading-[1.12] text-pretty sm:text-[38px] sm:leading-[1.05]">
+        {release?.title ?? "—"}
+      </h1>
       {/* The pressing reads as part of the record's name here rather than as a field of
           its own — 12a's grid is the six things that are true of *your* copy. */}
-      <p className="mt-1.5 text-[15px] text-ink-muted">
+      <p className="mt-1.5 text-[13px] leading-relaxed text-pretty text-ink-muted sm:text-[15px]">
         {[
           release?.artistName,
           release?.year,
@@ -238,23 +377,48 @@ function Header({ copy, release }: { readonly copy: Copy; readonly release: Rele
  * Ruled rows rather than the cards this used to be: a card each said every one of them
  * was worth the same amount of attention, and half of them are usually a dash.
  */
-function Fields({ copy }: { readonly copy: Copy }) {
+interface DetailField {
+  readonly label: string;
+  readonly value: ReactNode;
+  /** Nothing was ever entered here. Six of these in a row are not information (24c). */
+  readonly empty: boolean;
+}
+
+/** The six answers, in one place, so the phone and the desktop cannot list them differently. */
+function useDetailFields(copy: Copy): readonly DetailField[] {
   const { t } = useTranslation();
-  const rows: readonly (readonly [string, ReactNode])[] = [
-    [t("detail.mediaCondition"), copy.condition === null ? "—" : CONDITION_SHORT[copy.condition]],
-    [
-      t("detail.sleeveCondition"),
-      copy.sleeveCondition === null ? "—" : CONDITION_SHORT[copy.sleeveCondition],
-    ],
-    [t("detail.paid"), formatMoney(copy.pricePaidCents, copy.currency)],
-    [t("detail.bought"), copy.purchasedOn ?? "—"],
-    [t("detail.where"), copy.purchasedAt ?? "—"],
-    [t("detail.yourRating"), <Rating key="rating" rating={copy.rating} />],
+  return [
+    {
+      label: t("detail.mediaCondition"),
+      value: copy.condition === null ? "—" : CONDITION_SHORT[copy.condition],
+      empty: copy.condition === null,
+    },
+    {
+      label: t("detail.sleeveCondition"),
+      value: copy.sleeveCondition === null ? "—" : CONDITION_SHORT[copy.sleeveCondition],
+      empty: copy.sleeveCondition === null,
+    },
+    {
+      label: t("detail.paid"),
+      value: formatMoney(copy.pricePaidCents, copy.currency),
+      empty: copy.pricePaidCents === null,
+    },
+    { label: t("detail.bought"), value: copy.purchasedOn ?? "—", empty: copy.purchasedOn === null },
+    { label: t("detail.where"), value: copy.purchasedAt ?? "—", empty: copy.purchasedAt === null },
+    {
+      label: t("detail.yourRating"),
+      value: <Rating key="rating" rating={copy.rating} />,
+      empty: copy.rating === null,
+    },
   ];
+}
+
+function Fields({ copy }: { readonly copy: Copy }) {
+  const fields = useDetailFields(copy);
 
   return (
-    <div className="mt-6.5 grid grid-cols-3 border-t border-line">
-      {rows.map(([label, value]) => (
+    <div className="mt-6.5 hidden grid-cols-3 border-t border-line sm:grid">
+      {fields.map(({ label, value }) => (
         <div key={label} className="border-b border-line py-3.25 pr-4">
           <div className="font-mono text-[9.5px] uppercase tracking-[0.09em] text-ink-muted">
             {label}
@@ -262,6 +426,55 @@ function Fields({ copy }: { readonly copy: Copy }) {
           <div className="mt-1.25 truncate text-[15px] font-semibold">{value}</div>
         </div>
       ))}
+    </div>
+  );
+}
+
+/**
+ * The same six answers under 640px — two columns, and the blank ones folded away (24c).
+ *
+ * Three columns of 122px cannot hold "Hüllenzustand" above a value, and a copy that was
+ * added in ten seconds has four of these empty: a grid of dashes tells you nothing except
+ * that the grid exists. The row underneath names what is missing, so the fields are still
+ * discoverable — that is the trade the deck makes, and it only works if the row says
+ * *which* ones rather than just how many.
+ */
+function PhoneFields({ copy }: { readonly copy: Copy }) {
+  const { t } = useTranslation();
+  const fields = useDetailFields(copy);
+  const [showAll, setShowAll] = useState(false);
+  const missing = fields.filter((field) => field.empty);
+  const shown = showAll ? fields : fields.filter((field) => !field.empty);
+
+  return (
+    <div className="sm:hidden">
+      {shown.length > 0 && (
+        // 1px gaps over the border colour: the hairlines between the cells are the gaps
+        // themselves, so no cell has to know whether it is in the last row.
+        <div className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-[10px] border border-line bg-line">
+          {shown.map(({ label, value }) => (
+            <div key={label} className="bg-surface px-3 py-2.75">
+              <div className="font-mono text-[9.5px] tracking-[0.07em] text-ink-subtle uppercase">
+                {label}
+              </div>
+              <div className="mt-1 text-sm font-semibold">{value}</div>
+            </div>
+          ))}
+        </div>
+      )}
+      {missing.length > 0 && !showAll && (
+        <button
+          type="button"
+          onClick={() => setShowAll(true)}
+          className="mt-2 flex h-11 items-center gap-1.5 text-[12.5px] font-semibold text-accent"
+        >
+          <Plus size={14} strokeWidth={2.2} aria-hidden />
+          {t("detail.showEmpty", {
+            count: missing.length,
+            fields: missing.map((field) => field.label).join(", "),
+          })}
+        </button>
+      )}
     </div>
   );
 }

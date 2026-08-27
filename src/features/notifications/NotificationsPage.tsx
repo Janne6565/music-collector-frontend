@@ -1,9 +1,11 @@
 import type { NotificationPreferenceDtoCategory } from "@/api/generated/musicCollectorAPI.schemas";
 import { AppShell } from "@/components/layout/AppShell";
+import { BackBar } from "@/components/layout/BackBar";
 import { Toggle } from "@/components/ui";
 import { useNotificationsLogic } from "@/features/notifications/useNotificationsLogic";
 import { Link, Navigate } from "@tanstack/react-router";
 import { Lock } from "lucide-react";
+import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
 const ORDER: readonly NotificationPreferenceDtoCategory[] = [
@@ -31,18 +33,14 @@ export function NotificationsPage() {
   if (logic.status === "anonymous") return <Navigate to="/signin" />;
 
   return (
-    <AppShell stats={logic.stats}>
-      <header className="flex flex-none items-center gap-2 border-b border-line px-8 py-4">
-        <Link to="/settings" className="text-[12.5px] font-medium text-ink-muted hover:text-ink">
-          {t("nav.settings")}
-        </Link>
-        <span className="text-[12.5px] text-ink-subtle">/</span>
-        <span className="text-[12.5px] font-medium">{t("notifications.title")}</span>
-      </header>
+    <AppShell stats={logic.stats} phoneBottom="none">
+      <BackBar to="/settings" label={t("nav.settings")} />
 
-      <div className="min-h-0 flex-1 overflow-auto px-8 pt-8 pb-10">
+      <div className="min-h-0 flex-1 overflow-auto px-4 pt-6 pb-10 sm:px-8 sm:pt-8">
         <div className="max-w-[720px]">
-          <h1 className="font-serif text-[32px] leading-[1.05]">{t("notifications.title")}</h1>
+          <h1 className="font-serif text-[26px] leading-[1.08] sm:text-[32px] sm:leading-[1.05]">
+            {t("notifications.title")}
+          </h1>
           <p className="mt-2 max-w-[560px] text-[13.5px] leading-relaxed text-ink-muted">
             {t("notifications.scope")}
           </p>
@@ -63,7 +61,13 @@ export function NotificationsPage() {
           </h2>
 
           <div className="mt-2.5 overflow-hidden rounded-xl border border-line bg-surface">
-            <div className="flex items-center gap-4 border-b border-line px-4 py-2.5">
+            {/*
+             * The channel heads are the matrix's own chrome. 24h takes the matrix apart
+             * under 640px — a category per card, with the two channels as labelled rows
+             * inside it — so the heads go with it: down there each switch says its own
+             * name instead of being placed under a 92px column that says it once.
+             */}
+            <div className="hidden items-center gap-4 border-b border-line px-4 py-2.5 sm:flex">
               <div className="min-w-0 flex-1" />
               <div className="w-[92px] text-center font-mono text-[10px] tracking-[0.1em] text-ink-subtle uppercase">
                 {t("notifications.channel.mail")}
@@ -86,59 +90,64 @@ export function NotificationsPage() {
                   const row = logic.categories.find((candidate) => candidate.category === category);
                   if (row === undefined) return null;
                   const locked = row.mailLocked === true;
+                  const title = t(`notifications.category.${category}.title`);
+
+                  const mail = locked ? (
+                    // A lock where the switch would be. Leaving the row out entirely
+                    // would look like an oversight rather than a decision.
+                    <span
+                      className="flex items-center gap-1 text-[11px] text-ink-subtle"
+                      title={t("notifications.locked")}
+                    >
+                      <Lock size={13} strokeWidth={1.75} aria-hidden />
+                      {t("notifications.always")}
+                    </span>
+                  ) : !logic.emailReachable ? (
+                    <Link
+                      to="/account"
+                      className="text-center text-[11px] leading-[1.4] text-accent"
+                    >
+                      {t("notifications.noConfirmedAddress")}
+                    </Link>
+                  ) : (
+                    <Toggle
+                      checked={row.mail === true}
+                      onChange={(on) => logic.setChannel(category, "mail", on)}
+                      label={title}
+                    />
+                  );
+
+                  const push = logic.pushAvailable ? (
+                    <Toggle
+                      checked={row.push === true}
+                      onChange={(on) => logic.setChannel(category, "push", on)}
+                      label={title}
+                    />
+                  ) : (
+                    <span className="text-[11px] text-ink-subtle">
+                      {t("notifications.channel.pushNeedsApp")}
+                    </span>
+                  );
+
                   return (
                     <div
                       key={category}
-                      className="flex items-center gap-4 border-b border-line px-4 py-3.5 last:border-b-0"
+                      className="border-b border-line px-4 py-3.5 last:border-b-0 sm:flex sm:items-center sm:gap-4"
                     >
                       <div className="min-w-0 flex-1">
-                        <div className="text-[13px] font-semibold">
-                          {t(`notifications.category.${category}.title`)}
-                        </div>
+                        <div className="text-[13px] font-semibold text-pretty">{title}</div>
                         <div className="mt-0.5 text-[11.5px] leading-[1.5] text-ink-muted">
                           {t(`notifications.category.${category}.body`)}
                         </div>
                       </div>
 
-                      <div className="flex w-[92px] justify-center">
-                        {locked ? (
-                          // A lock where the switch would be. Leaving the row out entirely
-                          // would look like an oversight rather than a decision.
-                          <span
-                            className="flex items-center gap-1 text-[11px] text-ink-subtle"
-                            title={t("notifications.locked")}
-                          >
-                            <Lock size={13} strokeWidth={1.75} aria-hidden />
-                            {t("notifications.always")}
-                          </span>
-                        ) : !logic.emailReachable ? (
-                          <Link
-                            to="/account"
-                            className="text-center text-[11px] leading-[1.4] text-accent"
-                          >
-                            {t("notifications.noConfirmedAddress")}
-                          </Link>
-                        ) : (
-                          <Toggle
-                            checked={row.mail === true}
-                            onChange={(on) => logic.setChannel(category, "mail", on)}
-                            label={t(`notifications.category.${category}.title`)}
-                          />
-                        )}
-                      </div>
+                      <div className="hidden w-[92px] justify-center sm:flex">{mail}</div>
+                      <div className="hidden w-[92px] justify-center sm:flex">{push}</div>
 
-                      <div className="flex w-[92px] justify-center">
-                        {logic.pushAvailable ? (
-                          <Toggle
-                            checked={row.push === true}
-                            onChange={(on) => logic.setChannel(category, "push", on)}
-                            label={t(`notifications.category.${category}.title`)}
-                          />
-                        ) : (
-                          <span aria-hidden className="text-[13px] text-ink-subtle">
-                            —
-                          </span>
-                        )}
+                      {/* The same two answers, each with its channel written next to it. */}
+                      <div className="mt-2.5 sm:hidden">
+                        <ChannelRow label={t("notifications.channel.push")}>{push}</ChannelRow>
+                        <ChannelRow label={t("notifications.channel.mail")}>{mail}</ChannelRow>
                       </div>
                     </div>
                   );
@@ -204,5 +213,22 @@ export function NotificationsPage() {
         </div>
       </div>
     </AppShell>
+  );
+}
+
+/**
+ * One channel inside a category card — 24h's phone shape for the matrix.
+ *
+ * 52px, which is the list-row minimum, and the label sits on the left of its own switch
+ * rather than above a column heading two screens up.
+ */
+function ChannelRow({ label, children }: { readonly label: string; readonly children: ReactNode }) {
+  return (
+    <div className="flex h-13 items-center justify-between border-t border-line first:border-t-0">
+      <span className="font-mono text-[10px] tracking-[0.1em] text-ink-subtle uppercase">
+        {label}
+      </span>
+      {children}
+    </div>
   );
 }

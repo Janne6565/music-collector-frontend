@@ -44,14 +44,14 @@ export function ChangeEmailPage() {
   const needsPassword = user.hasPassword !== false;
 
   return (
-    <AppShell stats={stats}>
-      <header className="flex flex-none items-center border-b border-line px-8 py-4">
+    <AppShell stats={stats} phoneBottom="none">
+      <header className="flex h-13 flex-none items-center border-b border-line px-4 sm:h-auto sm:px-8 sm:py-4">
         <span className="text-[12.5px] font-medium text-ink-muted">
           {t("account.changeEmail.title")}
         </span>
       </header>
 
-      <div className="flex-1 overflow-y-auto px-8 py-7">
+      <div className="flex-1 overflow-y-auto px-4 py-6 sm:px-8 sm:py-7">
         <div className="max-w-[520px]">
           <h1 className="font-serif text-[28px] leading-[1.15]">
             {t("account.changeEmail.title")}

@@ -1,4 +1,5 @@
 import { AppShell } from "@/components/layout/AppShell";
+import { BackBar } from "@/components/layout/BackBar";
 import { Card, LinkRow, Row, SectionTitle } from "@/components/rows";
 import { Button, buttonClassName } from "@/components/ui";
 import { formatMoney } from "@/domain/currency";
@@ -30,9 +31,8 @@ export function AccountPage() {
   if (logic.status === "anonymous") return <Navigate to="/signin" />;
 
   return (
-    <AppShell stats={logic.stats}>
-      <header className="flex flex-none items-center justify-between border-b border-line px-8 py-4">
-        <span className="text-[12.5px] font-medium text-ink-muted">{t("account.title")}</span>
+    <AppShell stats={logic.stats} phoneBottom="none">
+      <BackBar to="/you" label={t("you.title")}>
         <Button
           variant="secondary"
           onClick={logic.signOut}
@@ -42,9 +42,9 @@ export function AccountPage() {
           {!logic.signingOut && <LogOut size={14} strokeWidth={1.75} aria-hidden />}
           {t("auth.signOut")}
         </Button>
-      </header>
+      </BackBar>
 
-      <div className="min-h-0 flex-1 overflow-auto px-8 pt-8 pb-10">
+      <div className="min-h-0 flex-1 overflow-auto px-4 pt-6 pb-10 sm:px-8 sm:pt-8">
         <div className="max-w-[720px]">
           <div className="flex items-center gap-[18px]">
             <div className="h-[76px] w-[76px] flex-none rounded-full bg-canvas shadow-[inset_0_0_0_1px_rgba(25,23,19,.08)]" />
@@ -58,7 +58,9 @@ export function AccountPage() {
             </div>
           </div>
 
-          <div className="mt-7 grid grid-cols-4 gap-3">
+          {/* 2×2 under 640px: four numbers across 390px leaves 82px a cell, and
+              "Spent" over a four-digit sum does not fit in 82px. */}
+          <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4">
             <Stat value={logic.stats?.copyCount ?? "—"} label={t("account.stat.copies")} />
             <Stat
               value={logic.stats?.releaseGroupCount ?? "—"}

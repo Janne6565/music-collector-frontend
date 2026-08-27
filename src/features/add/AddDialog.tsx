@@ -63,7 +63,7 @@ export function AddDialog({ onClose, onAdded, seedTerm = "", hunting = null }: A
   const titleId = useId();
 
   return (
-    <Modal onClose={onClose} labelledBy={titleId} width="660px">
+    <Modal onClose={onClose} labelledBy={titleId} width="660px" phoneSheet sheetHeight="full">
       {/* An open discography replaces the whole header: screen 10d puts "Back to results"
           and the close button on one row, and the sheet's own title is not the artist's.
           The heading stays rendered for the dialog's accessible name — sr-only rather
@@ -73,7 +73,7 @@ export function AddDialog({ onClose, onAdded, seedTerm = "", hunting = null }: A
           {t("addDialog.title")}
         </h2>
       ) : (
-        <div className="flex flex-none items-start justify-between gap-4 px-6 pt-5.5">
+        <div className="flex flex-none items-start justify-between gap-4 px-4 pt-5 sm:px-6 sm:pt-5.5">
           <div>
             <h2 id={titleId} className="font-serif text-2xl leading-[1.1]">
               {t("addDialog.title")}
@@ -90,7 +90,8 @@ export function AddDialog({ onClose, onAdded, seedTerm = "", hunting = null }: A
           and leaving them live would strand you on "Barcode" with an artist still open. */}
       <div
         className={cn(
-          "flex flex-none gap-5 border-b border-line px-6 pt-5",
+          "flex flex-none gap-5 overflow-x-auto border-b border-line px-4 pt-4 sm:px-6 sm:pt-5",
+          "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
           logic.openArtist !== null && "hidden",
         )}
       >
@@ -154,7 +155,7 @@ function SearchTab({
   return (
     <>
       <form
-        className="flex-none px-6 pt-4.5"
+        className="flex-none px-4 pt-4 sm:px-6 sm:pt-4.5"
         onSubmit={(event) => {
           event.preventDefault();
           logic.submit();
@@ -228,7 +229,7 @@ function SearchTab({
 
       {hunting !== null && <HuntingBanner item={hunting} />}
 
-      <div className="min-h-0 flex-1 overflow-auto px-6 pt-2 pb-1">
+      <div className="min-h-0 flex-1 overflow-auto px-4 pt-2 pb-1 sm:px-6">
         {/*
          * A Cross on the list as one block, never per row — and keyed on the term that
          * was actually searched, so it runs when the results change rather than on every
@@ -287,13 +288,15 @@ function SheetFooter({ logic, hint }: { readonly logic: Logic; readonly hint: st
   const { t } = useTranslation();
 
   return (
-    <div className="flex flex-none items-center justify-between gap-4 border-t border-line bg-surface px-6 py-3.5">
-      <span className="text-[11.5px] text-ink-muted">{hint}</span>
-      <div className="flex flex-none gap-2.5">
+    <div className="flex flex-none items-center justify-between gap-4 border-t border-line bg-surface px-4 py-3 pb-safe sm:px-6 sm:py-3.5">
+      {/* The hint explains what pressing the button does; under 640px the button is the
+          only thing left on the row and the sentence would take three lines of it. */}
+      <span className="hidden text-[11.5px] text-ink-muted sm:block">{hint}</span>
+      <div className="flex w-full gap-2.5 sm:w-auto sm:flex-none">
         <Button
           variant="secondary"
           onClick={logic.close}
-          className="h-[34px] rounded-lg px-3.5 text-[12.5px]"
+          className="h-11 flex-none rounded-lg px-3.5 text-[13px] sm:h-[34px] sm:text-[12.5px]"
         >
           {t("common.cancel")}
         </Button>
@@ -304,7 +307,7 @@ function SheetFooter({ logic, hint }: { readonly logic: Logic; readonly hint: st
           }}
           disabled={logic.selected === null}
           loading={logic.selected !== null && logic.addingMbid === logic.selected.id}
-          className="h-[34px] rounded-lg px-3.5 text-[12.5px]"
+          className="h-11 flex-1 rounded-lg px-3.5 text-[13px] sm:h-[34px] sm:flex-none sm:text-[12.5px]"
         >
           {t("addDialog.addAndEdit")}
         </Button>
@@ -567,7 +570,7 @@ function CsvTab({ logic }: { readonly logic: Logic }) {
 
   return (
     <>
-      <div className="min-h-0 flex-1 overflow-auto px-6 py-6">
+      <div className="min-h-0 flex-1 overflow-auto px-4 py-5 sm:px-6 sm:py-6">
         <div className="flex flex-col items-start gap-3 rounded-xl border border-dashed border-line bg-surface p-6">
           <FileUp size={20} strokeWidth={1.6} className="text-ink-muted" aria-hidden />
           <div className="text-[13px] font-semibold">{t("addDialog.csv.title")}</div>
@@ -625,7 +628,7 @@ function CsvTab({ logic }: { readonly logic: Logic }) {
           )}
         </div>
       </div>
-      <div className="flex flex-none items-center justify-end border-t border-line bg-surface px-6 py-3.5">
+      <div className="flex flex-none items-center justify-end border-t border-line bg-surface px-4 py-3 pb-safe sm:px-6 sm:py-3.5">
         <Button
           variant="secondary"
           onClick={logic.close}

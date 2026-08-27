@@ -76,6 +76,8 @@ export function CopyDetailsDialog({
       onClose={onClose}
       labelledBy={titleId}
       width={editing ? "780px" : "720px"}
+      phoneSheet
+      sheetHeight="large"
       holdOnBackdrop={logic.dirty}
     >
       <div className="flex flex-none items-start justify-between gap-4 border-b border-line px-6 pt-5.5 pb-4.5">
@@ -113,7 +115,9 @@ export function CopyDetailsDialog({
       </div>
 
       <form
-        className="flex min-h-0 flex-1 gap-6 overflow-auto px-6 py-5.5"
+        // Stacked under 640px (24f): the sleeve column is 180px wide and the fields
+        // beside it would be left with 150px, which is narrower than a date.
+        className="flex min-h-0 flex-1 flex-col gap-5 overflow-auto px-4 py-5 sm:flex-row sm:gap-6 sm:px-6 sm:py-5.5"
         onSubmit={(event) => {
           event.preventDefault();
           logic.save();
@@ -127,7 +131,7 @@ export function CopyDetailsDialog({
           {editing ? (
             <PhotoManager logic={photos} release={release} />
           ) : (
-            <div className="h-45 w-45">
+            <div className="h-45 w-45 max-sm:mx-auto">
               <ReleaseArt
                 release={release}
                 format={logic.fields.format === "" ? undefined : logic.fields.format}
@@ -164,7 +168,7 @@ export function CopyDetailsDialog({
               <div className="font-mono text-[10px] uppercase tracking-[0.1em] text-ink-subtle">
                 {t("manual.pressing")}
               </div>
-              <div className="mt-2.5 grid grid-cols-2 gap-3">
+              <div className="mt-2.5 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <Field label={t("manual.artist")} required>
                   {(id) => (
                     <input
@@ -186,7 +190,7 @@ export function CopyDetailsDialog({
                   )}
                 </Field>
               </div>
-              <div className="mt-3 flex gap-3">
+              <div className="mt-3 flex flex-wrap gap-3">
                 <Field label={t("manual.year")} className="w-20 flex-none">
                   {(id) => (
                     <input
@@ -225,7 +229,9 @@ export function CopyDetailsDialog({
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-4">
+          {/* Two grades side by side is 167px each at 390px, and the scale under them
+              needs every pixel of the row it draws. One column under 640px. */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <ConditionScale
               scope="MEDIA"
               label={t("copyDetails.mediaCondition")}
@@ -332,7 +338,12 @@ export function CopyDetailsDialog({
         </div>
       </form>
 
-      <div className="flex flex-none items-center justify-between gap-4 border-t border-line bg-surface px-6 py-3.5">
+      {/*
+       * 24k: the footer is fixed as soon as the body scrolls, which under 640px is always.
+       * It wraps rather than squeezing — three things live in it, and "Remove copy" beside
+       * a Save button beside a switch is 390px of nothing but controls.
+       */}
+      <div className="flex flex-none flex-wrap items-center justify-between gap-x-4 gap-y-2.5 border-t border-line bg-surface px-4 py-3 pb-safe sm:px-6 sm:py-3.5">
         {editing ? (
           // 12b puts removing the copy in the footer's quiet corner: it is the one thing
           // here that cannot be undone, and it belongs where you are already deciding what
@@ -391,11 +402,13 @@ function DialogActions({
   const refused = useModalRefused();
 
   return (
-    <div className="flex gap-2.5">
+    // Full width on a phone: cancel keeps the width of its own word, the action that
+    // saves takes the rest of the row.
+    <div className="flex w-full gap-2.5 sm:w-auto">
       <Button
         variant="secondary"
         onClick={editing || onBack === undefined ? dismiss : onBack}
-        className="h-[34px] rounded-lg px-3.5 text-[12.5px]"
+        className="h-11 flex-none rounded-lg px-3.5 text-[13px] sm:h-[34px] sm:text-[12.5px]"
       >
         {editing ? t("common.cancel") : t("common.back")}
       </Button>
@@ -406,7 +419,8 @@ function DialogActions({
         disabled={!canSave}
         loading={saving}
         className={cn(
-          "h-[34px] rounded-lg px-3.5 text-[12.5px] transition-shadow duration-(--mc-quick)",
+          "h-11 flex-1 rounded-lg px-3.5 text-[13px] transition-shadow duration-(--mc-quick)",
+          "sm:h-[34px] sm:flex-none sm:text-[12.5px]",
           refused && "ring-2 ring-accent ring-offset-2 ring-offset-paper",
         )}
       >

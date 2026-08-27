@@ -24,8 +24,8 @@ export function YourDataPage() {
   const [confirming, setConfirming] = useState(false);
 
   return (
-    <AppShell stats={stats.data}>
-      <div className="min-h-0 flex-1 overflow-auto px-14 py-11">
+    <AppShell stats={stats.data} phoneBottom="none">
+      <div className="min-h-0 flex-1 overflow-auto px-5 py-7 sm:px-14 sm:py-11">
         <div className="max-w-[620px]">
           <h1 className="font-serif text-[38px] leading-[1.1]">{t("legal.yourData")}</h1>
           <p className="mt-3 text-[13px] leading-[1.65] text-ink-muted text-pretty">

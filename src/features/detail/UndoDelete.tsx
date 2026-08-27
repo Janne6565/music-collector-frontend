@@ -132,7 +132,9 @@ function UndoToast({
       // click along the bottom of the window, the profile menu included, for as long as
       // the toast was up. The band only positions; the pill is the only part that is
       // actually there to be clicked.
-      className="mc-lift pointer-events-none fixed inset-x-0 bottom-6 z-50 flex justify-center"
+      // 24a: on a phone it sits 10px above the tab bar (56px plus the home indicator),
+      // never over it and never behind Safari's own bar underneath.
+      className="mc-lift pointer-events-none fixed inset-x-0 bottom-[calc(var(--spacing-safe)+66px)] z-50 flex justify-center sm:bottom-6"
       style={{ transitionDuration: `${DURATION.slow}ms` }}
     >
       <div className="pointer-events-auto flex items-center gap-4 rounded-xl bg-ink px-4 py-2.5 text-paper shadow-[0_12px_32px_rgba(25,23,19,.34)]">

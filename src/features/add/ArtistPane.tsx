@@ -51,7 +51,7 @@ export function ArtistPane({
 
   return (
     <>
-      <div className="flex flex-none items-center justify-between gap-4 px-6 pt-4">
+      <div className="flex flex-none items-center justify-between gap-4 px-4 sm:px-6 pt-4">
         <button
           type="button"
           onClick={onBack}
@@ -63,10 +63,12 @@ export function ArtistPane({
         <ModalClose onClose={onClose} label={t("common.close")} />
       </div>
 
-      <header className="flex flex-none gap-4 border-b border-line px-6 pt-4 pb-4.5">
+      <header className="flex flex-none flex-col gap-4 border-b border-line px-4 pt-4 pb-4 sm:flex-row sm:px-4 sm:px-6 sm:pb-4.5">
         <ArtistAvatar name={artist.name} size={62} mbid={artist.mbid} />
         <div className="min-w-0 flex-1">
-          <h2 className="font-serif text-[27px] leading-[1.05]">{artist.name}</h2>
+          <h2 className="font-serif text-[22px] leading-[1.08] text-pretty sm:text-[27px] sm:leading-[1.05]">
+            {artist.name}
+          </h2>
           {artist.disambiguation !== "" && (
             <p className="mt-1.5 text-[12.5px] leading-normal text-ink-muted">
               {artist.disambiguation}
@@ -77,7 +79,9 @@ export function ArtistPane({
             <Chip>{t("artists.releaseCount", { count: logic.total })}</Chip>
           </div>
         </div>
-        <div className="flex w-[220px] flex-none flex-col gap-2.25">
+        {/* Its own row under 640px: 220px beside a 62px avatar and a name leaves the
+            artist's name about 90px, which is not a name. */}
+        <div className="flex w-full flex-none flex-col gap-2.25 sm:w-[220px]">
           <label className="flex h-9 items-center gap-2.25 rounded-lg border border-line bg-surface px-3 focus-within:border-ink">
             <Search
               size={15}
@@ -101,7 +105,7 @@ export function ArtistPane({
         </div>
       </header>
 
-      <div className="flex flex-none flex-wrap gap-1.75 px-6 pt-3.5 pb-3">
+      <div className="flex flex-none flex-wrap gap-1.75 px-4 sm:px-6 pt-3.5 pb-3">
         {PRIMARY_TYPES.map((type) => (
           <TypeChip
             key={type}
@@ -113,7 +117,7 @@ export function ArtistPane({
         ))}
       </div>
 
-      <div className="min-h-0 flex-1 overflow-auto px-6 pb-1">
+      <div className="min-h-0 flex-1 overflow-auto px-4 sm:px-6 pb-1">
         {logic.loading ? (
           <AlbumSkeletons />
         ) : logic.failed ? (
@@ -318,7 +322,7 @@ function PressingTable({
     <div>
       <div
         className={cn(
-          "grid gap-2.5 px-2 pb-1.75 font-mono text-[9.5px] uppercase tracking-[0.1em] text-ink-subtle",
+          "hidden gap-2.5 px-2 pb-1.75 font-mono text-[9.5px] tracking-[0.1em] text-ink-subtle uppercase sm:grid",
           COLUMNS,
         )}
       >
@@ -380,7 +384,11 @@ function PressingRow({
     <>
       <div
         className={cn(
-          "grid items-center gap-2.5 border-b border-line/60 px-2 py-2.25",
+          // 24e: six columns become one row of two lines under 640px. The last child —
+          // "all details" — wraps onto a line of its own rather than stealing width from
+          // the two lines that actually tell two pressings apart.
+          "flex flex-wrap items-center gap-2.5 border-b border-line/60 px-2 py-2.5",
+          "sm:grid sm:items-center sm:py-2.25",
           COLUMNS,
           selected && "bg-canvas/60",
           detailsOpen && "border-b-0",
@@ -392,17 +400,36 @@ function PressingRow({
           type="button"
           onClick={onSelect}
           aria-pressed={selected}
-          className="col-span-4 grid items-center gap-2.5 text-left"
+          className="col-span-4 flex min-w-0 flex-1 flex-col gap-0.5 text-left sm:grid sm:flex-none sm:items-center sm:gap-2.5"
           style={{ gridTemplateColumns: "52px 1fr 1fr 96px" }}
         >
-          <span className="text-xs font-semibold">{pressing.year ?? "—"}</span>
-          <span className="truncate text-xs text-ink/70">
+          {/*
+           * Year · country · format, and nothing else. Those are the three that separate
+           * two pressings of the same album; a fourth would not fit and a thumbnail tells
+           * two pressings of one record apart not at all.
+           */}
+          <span className="truncate text-[13px] font-semibold sm:hidden">
+            {[
+              pressing.year === null ? t("artists.unknownYear") : String(pressing.year),
+              pressing.country ?? t("artists.unknownCountry"),
+              FORMAT_LABELS[pressing.format],
+            ].join(" · ")}
+          </span>
+          {/* Label and catalogue number, when MusicBrainz has them — and a line saying so
+              when it does not, because "no catalogue number" is itself an answer here. */}
+          <span className="truncate text-[11.5px] text-ink-muted sm:hidden">
+            {[pressing.label, pressing.catalogNumber].filter(Boolean).join(" · ") ||
+              t("artists.noCatalog")}
+          </span>
+
+          <span className="hidden text-xs font-semibold sm:block">{pressing.year ?? "—"}</span>
+          <span className="hidden truncate text-xs text-ink/70 sm:block">
             {[pressing.label, pressing.country].filter(Boolean).join(" · ") || "—"}
           </span>
-          <span className="truncate font-mono text-[11px] text-ink-subtle">
+          <span className="hidden truncate font-mono text-[11px] text-ink-subtle sm:block">
             {pressing.catalogNumber ?? "—"}
           </span>
-          <span className="flex items-center gap-1.75 text-[11.5px] font-medium text-ink/70">
+          <span className="hidden items-center gap-1.75 text-[11.5px] font-medium text-ink/70 sm:flex">
             <span className="h-[18px] w-[18px] flex-none">
               <ReleaseArt release={pressing} className="rounded-[2px]" />
             </span>
@@ -415,7 +442,8 @@ function PressingRow({
           onClick={onToggleDetails}
           aria-expanded={detailsOpen}
           className={cn(
-            "flex items-center gap-1 text-[11px] font-semibold",
+            "order-last flex h-9 w-full items-center gap-1 text-[11px] font-semibold",
+            "sm:order-none sm:h-auto sm:w-auto",
             detailsOpen ? "text-ink/65" : "text-ink-subtle hover:text-ink",
           )}
         >
@@ -432,7 +460,11 @@ function PressingRow({
             {t("addDialog.inLibrary")}
           </span>
         ) : (
-          <Button onClick={onAdd} loading={adding} className="h-7 rounded-md px-2.5 text-[11.5px]">
+          <Button
+            onClick={onAdd}
+            loading={adding}
+            className="h-9 flex-none rounded-md px-3 text-[12px] sm:h-7 sm:px-2.5 sm:text-[11.5px]"
+          >
             {!adding && <Plus size={13} strokeWidth={2} aria-hidden />}
             {t("addDialog.add")}
           </Button>
@@ -473,7 +505,7 @@ function PressingDetails({ pressing }: { readonly pressing: Release }) {
   ];
 
   return (
-    <div className="mx-2 mb-2.5 flex gap-3.5 rounded-[9px] bg-paper p-3 shadow-[inset_0_0_0_1px_rgba(25,23,19,.08)]">
+    <div className="mx-2 mb-2.5 flex flex-col gap-3.5 rounded-[9px] bg-paper p-3 shadow-[inset_0_0_0_1px_rgba(25,23,19,.08)] sm:flex-row">
       <div className="h-24 w-24 flex-none">
         <ReleaseArt release={pressing} className="rounded-sm" />
       </div>

@@ -144,11 +144,20 @@ export function ProfileBody({
         </Link>
       )}
 
-      <header className="flex items-start gap-4">
+      <header className="flex items-center gap-3.5 sm:items-start sm:gap-4">
         <Avatar name={name} size={56} />
         <div className="min-w-0 flex-1">
-          <h1 className="font-serif text-[26px] leading-tight text-ink">{name}</h1>
-          <p className="mt-1 text-[12.5px] text-ink-muted">
+          <h1 className="font-serif text-[24px] leading-[1.1] text-ink sm:text-[26px] sm:leading-tight">
+            {name}
+          </h1>
+          {/*
+           * 15c gives the phone the handle and nothing else. The two facts that used to
+           * ride along here — how many copies, collecting since when — were what turned
+           * this into four wrapped lines beside a button: the count is already the number
+           * in the switch below, and the year is not why anyone opened the page.
+           */}
+          <p className="mt-1 font-mono text-[11.5px] text-ink-subtle sm:hidden">@{person.handle}</p>
+          <p className="mt-1 hidden text-[12.5px] text-ink-muted sm:block">
             {[
               `@${person.handle}`,
               t("friends.copies", { count: person.copyCount ?? 0 }),
@@ -162,13 +171,23 @@ export function ProfileBody({
               .join(" · ")}
           </p>
         </div>
-        <RelationshipAction logic={logic} />
+        {/* Beside the name only where there is room for it to be beside anything. */}
+        <div className="hidden sm:block">
+          <RelationshipAction logic={logic} />
+        </div>
       </header>
+
+      {/* 15c stands the action on its own row under 640px, the width of the screen. It is
+          the one thing you can do on this page, and it was squeezing the name into two
+          lines and the line under it into four. */}
+      <div className="mt-3.5 sm:hidden">
+        <RelationshipAction logic={logic} block />
+      </div>
 
       {/* No rule under it any more: the track around the two halves is what says they are
           one control, and a border below repeated the job at a second weight. */}
-      <div className="mt-5 flex flex-wrap items-center justify-between gap-x-4 gap-y-2.5">
-        <div className="flex w-full max-w-[300px] flex-none gap-0.5 rounded-[9px] bg-ink/6 p-[3px]">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 sm:mt-5">
+        <div className="flex w-full max-w-full flex-none gap-0.5 rounded-[9px] bg-ink/6 p-[3px] sm:max-w-[300px]">
           <TabButton
             active={tab === "collection"}
             onClick={() => onTab("collection")}
@@ -188,7 +207,9 @@ export function ProfileBody({
             says so, and a label repeating it spends the line on the obvious. What is not
             obvious is a column that is missing on purpose. */}
         {person.pricesVisible === false && (
-          <span className="flex-none font-mono text-[10.5px] uppercase tracking-[0.08em] text-ink-subtle">
+          // Wraps rather than running off the right edge: it is a whole sentence in mono,
+          // and a name in it can be any length at all.
+          <span className="min-w-0 font-mono text-[10.5px] tracking-[0.08em] text-ink-subtle uppercase">
             {t("profile.pricesHidden", { name })}
           </span>
         )}
@@ -429,14 +450,29 @@ function LockedShelf({ logic, tab }: { readonly logic: Logic; readonly tab: Prof
   );
 }
 
-function RelationshipAction({ logic }: { readonly logic: Logic }) {
+/**
+ * The one thing this page lets you do about the person whose shelf it is.
+ *
+ * `block` is 15c's phone shape: a full-width pill on a row of its own, 38px tall and
+ * round, rather than a small button competing with the name for the same line. The states
+ * that are not actions — "friends since", "requested" — take the same shape so the row
+ * does not change height as a request goes through.
+ */
+function RelationshipAction({ logic, block }: { readonly logic: Logic; readonly block?: boolean }) {
   const { t } = useTranslation();
   const person = logic.person;
+  const wide = block === true;
+  const action = wide
+    ? "h-[38px] w-full rounded-full text-[13px]"
+    : "h-9 flex-none rounded-lg px-3.5 text-[12.5px]";
+  const quiet = wide
+    ? "flex h-[38px] w-full items-center justify-center gap-1.5 rounded-full border border-line bg-surface text-[12.5px] font-semibold text-ink/70"
+    : "flex flex-none items-center gap-1.5 rounded-lg bg-surface px-3 py-2 text-[12px] font-medium text-ink-muted";
 
   if (!logic.signedIn) {
     return (
-      <Link to="/signin" className="flex-none">
-        <Button className="h-9 rounded-lg px-3.5 text-[12.5px]">
+      <Link to="/signin" className={wide ? "block" : "flex-none"}>
+        <Button className={action}>
           <UserPlus size={15} strokeWidth={1.75} aria-hidden />
           {t("profile.signInToAsk")}
         </Button>
@@ -449,14 +485,20 @@ function RelationshipAction({ logic }: { readonly logic: Logic }) {
       return null;
     case "FRIENDS":
       return (
-        <span className="flex flex-none items-center gap-1.5 rounded-lg bg-surface px-3 py-2 text-[12px] font-medium text-ink-muted">
+        <span className={quiet}>
           <UserCheck size={14} strokeWidth={1.75} aria-hidden />
           {t("friends.state.friends")}
         </span>
       );
     case "REQUEST_SENT":
       return (
-        <span className="flex-none rounded-lg px-3 py-2 text-[12px] text-ink-subtle">
+        <span
+          className={
+            wide
+              ? "flex h-[38px] w-full items-center justify-center rounded-full border border-dashed border-line text-[12.5px] text-ink-subtle"
+              : "flex-none rounded-lg px-3 py-2 text-[12px] text-ink-subtle"
+          }
+        >
           {t("friends.state.requested")}
         </span>
       );
@@ -465,7 +507,7 @@ function RelationshipAction({ logic }: { readonly logic: Logic }) {
         <Button
           onClick={() => logic.ask.mutate()}
           disabled={logic.ask.isPending}
-          className="h-9 flex-none rounded-lg px-3.5 text-[12.5px]"
+          className={action}
         >
           <UserPlus size={15} strokeWidth={1.75} aria-hidden />
           {t("profile.ask")}

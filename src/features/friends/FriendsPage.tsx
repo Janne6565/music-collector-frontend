@@ -104,19 +104,15 @@ export function FriendsPage() {
 
       <div className="flex min-h-0 flex-1 gap-6 overflow-y-auto px-4 pb-8 sm:px-7">
         <main className={cn("min-w-0 flex-1", pane === "FIND" && "max-sm:hidden")}>
-          {logic.results.length > 0 && <Results logic={logic} />}
-          {logic.incoming.map((invite: FriendRequestDto) => (
-            <RequestCard
-              key={invite.id}
-              name={invite.from?.displayName ?? invite.from?.handle ?? ""}
-              handle={invite.from?.handle ?? ""}
-              copies={invite.from?.copyCount}
-              mutual={invite.mutualFriends ?? 0}
-              onAccept={() => logic.acceptRequest.mutate(invite.id ?? "")}
-              onDecline={() => logic.declineRequest.mutate(invite.id ?? "")}
-              busy={logic.acceptRequest.isPending || logic.declineRequest.isPending}
-            />
-          ))}
+          {/*
+           * Search results and pending requests belong to the pane that has the search
+           * box and the badge counting them — which under 640px is Find, not this one.
+           * Rendered here for the desktop, where both panes are on screen at once, and
+           * in the aside for the phone. Never both: the wrappers are exclusive.
+           */}
+          <div className="max-sm:hidden">
+            <FoundAndPending logic={logic} />
+          </div>
           <ActivityFeed entries={logic.entries} loading={logic.loading} />
           <p className="mt-6 text-[11.5px] leading-relaxed text-ink-subtle">
             {t("friends.importsAreSilent")}
@@ -128,10 +124,40 @@ export function FriendsPage() {
           <div className="pt-4 pb-1 sm:hidden">
             <SearchField logic={logic} />
           </div>
+          <div className="sm:hidden">
+            <FoundAndPending logic={logic} />
+          </div>
           <PeopleRail logic={logic} />
         </aside>
       </div>
     </AppShell>
+  );
+}
+
+/**
+ * What the search turned up, and who is waiting for an answer.
+ *
+ * One component because the two are the same kind of thing — people you have not decided
+ * about yet — and because 24g's phone layout has to show both in its Find tab while the
+ * desktop shows them above the feed.
+ */
+function FoundAndPending({ logic }: { readonly logic: Logic }) {
+  return (
+    <>
+      {logic.results.length > 0 && <Results logic={logic} />}
+      {logic.incoming.map((invite: FriendRequestDto) => (
+        <RequestCard
+          key={invite.id}
+          name={invite.from?.displayName ?? invite.from?.handle ?? ""}
+          handle={invite.from?.handle ?? ""}
+          copies={invite.from?.copyCount}
+          mutual={invite.mutualFriends ?? 0}
+          onAccept={() => logic.acceptRequest.mutate(invite.id ?? "")}
+          onDecline={() => logic.declineRequest.mutate(invite.id ?? "")}
+          busy={logic.acceptRequest.isPending || logic.declineRequest.isPending}
+        />
+      ))}
+    </>
   );
 }
 

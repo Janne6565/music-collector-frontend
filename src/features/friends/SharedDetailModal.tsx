@@ -66,6 +66,8 @@ export function SharedDetailModal({
       width="800px"
       align="center"
       phoneSheet
+      // The grabber lives in PhoneHandle below, on the same row as the close.
+      sheetHandle={false}
       overlay={
         <>
           <Flip

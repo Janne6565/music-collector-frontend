@@ -50,9 +50,15 @@ const SKELETON_CARDS: readonly (readonly [string, string])[] = [
 /** Shared so the skeleton grid cannot drift away from the real one. */
 const GRID_CLASS =
   "grid grid-cols-2 gap-x-3 gap-y-3.5 " +
-  // 24b: two columns at 390px puts the cover at 171px. The auto-fill above 640px is
-  // unchanged — a desktop window is where "as many as fit" is the right answer.
-  "sm:grid-cols-[repeat(auto-fill,minmax(150px,1fr))] sm:gap-x-4 sm:gap-y-5";
+  // 24b: two columns at 390px puts the cover at 171px, and there they should fill the
+  // width — a centred block on a phone is just two thin margins.
+  //
+  // Above 640px the tiles keep a fixed 180px instead of stretching, and the block is
+  // centred in the pane. Stretching tracks meant the covers changed size with the window
+  // and the last row's leftovers hung off to the left; a fixed tile makes every sleeve
+  // the same size on every screen, and `auto-fit` drops the empty tracks so what is left
+  // can be centred rather than left-aligned against a gap.
+  "sm:grid-cols-[repeat(auto-fit,180px)] sm:justify-center sm:gap-x-4 sm:gap-y-5";
 
 export function LibraryPage() {
   const { t } = useTranslation();
@@ -473,7 +479,39 @@ function GridItem({
           ? ""
           : `${row.release.artistName} · ${row.release.year ?? t("common.unknownYear")}`}
       </div>
+      <TileRating rating={row.copy.rating} />
     </Link>
+  );
+}
+
+/**
+ * The rating on a shelf tile — screen 25a.
+ *
+ * Glyphs rather than five icon components: at 10px a lucide star is a shape with a stroke
+ * width, and five of them per tile across a screenful of records is a lot of SVG for
+ * something the eye reads as a bar. Whole stars only — a half at this size is a smudge.
+ *
+ * An unrated copy draws nothing at all, not five empty stars. Most shelves are rated in
+ * patches, and a grid where every third tile carries a row of hollow glyphs reads as a
+ * list of things you have failed to do.
+ */
+function TileRating({ rating }: { readonly rating: number | null }) {
+  const { t } = useTranslation();
+  if (rating === null || rating <= 0) return null;
+
+  const filled = Math.min(5, Math.round(rating));
+  return (
+    <div
+      className="mt-[3px] flex h-[13px] items-center text-[10px] leading-none tracking-[1.5px]"
+      aria-label={t("editor.rate", { count: filled })}
+    >
+      <span className="text-accent" aria-hidden>
+        {"\u2605".repeat(filled)}
+      </span>
+      <span className="text-ink/20" aria-hidden>
+        {"\u2606".repeat(5 - filled)}
+      </span>
+    </div>
   );
 }
 

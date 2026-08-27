@@ -79,6 +79,16 @@ interface ModalProps {
    */
   readonly sheetHeight?: "auto" | "large" | "full";
   /**
+   * Whether the sheet draws its own grabber.
+   *
+   * 24f makes the handle the Modal's job, which is right for every sheet that has an
+   * ordinary header. 23a's detail sheet is the exception: it puts the grabber and its
+   * close button on one row, because the art starts immediately underneath and a bar on a
+   * line of its own would cost 26px of a screen that is mostly sleeve. It opts out here
+   * and draws both itself.
+   */
+  readonly sheetHandle?: boolean;
+  /**
    * Chrome painted on the dim itself rather than in the panel — 23a's prev/next.
    *
    * It lives inside the <dialog>, because an element outside it is inert while a modal is
@@ -111,6 +121,7 @@ export function Modal({
   align = "top",
   phoneSheet = false,
   sheetHeight = "auto",
+  sheetHandle = true,
   overlay,
   footnote,
   children,
@@ -222,7 +233,7 @@ export function Modal({
                 nudging && "mc-nudge",
               )}
             >
-              {phoneSheet && sheetHeight !== "full" && (
+              {phoneSheet && sheetHandle && sheetHeight !== "full" && (
                 <div className="flex flex-none justify-center pt-2 sm:hidden" aria-hidden>
                   <span className="h-1 w-9 rounded-full bg-ink/15" />
                 </div>

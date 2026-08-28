@@ -63,6 +63,7 @@ function Entry({ entry }: { readonly entry: ActivityEntryDto }) {
   const { t, i18n } = useTranslation();
   const name = entry.actor?.displayName ?? entry.actor?.handle ?? "";
   const count = entry.copyCount ?? 1;
+  const handle = entry.actor?.handle ?? "";
 
   return (
     <div className="flex items-start gap-3 rounded-xl border border-line bg-surface px-3.5 py-3">
@@ -88,10 +89,20 @@ function Entry({ entry }: { readonly entry: ActivityEntryDto }) {
             .filter(Boolean)
             .join(" · ")}
         </p>
-        {count > 1 && (
-          <span className="mt-1 inline-block text-[11.5px] font-medium text-accent">
+        {/*
+         * The burst's way in. The feed carries a few sleeves from a collapsed line and no
+         * copy ids, so there is nothing to open that is exactly these eight — but their
+         * shelf is sorted newest first, which puts them at the top of it. Only where there
+         * is a handle to go to: accent-coloured text that does nothing is what this fixes.
+         */}
+        {count > 1 && handle !== "" && (
+          <Link
+            to="/friends/$handle"
+            params={{ handle }}
+            className="mt-1 inline-block text-[11.5px] font-medium text-accent no-underline hover:underline"
+          >
             {t("friends.seeAll", { count })}
-          </span>
+          </Link>
         )}
       </div>
     </div>

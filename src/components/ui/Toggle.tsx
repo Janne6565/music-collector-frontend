@@ -30,7 +30,7 @@ export function Toggle({ checked, onChange, label, disabledReason }: ToggleProps
         checked={checked}
         disabled={disabled}
         onChange={(event) => onChange?.(event.target.checked)}
-        aria-label={disabledReason === undefined ? label : `${label} — ${disabledReason}`}
+        aria-label={disabledReason === undefined ? label : `${label}, ${disabledReason}`}
         className="peer absolute inset-0 cursor-inherit opacity-0"
       />
       <span

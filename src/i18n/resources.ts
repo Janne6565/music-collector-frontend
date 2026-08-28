@@ -71,7 +71,7 @@ const enCommon = {
       addedMany: "<person>{{name}}</person> added {{count}} copies to their collection",
       wishAdded: "<person>{{name}}</person> is looking for <title>{{title}}</title>",
       wishFulfilled:
-        "<person>{{name}}</person> found <title>{{title}}</title> — off the wishlist, onto the shelf",
+        "<person>{{name}}</person> found <title>{{title}}</title>: off the wishlist, onto the shelf",
       accepted: "<person>{{name}}</person> accepted your request",
     },
     feedEmpty: {
@@ -80,7 +80,7 @@ const enCommon = {
     },
     signedOut: {
       title: "Find a collector",
-      body: "Type a handle to look at somebody's shelf. No account needed — what you get to see is up to them.",
+      body: "Type a handle to look at somebody's shelf. No account needed. What you get to see is up to them.",
       tooShort: "Three characters at least.",
       noMatches: "Nobody goes by that handle.",
       invitation:
@@ -90,7 +90,7 @@ const enCommon = {
     claim: {
       title: "Pick a handle",
       label: "Handle",
-      body: "This is how other collectors find you. Your name stays as it is — the handle is just for finding.",
+      body: "This is how other collectors find you. Your name stays as it is. The handle is just for finding.",
       rules: "Letters, numbers and dots. You can change it twice a year.",
       action: "Claim @{{handle}}",
       reason: {
@@ -104,7 +104,7 @@ const enCommon = {
   settings: {
     scope: {
       signedIn:
-        "Your collection, wishlist and photos follow you to every device you sign in on. These preferences do not — they describe this browser, and stay in it.",
+        "Your collection, wishlist and photos follow you to every device you sign in on. These preferences do not. They describe this browser, and stay in it.",
       anonymous:
         "Everything is stored in this browser, including these preferences. Nothing on this page needs an account.",
     },
@@ -122,13 +122,13 @@ const enCommon = {
       chosen: "Chosen for this browser, whatever your system asks for",
       option: { system: "Follow my browser", en: "English", de: "Deutsch" },
       failed:
-        "Couldn’t keep that on this device — storage is full or blocked here. The app stays in {{value}}.",
+        "Couldn’t keep that on this device: storage is full or blocked here. The app stays in {{value}}.",
     },
     documents: {
       title: "Legal documents",
       body: "Deutsch is the binding version. English is a translation of it.",
       failed:
-        "Couldn’t keep that on this device — storage is full or blocked here. The documents stay in {{value}}.",
+        "Couldn’t keep that on this device: storage is full or blocked here. The documents stay in {{value}}.",
     },
     currency: {
       title: "Currency for new copies",
@@ -137,7 +137,7 @@ const enCommon = {
       body_other:
         "Fills in the price field when you add a copy. The {{count}} already saved keep theirs.",
       failed:
-        "Couldn’t keep that on this device — storage is full or blocked here. New copies still use {{value}}.",
+        "Couldn’t keep that on this device: storage is full or blocked here. New copies still use {{value}}.",
     },
     sync: {
       title: "Sync across devices",
@@ -146,7 +146,7 @@ const enCommon = {
       anonymous_one: "One copy lives on this device only",
       anonymous_other: "{{count}} copies live on this device only",
       signIn: "Sign in",
-      failed: "Couldn’t change that on this device — storage is full or blocked here.",
+      failed: "Couldn’t change that on this device: storage is full or blocked here.",
     },
     local: {
       title: "Keep a local copy",
@@ -161,7 +161,7 @@ const enCommon = {
       clear: "Clear",
       cleared_one: "1 cleared",
       cleared_other: "{{count}} cleared",
-      failed: "Couldn’t clear them — storage is full or blocked here.",
+      failed: "Couldn’t clear them: storage is full or blocked here.",
     },
     footnote: {
       saves: "Changes save as you make them. Your name, email, exports and sharing live on",
@@ -188,7 +188,7 @@ const enCommon = {
     },
     wishlist: {
       legend: "Your wishlist",
-      note: "Set separately from the collection — most people share this one wider.",
+      note: "Set separately from the collection. Most people share this one wider.",
     },
     prices: {
       title: "Show prices and totals",
@@ -307,7 +307,7 @@ const enCommon = {
     empty: "Nothing on the wishlist yet.",
     emptyTitle: "Nothing on the hunt yet",
     emptyLede:
-      "Records you want but don't own. No prices, no alerts — a list you keep so you remember at the shop.",
+      "Records you want but don't own. No prices, no alerts, just a list you keep so you remember at the shop.",
     way: {
       search: "Search a release, tap the heart",
       artist: "Open an artist, mark the gaps",
@@ -356,9 +356,9 @@ const enCommon = {
     savedAsYouType:
       "Saved as you type. Format and note are the only editable fields, so they edit here.",
     alsoOwn_one:
-      "You already own 1 record by {{artist}} — matched on the name, so there is no artist page to send you to",
+      "You already own 1 record by {{artist}}, matched on the name, so there is no artist page to send you to",
     alsoOwn_other:
-      "You already own {{count}} records by {{artist}} — matched on the name, so there is no artist page to send you to",
+      "You already own {{count}} records by {{artist}}, matched on the name, so there is no artist page to send you to",
     pressings: "Pressings of this album",
     pressingsOptional: "optional lookup",
     pressingsSlow: "a second or two, sometimes more",
@@ -366,7 +366,7 @@ const enCommon = {
     pressingsMore: "Show {{count}} more",
     pressingsReference: "reference only · a wish names the album, not a press",
     pressingsFailed:
-      "The catalogue didn't answer. Nothing on this entry depends on it — the wish is yours, stored here.",
+      "The catalogue didn't answer. Nothing on this entry depends on it. The wish is yours, stored here.",
     pressingsRetry: "Try again",
     pressingsNone: "The catalogue lists no pressings of this album.",
     pressingsManual:
@@ -438,12 +438,12 @@ const enCommon = {
     allFormats: "All formats",
     matchCount: "{{count}} matching releases",
     inLibrary: "In library",
-    noReleasesButArtists: "Nothing is titled that — open an artist above to see their records.",
+    noReleasesButArtists: "Nothing is titled that. Open an artist above to see their records.",
     recent: "Recent searches",
     clearRecent: "Clear",
     add: "Add",
     addAndEdit: "Add and edit details",
-    footerHint: "Adding saves the copy and opens its details — the search stays behind it.",
+    footerHint: "Adding saves the copy and opens its details, and the search stays behind it.",
     noBarcodeMatch:
       "No release with the barcode {{barcode}}. Common with promos, club editions and anything pressed before the mid-eighties.",
     noMatches: {
@@ -454,7 +454,7 @@ const enCommon = {
     },
     csv: {
       title: "Import a CSV or an archive",
-      body: "A .mc archive puts the collection back exactly as it was, photos included. A CSV — one row per copy, with a releaseId column — adds copies instead; rows without a release it can find are reported and skipped.",
+      body: "A .mc archive puts the collection back exactly as it was, photos included. A CSV (one row per copy, with a releaseId column) adds copies instead; rows without a release it can find are reported and skipped.",
       choose: "Choose a file",
       done: "{{added}} copies imported, {{skipped}} rows skipped.",
       doneArchive: "Restored {{copies}} copies, {{wishes}} wishlist entries and {{photos}} photos.",
@@ -473,7 +473,7 @@ const enCommon = {
     discography: "Discography",
     showMore: "Show {{count}} more artists with that name",
     backToResults: "Back to results for “{{query}}”",
-    footerHint: "Adding a pressing keeps this open — the search is still behind it.",
+    footerHint: "Adding a pressing keeps this open, and the search is still behind it.",
     releaseCount: "{{count}} releases",
     filterPlaceholder: "Filter {{name}}'s releases",
     filterMatches: "{{shown}} of {{total}} match",
@@ -482,7 +482,7 @@ const enCommon = {
     noPressings: "No pressings listed for this one.",
     noneOfType: "Nothing of that kind in this discography.",
     noneMatchFilter: "Nothing here matches that filter.",
-    pickLater: "Not sure which you own? Add any pressing — the details are yours to correct later.",
+    pickLater: "Not sure which you own? Add any pressing. The details are yours to correct later.",
     type: {
       Album: "Albums",
       EP: "EPs",
@@ -514,8 +514,8 @@ const enCommon = {
     yourCopy: "Your copy",
     format: "Format",
     formatDiffers: "Yours, not the catalogue's {{format}}.",
-    mediaCondition: "Condition — media",
-    sleeveCondition: "Condition — sleeve",
+    mediaCondition: "Media condition",
+    sleeveCondition: "Sleeve condition",
     price: "Price paid",
     date: "Date acquired",
     where: "Where",
@@ -530,7 +530,7 @@ const enCommon = {
   },
   grading: {
     help: "What the grades mean",
-    footnote: "Grade media and sleeve separately — that is how sellers list them.",
+    footnote: "Grade media and sleeve separately. That is how sellers list them.",
     media: {
       title: "Media grading",
       scale: {
@@ -609,16 +609,16 @@ const enCommon = {
     resetNoToken: "That link is missing its token. Request a new one.",
     resetInvalid: "That link is expired or already used. Request a new one.",
     resetNeedsConfirmed:
-      "A reset link only goes to an address that has been confirmed — otherwise there is no way to know who is reading it.",
+      "A reset link only goes to an address that has been confirmed. Otherwise there is no way to know who is reading it.",
     strip: {
       title: "A confirmation link is on its way to {{email}}",
-      body: "Nothing here is waiting on it — keep adding records. Confirming only means we can reach you if you forget your password.",
+      body: "Nothing here is waiting on it, so keep adding records. Confirming only means we can reach you if you forget your password.",
       wrongAddress: "Wrong address?",
     },
     confirmPage: {
       pending: {
         title: "Checking the link",
-        body: "A second at most. Do not close the tab — if you do, the link still works.",
+        body: "A second at most. Do not close the tab. If you do, the link still works.",
       },
       done: {
         title: "Address confirmed",
@@ -629,7 +629,7 @@ const enCommon = {
       },
       dead: {
         title: "This link is no longer good",
-        body: "It was either used already or sent more than 24 hours ago. Nothing happened to the account either way — it works exactly as it did a minute ago.",
+        body: "It was either used already or sent more than 24 hours ago. Nothing happened to the account either way. It works exactly as it did a minute ago.",
         hint: "Type the address you signed up with. If an account has it, a link goes out.",
         placeholder: "you@example.com",
         send: "Send",
@@ -642,14 +642,14 @@ const enCommon = {
         body: "The address in the bar is missing its last few characters, which some mail apps do when they wrap a long line. Copy the whole line from the mail, including everything after the last slash.",
         exampleHead: "rekordo.jannekeipert.de/confirm/",
         exampleTail: "4d71-9ba2-06fc-31e8",
-        exampleNote: "— the part in dark is what got lost",
+        exampleNote: "The part in dark is what got lost",
       },
     },
     cancelChange: {
       pending: { title: "Undoing the change", body: "A second at most." },
       done: {
         title: "The change is undone",
-        body: "The account is back on this address, and every device has been signed out — including whoever asked for the change. Sign in again with your usual password.",
+        body: "The account is back on this address, and every device has been signed out, including whoever asked for the change. Sign in again with your usual password.",
         signIn: "Sign in",
       },
       dead: {
@@ -661,7 +661,7 @@ const enCommon = {
     needAccountPrefix: "New here?",
     haveAccountPrefix: "Already collecting?",
     optional:
-      "An account is optional. It only syncs your collection across devices — everything works without one.",
+      "An account is optional. It only syncs your collection across devices. Everything works without one.",
     email: "E-mail",
     password: "Password",
     signIn: "Sign in",
@@ -695,12 +695,12 @@ const enCommon = {
     confirmMerge: "Merge and sync",
     confirmKeep: "Keep the account version",
     later: "Decide later",
-    failed: "That did not work. Nothing was changed — try again.",
+    failed: "That did not work. Nothing was changed, so try again.",
   },
   authPanel: {
     signInHeadline: "Every copy you own, on one shelf.",
     signInBody:
-      "Track vinyl, CDs, cassettes and digital separately — with condition, price and where you found it.",
+      "Track vinyl, CDs, cassettes and digital separately, with condition, price and where you found it.",
     registerHeadline: "Start with one record.",
     bulletScan: "Scan a barcode to fill in the release",
     bulletCopies: "Own it twice? Keep each copy separately",
@@ -718,7 +718,7 @@ const enCommon = {
       sendAgain: "Send again",
       change: "Change",
       spamHint:
-        "Nothing in the app is waiting on it. If it has not arrived, look in the spam folder before sending another — the second mail lands in the same place as the first.",
+        "Nothing in the app is waiting on it. If it has not arrived, look in the spam folder before sending another. The second mail lands in the same place as the first.",
       stillValid:
         "The first link is still the valid one. When the button comes back, a press invalidates it and sends a new one, so the older mail is never the one that works.",
     },
@@ -731,11 +731,11 @@ const enCommon = {
     },
     changeEmail: {
       title: "Change your e-mail address",
-      lede: "Your current address keeps working — signing in, resets, everything — until the new one is confirmed.",
+      lede: "Your current address keeps working (signing in, resets, everything) until the new one is confirmed.",
       current: "Current",
       currentConfirmed: "Confirmed",
       currentUnconfirmed:
-        "Not confirmed — it will be dropped, since nothing was ever proven about it",
+        "Not confirmed, so it will be dropped, since nothing was ever proven about it",
       newAddress: "New address",
       password: "Your password",
       passwordWhy:
@@ -785,20 +785,20 @@ const enCommon = {
     local: {
       title: "Keep a local copy",
       body: "Works offline in this browser",
-      always: "Always on — every screen reads from this device",
+      always: "Always on: every screen reads from this device",
     },
     export: {
       library: { title: "Export collection", body: "CSV, one row per copy" },
       wishlist: { title: "Export wishlist", body: "CSV, one row per entry" },
       archive: {
         title: "Export everything",
-        body: ".mc archive — every copy, wish and photo, and it imports back as the same records",
+        body: ".mc archive: every copy, wish and photo, and it imports back as the same records",
         done: "Last archive: {{copies}} copies and {{photos}} photos.",
       },
       action: "Export",
     },
     legal: {
-      dataBody: "Export, correct, withdraw consent or delete — the DSGVO actions in one place.",
+      dataBody: "Export, correct, withdraw consent or delete: the DSGVO actions in one place.",
       documentsBody: "Impressum, privacy policy and terms, in German or English.",
     },
     delete: {
@@ -820,11 +820,11 @@ const enCommon = {
       soon: "Soon",
     },
     syncOn: "Signed in · sync on",
-    syncPaused: "Sync is waiting — choose what to do with the collection already on this device.",
+    syncPaused: "Sync is waiting. Choose what to do with the collection already on this device.",
     finishSetup: "Finish setting up sync",
   },
   manual: {
-    lede: "Bootlegs, test presses, tapes — anything no database has.",
+    lede: "Bootlegs, test presses, tapes: anything no database has.",
     artist: "Artist",
     artistPlaceholder: "Who made it",
     title: "Title",
@@ -840,7 +840,7 @@ const enCommon = {
     note: "Note",
     notePlaceholder: "Pressing details, provenance, what is wrong with it.",
     dropCover: "drop cover",
-    coverHint: "Or leave it — the shelf uses a format tile.",
+    coverHint: "Or leave it, and the shelf uses a format tile.",
     removeCover: "Remove",
     footerHint: "Only artist, title and format are required. Everything else can wait.",
     save: "Save copy",
@@ -880,7 +880,7 @@ const enCommon = {
       "Translation for convenience. In case of dispute the German {{title}} apply.",
     bindingNotice: "The German version is the binding one; English is a courtesy translation.",
     noTracking:
-      "No tracking, no advertising, no cookie choices — only technically necessary data is processed.",
+      "No tracking, no advertising, no cookie choices. Only technically necessary data is processed.",
     noCookiesHere: "This page sets no analytics or advertising cookies.",
     data: {
       lede: "Everything the DSGVO entitles you to, without writing an e-mail.",
@@ -934,7 +934,7 @@ const enCommon = {
     title: "Notifications",
     rowBody: "What may reach you outside the app, by mail or push.",
     scope:
-      "These follow your account, not the browser you set them in — unlike everything else on Settings. Change them here and the app agrees.",
+      "These follow your account, not the browser you set them in, unlike everything else on Settings. Change them here and the app agrees.",
     grid: { heading: "What may reach you" },
     channel: { mail: "E-mail", push: "Push", pushNeedsApp: "needs the app" },
     always: "Always",
@@ -944,16 +944,16 @@ const enCommon = {
     failed: "That did not save. Try the switch again.",
     allQuiet: {
       title: "Everything is off",
-      body: "Nothing will reach you outside the app. Friend requests still arrive — they wait on the Friends tab with a dot, as they always did.",
+      body: "Nothing will reach you outside the app. Friend requests still arrive. They wait on the Friends tab with a dot, as they always did.",
     },
     noPush: {
       title: "Push has nowhere to arrive",
-      body: "No device has the app installed, so the column is empty rather than switchable. Install it and these switches appear — set once here, and every device you sign in on inherits them.",
+      body: "No device has the app installed, so the column is empty rather than switchable. Install it and these switches appear. Set them once here, and every device you sign in on inherits them.",
     },
     devices: {
       heading: "Where push would arrive",
       explainer:
-        "The grid above belongs to the account. Which devices may buzz is a separate, shorter question, and it has to be — a phone in a drawer and a phone in a pocket disagree.",
+        "The grid above belongs to the account. Which devices may buzz is a separate, shorter question, and it has to be, because a phone in a drawer and a phone in a pocket disagree.",
       none: "No devices yet",
       thisBrowser: "This browser cannot receive push, and does not ask to.",
       allowed: "Allowed on this device",
@@ -966,11 +966,11 @@ const enCommon = {
       },
       FRIEND_ACTIVITY: {
         title: "What your friends added",
-        body: "One mail on Sunday morning covering the week — records added by hand, never an import. Nothing to answer, so nothing arrives per record.",
+        body: "One mail on Sunday morning covering the week: records added by hand, never an import. Nothing to answer, so nothing arrives per record.",
       },
       SECURITY: {
         title: "Security notices",
-        body: "A new sign-in, a changed password, a changed address. These cannot be switched off — a notice you can silence is not a notice.",
+        body: "A new sign-in, a changed password, a changed address. These cannot be switched off. A notice you can silence is not a notice.",
       },
       PRODUCT_NEWS: {
         title: "News about the app",
@@ -1004,7 +1004,7 @@ const enCommon = {
       notInCatalogue: "No tracklist for this copy. Nothing in the catalogue matches it.",
     },
     unreachable:
-      "The catalogue did not answer. The rest of this copy is yours, stored here \u2014 only the titles come from outside.",
+      "The catalogue did not answer. The rest of this copy is yours, stored here. Only the titles come from outside.",
     /* Somebody else's shelf: the sentence about your own record does not apply there. */
     unreachableShared: "The catalogue did not answer. Only the titles come from outside.",
     retry: "Try again",
@@ -1098,7 +1098,7 @@ const deCommon: CommonSchema = {
       addedMany: "<person>{{name}}</person> hat {{count}} Exemplare zur Sammlung gelegt",
       wishAdded: "<person>{{name}}</person> sucht <title>{{title}}</title>",
       wishFulfilled:
-        "<person>{{name}}</person> hat <title>{{title}}</title> gefunden — von der Wunschliste ins Regal",
+        "<person>{{name}}</person> hat <title>{{title}}</title> gefunden: von der Wunschliste ins Regal",
       accepted: "<person>{{name}}</person> hat deine Anfrage angenommen",
     },
     feedEmpty: {
@@ -1107,7 +1107,7 @@ const deCommon: CommonSchema = {
     },
     signedOut: {
       title: "Sammler:in finden",
-      body: "Tipp einen Handle ein und schau dir ein Regal an. Ohne Konto — was du siehst, entscheidet die andere Seite.",
+      body: "Tipp einen Handle ein und schau dir ein Regal an. Ohne Konto. Was du siehst, entscheidet die andere Seite.",
       tooShort: "Mindestens drei Zeichen.",
       noMatches: "Diesen Handle hat niemand.",
       invitation:
@@ -1117,7 +1117,7 @@ const deCommon: CommonSchema = {
     claim: {
       title: "Wähl einen Handle",
       label: "Handle",
-      body: "So finden dich andere Sammler:innen. Dein Name bleibt, wie er ist — der Handle ist nur zum Finden da.",
+      body: "So finden dich andere Sammler:innen. Dein Name bleibt, wie er ist. Der Handle ist nur zum Finden da.",
       rules: "Buchstaben, Zahlen und Punkte. Zweimal im Jahr änderbar.",
       action: "@{{handle}} nehmen",
       reason: {
@@ -1131,7 +1131,7 @@ const deCommon: CommonSchema = {
   settings: {
     scope: {
       signedIn:
-        "Sammlung, Wunschliste und Fotos sind auf allen Geräten gleich, auf denen du angemeldet bist. Diese Einstellungen nicht — sie gelten für diesen Browser und bleiben hier.",
+        "Sammlung, Wunschliste und Fotos sind auf allen Geräten gleich, auf denen du angemeldet bist. Diese Einstellungen nicht. Sie gelten für diesen Browser und bleiben hier.",
       anonymous:
         "Alles wird in diesem Browser gespeichert, auch diese Einstellungen. Nichts auf dieser Seite braucht ein Konto.",
     },
@@ -1149,13 +1149,13 @@ const deCommon: CommonSchema = {
       chosen: "Für diesen Browser festgelegt, unabhängig vom System",
       option: { system: "Browsersprache", en: "Englisch", de: "Deutsch" },
       failed:
-        "Konnte auf diesem Gerät nicht gespeichert werden — der Speicher ist voll oder blockiert. Die App bleibt auf {{value}}.",
+        "Konnte auf diesem Gerät nicht gespeichert werden: der Speicher ist voll oder blockiert. Die App bleibt auf {{value}}.",
     },
     documents: {
       title: "Rechtliche Dokumente",
       body: "Deutsch ist die verbindliche Fassung, Englisch eine Übersetzung davon.",
       failed:
-        "Konnte auf diesem Gerät nicht gespeichert werden — der Speicher ist voll oder blockiert. Die Dokumente bleiben auf {{value}}.",
+        "Konnte auf diesem Gerät nicht gespeichert werden: der Speicher ist voll oder blockiert. Die Dokumente bleiben auf {{value}}.",
     },
     currency: {
       title: "Währung für neue Exemplare",
@@ -1164,7 +1164,7 @@ const deCommon: CommonSchema = {
       body_other:
         "Wird beim Hinzufügen vorgeschlagen. Die {{count}} gespeicherten Exemplare behalten ihre Währung.",
       failed:
-        "Konnte auf diesem Gerät nicht gespeichert werden — der Speicher ist voll oder blockiert. Neue Exemplare verwenden weiterhin {{value}}.",
+        "Konnte auf diesem Gerät nicht gespeichert werden: der Speicher ist voll oder blockiert. Neue Exemplare verwenden weiterhin {{value}}.",
     },
     sync: {
       title: "Geräteübergreifend synchronisieren",
@@ -1174,7 +1174,7 @@ const deCommon: CommonSchema = {
       anonymous_other: "{{count}} Exemplare liegen nur auf diesem Gerät",
       signIn: "Anmelden",
       failed:
-        "Konnte auf diesem Gerät nicht geändert werden — der Speicher ist voll oder blockiert.",
+        "Konnte auf diesem Gerät nicht geändert werden: der Speicher ist voll oder blockiert.",
     },
     local: {
       title: "Lokale Kopie behalten",
@@ -1189,7 +1189,7 @@ const deCommon: CommonSchema = {
       clear: "Löschen",
       cleared_one: "1 gelöscht",
       cleared_other: "{{count}} gelöscht",
-      failed: "Konnten nicht gelöscht werden — der Speicher ist voll oder blockiert.",
+      failed: "Konnten nicht gelöscht werden: der Speicher ist voll oder blockiert.",
     },
     footnote: {
       saves:
@@ -1216,12 +1216,12 @@ const deCommon: CommonSchema = {
     },
     wishlist: {
       legend: "Deine Wunschliste",
-      note: "Getrennt von der Sammlung — die meisten geben diese weiter frei.",
+      note: "Getrennt von der Sammlung. Die meisten geben diese weiter frei.",
     },
     prices: {
       title: "Preise und Summen zeigen",
       on: "An. Was du bezahlt hast, reist mit den Exemplaren mit, die ohnehin sichtbar sind.",
-      off: "Aus. Was du bezahlt hast, bleibt deine Sache — auch auf einem öffentlichen Regal.",
+      off: "Aus. Was du bezahlt hast, bleibt deine Sache, auch auf einem öffentlichen Regal.",
     },
     choice: {
       only_me: {
@@ -1334,7 +1334,7 @@ const deCommon: CommonSchema = {
     empty: "Noch nichts auf der Wunschliste.",
     emptyTitle: "Noch nichts auf der Jagd",
     emptyLede:
-      "Platten, die du willst, aber nicht hast. Keine Preise, keine Benachrichtigungen \u2014 eine Liste, damit du es im Laden noch weißt.",
+      "Platten, die du willst, aber nicht hast. Keine Preise, keine Benachrichtigungen, nur eine Liste, damit du es im Laden noch weißt.",
     way: {
       search: "Veröffentlichung suchen, Herz antippen",
       artist: "Künstler öffnen, Lücken markieren",
@@ -1386,9 +1386,9 @@ const deCommon: CommonSchema = {
     savedAsYouType:
       "Wird beim Tippen gespeichert. Format und Notiz sind die einzigen änderbaren Felder, deshalb stehen sie hier.",
     alsoOwn_one:
-      "Du hast schon 1 Platte von {{artist}} — über den Namen gefunden, es gibt also keine Künstlerseite dazu",
+      "Du hast schon 1 Platte von {{artist}}, über den Namen gefunden, es gibt also keine Künstlerseite dazu",
     alsoOwn_other:
-      "Du hast schon {{count}} Platten von {{artist}} — über den Namen gefunden, es gibt also keine Künstlerseite dazu",
+      "Du hast schon {{count}} Platten von {{artist}}, über den Namen gefunden, es gibt also keine Künstlerseite dazu",
     pressings: "Pressungen dieses Albums",
     pressingsOptional: "optionale Abfrage",
     pressingsSlow: "ein, zwei Sekunden, manchmal länger",
@@ -1396,7 +1396,7 @@ const deCommon: CommonSchema = {
     pressingsMore: "{{count}} weitere zeigen",
     pressingsReference: "nur zum Nachschlagen · ein Wunsch nennt das Album, nicht die Pressung",
     pressingsFailed:
-      "Der Katalog hat nicht geantwortet. Nichts an diesem Eintrag hängt davon ab — der Wunsch gehört dir und liegt hier.",
+      "Der Katalog hat nicht geantwortet. Nichts an diesem Eintrag hängt davon ab. Der Wunsch gehört dir und liegt hier.",
     pressingsRetry: "Nochmal versuchen",
     pressingsNone: "Der Katalog kennt keine Pressungen dieses Albums.",
     pressingsManual:
@@ -1470,13 +1470,13 @@ const deCommon: CommonSchema = {
     matchCount: "{{count}} passende Veröffentlichungen",
     inLibrary: "In der Sammlung",
     noReleasesButArtists:
-      "Nichts trägt diesen Titel — öffne oben einen Künstler, um seine Platten zu sehen.",
+      "Nichts trägt diesen Titel. Öffne oben einen Künstler, um seine Platten zu sehen.",
     recent: "Zuletzt gesucht",
     clearRecent: "Löschen",
     add: "Hinzufügen",
     addAndEdit: "Hinzufügen und Details bearbeiten",
     footerHint:
-      "Hinzufügen speichert das Exemplar und öffnet seine Details — die Suche bleibt dahinter.",
+      "Hinzufügen speichert das Exemplar und öffnet seine Details, die Suche bleibt dahinter.",
     noBarcodeMatch:
       "Keine Veröffentlichung mit dem Barcode {{barcode}}. Typisch für Promos, Clubauflagen und alles vor Mitte der Achtziger.",
     noMatches: {
@@ -1487,7 +1487,7 @@ const deCommon: CommonSchema = {
     },
     csv: {
       title: "CSV oder Archiv importieren",
-      body: "Ein .mc-Archiv stellt die Sammlung genau so wieder her, wie sie war — samt Fotos. Eine CSV — eine Zeile pro Exemplar, mit einer Spalte releaseId — fügt stattdessen Exemplare hinzu; Zeilen ohne auffindbare Veröffentlichung werden gemeldet und übersprungen.",
+      body: "Ein .mc-Archiv stellt die Sammlung genau so wieder her, wie sie war, samt Fotos. Eine CSV (eine Zeile pro Exemplar, mit einer Spalte releaseId) fügt stattdessen Exemplare hinzu; Zeilen ohne auffindbare Veröffentlichung werden gemeldet und übersprungen.",
       choose: "Datei wählen",
       done: "{{added}} Exemplare importiert, {{skipped}} Zeilen übersprungen.",
       doneArchive:
@@ -1506,7 +1506,7 @@ const deCommon: CommonSchema = {
     discography: "Diskografie",
     showMore: "{{count}} weitere Künstler mit diesem Namen anzeigen",
     backToResults: "Zurück zu den Treffern für „{{query}}“",
-    footerHint: "Eine Pressung hinzuzufügen lässt dies offen — die Suche bleibt dahinter.",
+    footerHint: "Eine Pressung hinzuzufügen lässt dies offen, die Suche bleibt dahinter.",
     releaseCount: "{{count}} Veröffentlichungen",
     filterPlaceholder: "Veröffentlichungen von {{name}} filtern",
     filterMatches: "{{shown}} von {{total}} passen",
@@ -1516,7 +1516,7 @@ const deCommon: CommonSchema = {
     noneOfType: "Nichts dieser Art in dieser Diskografie.",
     noneMatchFilter: "Nichts hier passt zu diesem Filter.",
     pickLater:
-      "Nicht sicher, welche du hast? Nimm irgendeine — die Details kannst du später korrigieren.",
+      "Nicht sicher, welche du hast? Nimm irgendeine. Die Details kannst du später korrigieren.",
     type: {
       Album: "Alben",
       EP: "EPs",
@@ -1548,8 +1548,8 @@ const deCommon: CommonSchema = {
     yourCopy: "Dein Exemplar",
     format: "Format",
     formatDiffers: "Deins, nicht das {{format}} aus dem Katalog.",
-    mediaCondition: "Zustand — Tonträger",
-    sleeveCondition: "Zustand — Hülle",
+    mediaCondition: "Zustand Tonträger",
+    sleeveCondition: "Zustand Hülle",
     price: "Bezahlter Preis",
     date: "Erworben am",
     where: "Wo",
@@ -1564,7 +1564,7 @@ const deCommon: CommonSchema = {
   },
   grading: {
     help: "Was die Zustandsstufen bedeuten",
-    footnote: "Tonträger und Hülle getrennt bewerten — so machen es Verkäufer auch.",
+    footnote: "Tonträger und Hülle getrennt bewerten, so machen es Verkäufer auch.",
     media: {
       title: "Tonträger-Bewertung",
       scale: {
@@ -1644,16 +1644,16 @@ const deCommon: CommonSchema = {
     resetNoToken: "Diesem Link fehlt das Token. Fordere einen neuen an.",
     resetInvalid: "Dieser Link ist abgelaufen oder wurde schon benutzt. Fordere einen neuen an.",
     resetNeedsConfirmed:
-      "Ein Reset-Link geht nur an eine bestätigte Adresse — sonst lässt sich nicht wissen, wer sie liest.",
+      "Ein Reset-Link geht nur an eine bestätigte Adresse, sonst lässt sich nicht wissen, wer sie liest.",
     strip: {
       title: "Ein Bestätigungslink ist unterwegs an {{email}}",
-      body: "Hier wartet nichts darauf — leg ruhig weiter Platten an. Bestätigen heißt nur, dass wir dich erreichen, wenn du dein Passwort vergisst.",
+      body: "Hier wartet nichts darauf, leg ruhig weiter Platten an. Bestätigen heißt nur, dass wir dich erreichen, wenn du dein Passwort vergisst.",
       wrongAddress: "Falsche Adresse?",
     },
     confirmPage: {
       pending: {
         title: "Der Link wird geprüft",
-        body: "Höchstens eine Sekunde. Schließ den Tab nicht — falls doch, funktioniert der Link weiterhin.",
+        body: "Höchstens eine Sekunde. Schließ den Tab nicht. Falls doch, funktioniert der Link weiterhin.",
       },
       done: {
         title: "Adresse bestätigt",
@@ -1664,7 +1664,7 @@ const deCommon: CommonSchema = {
       },
       dead: {
         title: "Dieser Link gilt nicht mehr",
-        body: "Er wurde entweder schon benutzt oder vor mehr als 24 Stunden verschickt. Dem Konto ist so oder so nichts passiert — es funktioniert genau wie vor einer Minute.",
+        body: "Er wurde entweder schon benutzt oder vor mehr als 24 Stunden verschickt. Dem Konto ist so oder so nichts passiert. Es funktioniert genau wie vor einer Minute.",
         hint: "Gib die Adresse ein, mit der du dich angemeldet hast. Wenn es dazu ein Konto gibt, geht ein Link raus.",
         placeholder: "du@beispiel.de",
         send: "Senden",
@@ -1674,17 +1674,17 @@ const deCommon: CommonSchema = {
       },
       truncated: {
         title: "Der Link kam abgeschnitten an",
-        body: "In der Adresszeile fehlen die letzten Zeichen — manche Mail-Programme kürzen lange Zeilen beim Umbruch. Kopiere die ganze Zeile aus der Mail, inklusive allem nach dem letzten Schrägstrich.",
+        body: "In der Adresszeile fehlen die letzten Zeichen. Manche Mail-Programme kürzen lange Zeilen beim Umbruch. Kopiere die ganze Zeile aus der Mail, inklusive allem nach dem letzten Schrägstrich.",
         exampleHead: "rekordo.jannekeipert.de/confirm/",
         exampleTail: "4d71-9ba2-06fc-31e8",
-        exampleNote: "— der dunkle Teil ist der, der verloren ging",
+        exampleNote: "Der dunkle Teil ist der, der verloren ging",
       },
     },
     cancelChange: {
       pending: { title: "Die Änderung wird zurückgenommen", body: "Höchstens eine Sekunde." },
       done: {
         title: "Die Änderung ist zurückgenommen",
-        body: "Das Konto liegt wieder auf dieser Adresse, und alle Geräte wurden abgemeldet — auch das, von dem die Änderung kam. Melde dich mit deinem gewohnten Passwort neu an.",
+        body: "Das Konto liegt wieder auf dieser Adresse, und alle Geräte wurden abgemeldet, auch das, von dem die Änderung kam. Melde dich mit deinem gewohnten Passwort neu an.",
         signIn: "Anmelden",
       },
       dead: {
@@ -1696,7 +1696,7 @@ const deCommon: CommonSchema = {
     needAccountPrefix: "Neu hier?",
     haveAccountPrefix: "Schon dabei?",
     optional:
-      "Ein Konto ist optional. Es synchronisiert nur deine Sammlung zwischen Geräten — alles funktioniert auch ohne.",
+      "Ein Konto ist optional. Es synchronisiert nur deine Sammlung zwischen Geräten. Alles funktioniert auch ohne.",
     email: "E-Mail",
     password: "Passwort",
     signIn: "Anmelden",
@@ -1730,12 +1730,12 @@ const deCommon: CommonSchema = {
     confirmMerge: "Zusammenführen und synchronisieren",
     confirmKeep: "Version aus dem Konto behalten",
     later: "Später entscheiden",
-    failed: "Das hat nicht geklappt. Es wurde nichts geändert — versuche es erneut.",
+    failed: "Das hat nicht geklappt. Es wurde nichts geändert, versuche es erneut.",
   },
   authPanel: {
     signInHeadline: "Jedes Exemplar, das du besitzt, in einem Regal.",
     signInBody:
-      "Vinyl, CDs, Kassetten und Digitales getrennt erfassen — mit Zustand, Preis und Fundort.",
+      "Vinyl, CDs, Kassetten und Digitales getrennt erfassen, mit Zustand, Preis und Fundort.",
     registerHeadline: "Fang mit einer Platte an.",
     bulletScan: "Barcode scannen, Veröffentlichung wird ausgefüllt",
     bulletCopies: "Doppelt vorhanden? Jedes Exemplar einzeln behalten",
@@ -1753,9 +1753,9 @@ const deCommon: CommonSchema = {
       sendAgain: "Erneut senden",
       change: "Ändern",
       spamHint:
-        "In der App wartet nichts darauf. Falls er nicht angekommen ist: erst in den Spam-Ordner schauen, bevor du einen neuen schickst — die zweite Mail landet am selben Ort wie die erste.",
+        "In der App wartet nichts darauf. Falls er nicht angekommen ist: erst in den Spam-Ordner schauen, bevor du einen neuen schickst. Die zweite Mail landet am selben Ort wie die erste.",
       stillValid:
-        "Der erste Link ist weiterhin der gültige. Wenn der Knopf zurückkommt, macht ein Druck ihn ungültig und schickt einen neuen — die ältere Mail ist also nie die, die funktioniert.",
+        "Der erste Link ist weiterhin der gültige. Wenn der Knopf zurückkommt, macht ein Druck ihn ungültig und schickt einen neuen. Die ältere Mail ist also nie die, die funktioniert.",
     },
     pendingChange: {
       stillYours: "{{email}} · damit meldest du dich weiterhin an",
@@ -1766,11 +1766,11 @@ const deCommon: CommonSchema = {
     },
     changeEmail: {
       title: "E-Mail-Adresse ändern",
-      lede: "Deine aktuelle Adresse funktioniert weiter — Anmeldung, Reset, alles — bis die neue bestätigt ist.",
+      lede: "Deine aktuelle Adresse funktioniert weiter (Anmeldung, Reset, alles), bis die neue bestätigt ist.",
       current: "Aktuell",
       currentConfirmed: "Bestätigt",
       currentUnconfirmed:
-        "Nicht bestätigt — sie wird verworfen, da über sie nie etwas belegt wurde",
+        "Nicht bestätigt, sie wird verworfen, da über sie nie etwas belegt wurde",
       newAddress: "Neue Adresse",
       password: "Dein Passwort",
       passwordWhy:
@@ -1820,21 +1820,21 @@ const deCommon: CommonSchema = {
     local: {
       title: "Lokale Kopie behalten",
       body: "Funktioniert offline in diesem Browser",
-      always: "Immer an — jede Ansicht liest von diesem Gerät",
+      always: "Immer an: jede Ansicht liest von diesem Gerät",
     },
     export: {
       library: { title: "Sammlung exportieren", body: "CSV, eine Zeile pro Exemplar" },
       wishlist: { title: "Wunschliste exportieren", body: "CSV, eine Zeile pro Eintrag" },
       archive: {
         title: "Alles exportieren",
-        body: ".mc-Archiv — jedes Exemplar, jeder Wunsch, jedes Foto, und es kommt als dieselben Datensätze zurück",
+        body: ".mc-Archiv: jedes Exemplar, jeder Wunsch, jedes Foto, und es kommt als dieselben Datensätze zurück",
         done: "Letztes Archiv: {{copies}} Exemplare und {{photos}} Fotos.",
       },
       action: "Exportieren",
     },
     legal: {
       dataBody:
-        "Exportieren, berichtigen, widerrufen oder löschen — die DSGVO-Aktionen an einem Ort.",
+        "Exportieren, berichtigen, widerrufen oder löschen: die DSGVO-Aktionen an einem Ort.",
       documentsBody: "Impressum, Datenschutzerklärung und AGB, auf Deutsch oder Englisch.",
     },
     delete: {
@@ -1856,11 +1856,11 @@ const deCommon: CommonSchema = {
       soon: "Bald",
     },
     syncOn: "Angemeldet · Sync an",
-    syncPaused: "Sync wartet — entscheide, was mit der Sammlung auf diesem Gerät passieren soll.",
+    syncPaused: "Sync wartet. Entscheide, was mit der Sammlung auf diesem Gerät passieren soll.",
     finishSetup: "Sync einrichten",
   },
   manual: {
-    lede: "Bootlegs, Testpressungen, Kassetten — alles, was in keiner Datenbank steht.",
+    lede: "Bootlegs, Testpressungen, Kassetten: alles, was in keiner Datenbank steht.",
     artist: "Künstler",
     artistPlaceholder: "Wer es gemacht hat",
     title: "Titel",
@@ -1876,7 +1876,7 @@ const deCommon: CommonSchema = {
     note: "Notiz",
     notePlaceholder: "Details zur Pressung, Herkunft, was daran kaputt ist.",
     dropCover: "cover ablegen",
-    coverHint: "Oder weglassen — das Regal nimmt dann eine Formatkachel.",
+    coverHint: "Oder weglassen, dann nimmt das Regal eine Formatkachel.",
     removeCover: "Entfernen",
     footerHint: "Nur Künstler, Titel und Format sind Pflicht. Alles andere kann warten.",
     save: "Exemplar speichern",
@@ -1918,10 +1918,10 @@ const deCommon: CommonSchema = {
     bindingNotice:
       "Die deutsche Fassung ist die verbindliche; Englisch ist eine Übersetzung zur Information.",
     noTracking:
-      "Kein Tracking, keine Werbung, keine Cookie-Auswahl — es werden nur technisch notwendige Daten verarbeitet.",
+      "Kein Tracking, keine Werbung, keine Cookie-Auswahl. Es werden nur technisch notwendige Daten verarbeitet.",
     noCookiesHere: "Diese Seite setzt keine Analyse- oder Werbe-Cookies.",
     data: {
-      lede: "Alles, worauf dir die DSGVO ein Recht gibt — ohne eine E-Mail zu schreiben.",
+      lede: "Alles, worauf dir die DSGVO ein Recht gibt, ohne eine E-Mail zu schreiben.",
       ledeLocal:
         "Es gibt kein Konto, also liegt bei uns nichts über dich. Was folgt, entsteht aus dem Speicher dieses Geräts.",
       export: {
@@ -1972,7 +1972,7 @@ const deCommon: CommonSchema = {
     title: "Benachrichtigungen",
     rowBody: "Was dich außerhalb der App erreichen darf, per Mail oder Push.",
     scope:
-      "Diese folgen deinem Konto, nicht dem Browser, in dem du sie einstellst — anders als alles andere unter Einstellungen. Änder sie hier, und die App stimmt zu.",
+      "Diese folgen deinem Konto, nicht dem Browser, in dem du sie einstellst, anders als alles andere unter Einstellungen. Änder sie hier, und die App stimmt zu.",
     grid: { heading: "Was dich erreichen darf" },
     channel: { mail: "E-Mail", push: "Push", pushNeedsApp: "braucht die App" },
     always: "Immer",
@@ -1982,16 +1982,16 @@ const deCommon: CommonSchema = {
     failed: "Das wurde nicht gespeichert. Versuch den Schalter noch einmal.",
     allQuiet: {
       title: "Alles ist aus",
-      body: "Außerhalb der App erreicht dich nichts. Freundschaftsanfragen kommen weiterhin an — sie warten wie immer mit einem Punkt im Tab „Freunde“.",
+      body: "Außerhalb der App erreicht dich nichts. Freundschaftsanfragen kommen weiterhin an. Sie warten wie immer mit einem Punkt im Tab „Freunde“.",
     },
     noPush: {
       title: "Push hat keinen Ort zum Ankommen",
-      body: "Auf keinem Gerät ist die App installiert, deshalb ist die Spalte leer statt schaltbar. Installier sie, und die Schalter erscheinen — einmal hier gesetzt, übernimmt sie jedes Gerät, auf dem du dich anmeldest.",
+      body: "Auf keinem Gerät ist die App installiert, deshalb ist die Spalte leer statt schaltbar. Installier sie, und die Schalter erscheinen. Einmal hier gesetzt, übernimmt sie jedes Gerät, auf dem du dich anmeldest.",
     },
     devices: {
       heading: "Wo Push ankommen würde",
       explainer:
-        "Die Tabelle oben gehört zum Konto. Welche Geräte vibrieren dürfen, ist eine eigene, kürzere Frage — und muss es sein: ein Telefon in der Schublade und eines in der Tasche sind sich uneinig.",
+        "Die Tabelle oben gehört zum Konto. Welche Geräte vibrieren dürfen, ist eine eigene, kürzere Frage, und muss es sein: ein Telefon in der Schublade und eines in der Tasche sind sich uneinig.",
       none: "Noch keine Geräte",
       thisBrowser: "Dieser Browser kann kein Push empfangen und fragt auch nicht danach.",
       allowed: "Auf diesem Gerät erlaubt",
@@ -2000,15 +2000,15 @@ const deCommon: CommonSchema = {
     category: {
       FRIEND_REQUEST: {
         title: "Eine Freundschaftsanfrage",
-        body: "Jemand möchte deiner Sammlung folgen. Sie wartet, bis du antwortest — das Einzige, wofür sich eine Unterbrechung lohnt.",
+        body: "Jemand möchte deiner Sammlung folgen. Sie wartet, bis du antwortest, und ist das Einzige, wofür sich eine Unterbrechung lohnt.",
       },
       FRIEND_ACTIVITY: {
         title: "Was deine Freunde eingestellt haben",
-        body: "Eine Mail am Sonntagmorgen über die Woche — von Hand eingetragene Platten, nie ein Import. Nichts zu beantworten, also kommt auch nichts pro Platte.",
+        body: "Eine Mail am Sonntagmorgen über die Woche: von Hand eingetragene Platten, nie ein Import. Nichts zu beantworten, also kommt auch nichts pro Platte.",
       },
       SECURITY: {
         title: "Sicherheitshinweise",
-        body: "Eine neue Anmeldung, ein geändertes Passwort, eine geänderte Adresse. Die lassen sich nicht abschalten — ein Hinweis, den man stummschalten kann, ist keiner.",
+        body: "Eine neue Anmeldung, ein geändertes Passwort, eine geänderte Adresse. Die lassen sich nicht abschalten. Ein Hinweis, den man stummschalten kann, ist keiner.",
       },
       PRODUCT_NEWS: {
         title: "Neues über die App",
@@ -2034,13 +2034,13 @@ const deCommon: CommonSchema = {
     showRemainingShort: "Restliche {{count}} anzeigen",
     absent: {
       handEntered:
-        "Von Hand eingetragen \u2014 es gibt keinen Katalogeintrag, aus dem sich eine Titelliste lesen lie\u00dfe.",
+        "Von Hand eingetragen: es gibt keinen Katalogeintrag, aus dem sich eine Titelliste lesen lie\u00dfe.",
       discogs:
         "Von Discogs \u00fcbernommen: Rekordo bekommt von dort die Anzahl, aber nicht die Titel.",
       notInCatalogue: "Keine Titelliste f\u00fcr dieses Exemplar. Im Katalog passt nichts dazu.",
     },
     unreachable:
-      "Der Katalog hat nicht geantwortet. Alles andere an diesem Exemplar geh\u00f6rt dir und liegt hier \u2014 nur die Titel kommen von au\u00dfen.",
+      "Der Katalog hat nicht geantwortet. Alles andere an diesem Exemplar geh\u00f6rt dir und liegt hier. Nur die Titel kommen von au\u00dfen.",
     unreachableShared: "Der Katalog hat nicht geantwortet. Nur die Titel kommen von au\u00dfen.",
     retry: "Erneut versuchen",
   },

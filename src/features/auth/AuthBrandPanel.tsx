@@ -43,7 +43,7 @@ export function AuthBrandPanel({ mode }: { readonly mode: "SIGN_IN" | "REGISTER"
       {mode === "SIGN_IN" ? (
         <div className="grid grid-cols-4 gap-3.5">
           {SHOWCASE.map((format) => (
-            <div key={format} className="aspect-square">
+            <div key={format} className="aspect-[6/5]">
               <FormatThumb format={format} />
             </div>
           ))}

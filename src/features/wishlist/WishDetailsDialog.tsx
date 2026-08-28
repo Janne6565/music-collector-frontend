@@ -144,8 +144,8 @@ export function WishDetailsDialog({ wishId, onClose, onFound, onSeeCopy }: WishD
             </div>
 
             <div className="flex gap-[22px] px-[22px] pt-3.5">
-              <div className="w-[152px] flex-none">
-                <div className="h-[152px] w-[152px]">
+              <div className="w-[182px] flex-none">
+                <div className="h-[152px] w-[182px]">
                   <ReleaseArt
                     release={{ coverArtUrl: logic.coverArtUrl }}
                     previewSrc={logic.pictureSrc}
@@ -501,7 +501,7 @@ function SatisfiedElsewhere({
       </div>
 
       <div className="flex gap-[22px] px-[22px] pt-3.5 pb-1">
-        <div className="h-[104px] w-[104px] flex-none">
+        <div className="h-[104px] w-[125px] flex-none">
           <ReleaseArt
             release={{ coverArtUrl: logic.coverArtUrl }}
             previewSrc={logic.pictureSrc}

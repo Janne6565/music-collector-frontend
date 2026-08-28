@@ -235,7 +235,7 @@ function AlbumRow({
       <div
         className={cn("flex items-center gap-3.5 border-t border-line py-3", expanded && "px-3.5")}
       >
-        <div className="h-[46px] w-[46px] flex-none">
+        <div className="h-[46px] w-[55px] flex-none">
           {/* An album's own cover, from the archive's release-group endpoint — picking one
               of its pressings' covers would be arbitrary. */}
           <ReleaseArt release={album} className="rounded-sm" />
@@ -430,7 +430,7 @@ function PressingRow({
             {pressing.catalogNumber ?? "—"}
           </span>
           <span className="hidden items-center gap-1.75 text-[11.5px] font-medium text-ink/70 sm:flex">
-            <span className="h-[18px] w-[18px] flex-none">
+            <span className="h-[18px] w-[22px] flex-none">
               <ReleaseArt release={pressing} className="rounded-[2px]" />
             </span>
             {FORMAT_LABELS[pressing.format]}
@@ -506,7 +506,7 @@ function PressingDetails({ pressing }: { readonly pressing: Release }) {
 
   return (
     <div className="mx-2 mb-2.5 flex flex-col gap-3.5 rounded-[9px] bg-paper p-3 shadow-[inset_0_0_0_1px_rgba(25,23,19,.08)] sm:flex-row">
-      <div className="h-24 w-24 flex-none">
+      <div className="h-24 w-[115px] flex-none">
         <ReleaseArt release={pressing} className="rounded-sm" />
       </div>
       <dl className="grid min-w-0 flex-1 grid-cols-2 content-start gap-x-4.5 gap-y-2">

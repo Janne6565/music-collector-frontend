@@ -305,7 +305,7 @@ function Row({
         <GripVertical size={15} strokeWidth={1.75} aria-hidden />
       </button>
 
-      <div className="h-12 w-12 flex-none sm:h-11 sm:w-11">
+      <div className="h-12 w-[58px] flex-none sm:h-11 sm:w-[53px]">
         {/* The wanted format is the silhouette, not the artwork: an entry for the vinyl of
             a record you already have on CD should look like the thing you are hunting. */}
         <ReleaseArt

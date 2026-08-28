@@ -516,7 +516,7 @@ function ResultRow({
             of the same album is largely a visual job, and the sleeve is the thing people
             recognise. The format is still named in the line below, and ReleaseArt falls
             back to the silhouette whenever the archive has nothing. */}
-        <div className="h-13 w-13 flex-none">
+        <div className="h-13 w-[62px] flex-none">
           <ReleaseArt release={release} />
         </div>
         <div className="min-w-0 flex-1">

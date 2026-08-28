@@ -107,7 +107,7 @@ function PickStep({ logic }: { readonly logic: Logic }) {
               onClick={() => logic.pick(release)}
               className="flex w-full items-center gap-3.5 border-t border-line py-3 text-left hover:bg-canvas/60"
             >
-              <div className="h-12 w-12 flex-none">
+              <div className="h-12 w-[58px] flex-none">
                 <ReleaseArt release={release} />
               </div>
               <div className="min-w-0 flex-1">
@@ -290,7 +290,7 @@ function DetailsStep({ logic }: { readonly logic: Logic }) {
     <>
       <div className="min-h-0 flex-1 overflow-auto px-6 pt-4 pb-2">
         <div className="flex items-center gap-3.5 rounded-xl border border-line bg-canvas p-3">
-          <div className="h-13 w-13 flex-none">
+          <div className="h-13 w-[62px] flex-none">
             {/* The format is the one the chips below are choosing, not the pressing's: the
                 tile should follow what is being asked for as it is asked for. */}
             <ReleaseArt

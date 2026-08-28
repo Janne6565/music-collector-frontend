@@ -6,211 +6,215 @@ interface FormatThumbProps {
   readonly format: Format;
   readonly className?: string;
   /**
-   * The real cover, drawn into the sleeve panel.
+   * The real cover, drawn into the cover panel.
    *
-   * Artwork belongs on the sleeve, not over the whole tile: a record sticks out past its
-   * cover, a CD sits in front of one, and replacing the entire composition with the image
-   * throws away the thing that tells you which of the four formats you are looking at.
-   * The node is layered over the stripes rather than swapped for them, so a cover that
-   * has not arrived — or never will — leaves the placeholder underneath intact.
+   * Artwork fills the cover and nothing is drawn over it. The object leans out on the
+   * right instead, which is the whole point of the mark: a cover you can actually read,
+   * and a format you can read beside it. The node is layered over the paper rather than
+   * swapped for it, so a cover that has not arrived — or never will — leaves the
+   * placeholder underneath intact.
    */
   readonly cover?: ReactNode;
-  /** Runs the loading sweep over the sleeve, which is the part the cover will fill. */
+  /** Runs the loading sweep over the cover, which is the part the artwork will fill. */
   readonly sweep?: boolean;
 }
 
-const SLEEVE: CSSProperties = {
-  background: "repeating-linear-gradient(135deg,#e3ded4 0 5px,#eae6de 5px 10px)",
+/**
+ * How much wider the mark is than its cover.
+ *
+ * The cover is square and the object leans out beside it, so the composition is 6:5. It is
+ * stated here as an aspect on an inner frame rather than assumed of the caller's box: a
+ * mark squeezed into a square would draw its record as an ellipse, and there are 47 places
+ * that hand this component a box.
+ */
+const FRAME = "aspect-[6/5]";
+
+const PAPER: CSSProperties = {
+  background: "repeating-linear-gradient(135deg,#e3ded4 0 6px,#eae6de 6px 12px)",
 };
 
-/** The hairline every format's sleeve carries, drawn over the cover rather than under. */
-const SLEEVE_EDGE: CSSProperties = { boxShadow: "inset 0 0 0 1px rgba(25,23,19,.1)" };
+/** The hairline the cover carries, drawn over the artwork rather than under it. */
+const COVER_EDGE: CSSProperties = { boxShadow: "inset 0 0 0 1px rgba(25,23,19,.12)" };
 
 /**
- * The sleeve panel — the same box in all four formats, and the one the cover fills.
+ * The cover panel — a square, the same in every format, and the one the artwork fills.
  *
  * The edge is a sibling rather than this element's own inset shadow, because an inset
- * shadow paints under the element's content and the cover would swallow it.
+ * shadow paints under the element's content and the cover would swallow it. The drop
+ * shadow goes on the outer element, which does not clip, since a view that clips its own
+ * contents clips its shadow with them.
  */
-function Sleeve({
-  cover,
-  sweep,
-  shadow,
-}: {
-  readonly cover?: ReactNode;
-  readonly sweep?: boolean;
-  readonly shadow?: string;
-}) {
+function Cover({ cover, sweep }: { readonly cover?: ReactNode; readonly sweep?: boolean }) {
   return (
     <div
-      className="absolute left-0 top-[6%] h-[88%] w-[88%] overflow-hidden rounded-[3px]"
-      style={{ ...SLEEVE, boxShadow: shadow }}
+      className="absolute left-0 top-0 h-full w-[83.333%] rounded-[2px]"
+      style={{ boxShadow: "3px 1px 8px rgba(25,23,19,.16)" }}
     >
-      {cover}
-      <div className={cn("absolute inset-0", sweep === true && "mc-sweep")} style={SLEEVE_EDGE} />
+      <div className="absolute inset-0 overflow-hidden rounded-[2px]" style={PAPER}>
+        {cover}
+        <div className={cn("absolute inset-0", sweep === true && "mc-sweep")} style={COVER_EDGE} />
+      </div>
     </div>
   );
 }
 
 /**
- * The placeholder artwork from the design deck, ported from FormatThumb.dc.html.
+ * The format mark, ported from Format Marks.dc.html.
  *
- * It stands in wherever a release has no cover art — which is common on MusicBrainz — and
- * it carries information rather than just filling space: the silhouette tells you the
- * format at a glance in a dense grid, before any text is legible.
+ * One rule for all four formats: the cover stays whole and unobscured, and the thing you
+ * own leans out from behind it on the right. The format is read from the shape of the
+ * sliver rather than from a badge, which is what lets it work at 44px in a dense grid,
+ * before any text is legible — vinyl and CD separate on value alone at that size, dark
+ * against cream, and the cassette and the plug hold because their edges are straight.
  *
- * Everything is CSS gradients and shadows, so there are no image requests and it stays
- * crisp at any size.
+ * It replaced four unrelated compositions: a jewel case, a cassette lying on its case and
+ * nine waveform bars, each of which claimed a different amount of the tile and two of
+ * which were drawn *over* the artwork. Everything here is CSS gradients and shadows, so
+ * there are no image requests and it stays crisp at any size.
  */
 export function FormatThumb({ format, className, cover, sweep }: FormatThumbProps) {
-  const sleeve = <Sleeve cover={cover} sweep={sweep} />;
-
   return (
     // Decorative throughout, cover included: the row beside it already names the release,
     // and "album artwork" read out per tile is noise in a grid of two hundred.
-    <div className={cn("relative h-full w-full", className)} aria-hidden>
-      {format === "VINYL" && <Vinyl cover={cover} sweep={sweep} />}
-      {format === "CD" && <Disc sleeve={sleeve} />}
-      {format === "CASSETTE" && <Cassette sleeve={sleeve} />}
-      {format === "DIGITAL" && <Digital sleeve={sleeve} />}
-      {/* `OTHER` wears nothing. It is not a format but the absence of one — the answer for
-          a copy whose release this client cannot describe yet — and the waveform is the
-          furniture of a specific format, so drawing it here both claims a file that was
-          never claimed and stamps nine bars across whatever cover or photo the copy does
-          have. A bare sleeve is what "not known" actually looks like. */}
-      {format === "OTHER" && sleeve}
+    <div className={cn("relative flex h-full w-full", className)} aria-hidden>
+      <div className={cn("relative h-full", FRAME)}>
+        {format === "VINYL" && <Vinyl />}
+        {format === "CD" && <Disc />}
+        {format === "CASSETTE" && <Cassette />}
+        {format === "DIGITAL" && <Plug />}
+        {/* `OTHER` leans nothing out. It is not a format but the absence of one — the
+            answer for a copy whose release this client cannot describe yet — so there is
+            no object to draw. A bare cover is what "not known" actually looks like. */}
+        <Cover cover={cover} sweep={sweep} />
+      </div>
     </div>
   );
 }
 
-function Vinyl({ cover, sweep }: { readonly cover?: ReactNode; readonly sweep?: boolean }) {
+/** The disc box both round formats share: a circle in a 6:5 frame, leaning out on the right. */
+const DISC = "absolute right-0 top-[8%] h-[84%] w-[70%] rounded-full";
+
+function Vinyl() {
+  return (
+    <div
+      className={DISC}
+      style={{
+        // Accent label, then the groove rings the deck cuts: dark on dark, so the disc
+        // reads as an object rather than as a black hole in the tile.
+        background:
+          "radial-gradient(circle at 50% 50%,#a2573a 0 15%,#1a1814 15.5% 17.5%,#26231d 17.5% 42%,#191713 42.6% 44.4%,#2a2620 44.4% 66%,#191713 66.6% 68.4%,#2a2620 68.4% 100%)",
+        boxShadow: "0 2px 7px rgba(25,23,19,.28),inset 0 0 0 1px rgba(0,0,0,.35)",
+      }}
+    />
+  );
+}
+
+function Disc() {
   return (
     <>
-      {/* The record, peeking out to the right of the sleeve — which is why the cover goes
-          inside the sleeve and not over the tile: it would bury the record. */}
+      {/* The same silhouette as the vinyl, and that is deliberate: both are discs, and what
+          separates them at 44px is value, not outline. White and faintly iridescent. */}
       <div
-        className="absolute right-0 top-[10%] h-[80%] w-[80%] rounded-full"
+        className={DISC}
         style={{
           background:
-            "radial-gradient(circle at 50% 50%,#a2573a 0 8%,#15130f 8.5% 10%,#26231d 10% 46%,#1c1a16 46.5% 48%,#26231d 48% 100%)",
-          boxShadow: "inset 0 0 0 1px rgba(0,0,0,.25)",
+            "conic-gradient(from 210deg,rgba(255,255,255,.92),rgba(250,248,245,.72),rgba(255,255,255,.95),rgba(238,240,242,.7),rgba(255,255,255,.9))",
+          boxShadow: "0 2px 7px rgba(25,23,19,.18),inset 0 0 0 1px rgba(25,23,19,.16)",
         }}
       />
-      <Sleeve cover={cover} sweep={sweep} shadow="3px 0 7px rgba(25,23,19,.14)" />
+      <div
+        className="absolute right-[24%] top-[39%] h-[22%] w-[22%] rounded-full"
+        style={{
+          background: "rgba(239,236,230,.9)",
+          boxShadow: "inset 0 0 0 1px rgba(25,23,19,.14)",
+        }}
+      />
     </>
   );
 }
 
-function Disc({ sleeve }: { readonly sleeve: ReactNode }) {
+/** The shell seen end-on: the window and the two hubs are what read at a glance. */
+function Cassette() {
   return (
     <>
-      {sleeve}
-      {/*
-       * The disc and its case sit *in front of* the cover, unlike the vinyl, which peeks
-       * out beside it. Drawn opaque they hide most of the artwork, so the whole assembly
-       * is eased back a little: enough that a CD still reads as a CD, little enough that
-       * the cover behind it is still the thing you see first.
-       */}
-      <div className="absolute inset-0 opacity-80">
-        <div
-          className="absolute left-[13%] top-[19%] h-[62%] w-[62%] rounded-full"
-          style={{
-            background:
-              "radial-gradient(circle at 50% 50%,rgba(255,255,255,0) 44%,rgba(25,23,19,.07) 45% 46.5%,rgba(255,255,255,0) 47%),conic-gradient(from 200deg,#e9e5de,#f8f6f2,rgba(168,196,214,.75),#efece6,rgba(214,180,168,.7),#f8f6f2,#dedad2,#e9e5de)",
-            boxShadow: "inset 0 0 0 1px rgba(25,23,19,.16),0 1px 4px rgba(25,23,19,.18)",
-          }}
-        />
-        <div
-          className="absolute left-[37%] top-[43%] h-[14%] w-[14%] rounded-full"
-          style={{
-            background: "#faf8f5",
-            boxShadow: "0 0 0 1px rgba(25,23,19,.16),inset 0 0 0 2px rgba(255,255,255,.9)",
-          }}
-        />
-        {/* Jewel case front, catching the light. */}
-        <div
-          className="absolute left-[4%] top-[10%] h-[80%] w-[80%] rounded-[4px]"
-          style={{
-            background:
-              "linear-gradient(118deg,rgba(255,255,255,.5) 0 30%,rgba(255,255,255,.06) 30% 100%)",
-            boxShadow: "inset 0 0 0 1px rgba(25,23,19,.3),0 2px 6px rgba(25,23,19,.14)",
-          }}
-        />
-        <div
-          className="absolute left-[4%] top-[16%] h-[68%] w-[4%] rounded-[1px]"
-          style={{
-            background:
-              "repeating-linear-gradient(180deg,rgba(25,23,19,.22) 0 3px,rgba(25,23,19,0) 3px 8px)",
-            boxShadow: "inset -1px 0 0 rgba(25,23,19,.18)",
-          }}
-        />
-      </div>
-    </>
-  );
-}
-
-function Cassette({ sleeve }: { readonly sleeve: ReactNode }) {
-  return (
-    <>
-      {sleeve}
       <div
-        className="absolute left-[4%] top-[10%] h-[80%] w-[80%] rounded-[4px]"
+        className="absolute right-0 top-[13%] h-[74%] w-[33%] rounded-[2px_3px_3px_2px]"
         style={{
-          background:
-            "linear-gradient(118deg,rgba(255,255,255,.42) 0 34%,rgba(255,255,255,.06) 34% 100%)",
-          boxShadow: "inset 0 0 0 1px rgba(25,23,19,.3),0 2px 6px rgba(25,23,19,.14)",
+          background: "linear-gradient(90deg,#2c2822 0 40%,#22201b 100%)",
+          boxShadow: "0 2px 7px rgba(25,23,19,.3),inset 0 0 0 1px rgba(0,0,0,.4)",
         }}
       />
       <div
-        className="absolute left-[11%] top-[52%] h-[32%] w-[66%] rounded-[3px]"
+        className="absolute right-[8%] top-[22%] h-[56%] w-[17%] rounded-[2px]"
         style={{
-          background: "rgba(25,23,19,.34)",
-          boxShadow: "inset 0 0 0 1px rgba(25,23,19,.22)",
+          background: "rgba(250,248,245,.34)",
+          boxShadow: "inset 0 0 0 1px rgba(0,0,0,.35)",
         }}
       />
-      {/* The two spools. */}
-      {[24, 52].map((left) => (
+      {[28, 58].map((top) => (
         <div
-          key={left}
-          className="absolute top-[60%] h-[12%] w-[12%] rounded-full"
+          key={top}
+          className="absolute right-[11.5%] h-[14%] w-[10%] rounded-full"
           style={{
-            left: `${left}%`,
-            background: "rgba(250,248,245,.55)",
-            boxShadow: "inset 0 0 0 2px rgba(25,23,19,.35)",
+            top: `${top}%`,
+            background: "#191713",
+            boxShadow: "inset 0 0 0 1.5px rgba(250,248,245,.55)",
           }}
         />
       ))}
-      <div
-        className="absolute left-[11%] top-[47%] h-[3%] w-[66%]"
-        style={{ background: "rgba(25,23,19,.22)" }}
-      />
     </>
   );
 }
 
-/** Waveform bar heights, from the deck. */
-const WAVEFORM = [10, 18, 28, 20, 34, 24, 14, 22, 12] as const;
-
-function Digital({ sleeve }: { readonly sleeve: ReactNode }) {
+/**
+ * A USB-A plug leaning out, which is what "digital" is when you actually own a copy of it.
+ *
+ * It replaced a waveform, which drew a sound rather than a thing — the other three marks
+ * are all objects you can hold, and a file on a stick is the honest member of that set.
+ */
+function Plug() {
   return (
     <>
-      {/* One sleeve, like every other format. The waveform is what says "file". */}
-      {sleeve}
-      {WAVEFORM.map((height, index) => (
+      {/* The body behind the shell, and the light on it. */}
+      <div
+        className="absolute right-[13.5%] top-[37%] h-[26%] w-[30%] rounded-[3px]"
+        style={{
+          background:
+            "linear-gradient(180deg,#3a352d 0 10%,#2a2620 34%,#1d1b17 74%,#26231d 100%)",
+          boxShadow:
+            "0 3px 7px rgba(25,23,19,.3),inset 0 0 0 1px rgba(0,0,0,.45),inset 0 1px 0 rgba(250,248,245,.14)",
+        }}
+      />
+      <div
+        className="absolute right-[15.5%] top-[41.5%] h-[5%] w-[3.5%] rounded-full"
+        style={{ background: "#a2573a", boxShadow: "0 0 6px rgba(162,87,58,.85)" }}
+      />
+      {/* The metal shell, stamped. */}
+      <div
+        className="absolute right-0 top-[40.5%] h-[19%] w-[15.5%] rounded-[1px_2px_2px_1px]"
+        style={{
+          background:
+            "linear-gradient(180deg,#e3dfd6 0 12%,#c6c1b7 36%,#9c978e 64%,#87827a 84%,#b8b3a8 100%)",
+          boxShadow:
+            "0 2px 5px rgba(25,23,19,.26),inset 0 0 0 1px rgba(25,23,19,.4),inset -1.5px 0 0 rgba(255,255,255,.35)",
+        }}
+      />
+      {[44, 51.4].map((top) => (
         <div
-          // Bars are positional, so the index is the identity.
-          // biome-ignore lint/suspicious/noArrayIndexKey: bars have no identity beyond position
-          key={index}
-          className="absolute rounded-[2px]"
+          key={top}
+          className="absolute right-[4.5%] h-[4.6%] w-[3.8%] rounded-[.5px]"
           style={{
-            left: `${13 + index * 7.25}%`,
-            top: `${50 - height / 2}%`,
-            width: "4%",
-            height: `${height}%`,
-            background: `rgba(25,23,19,${0.38 + height / 100})`,
+            top: `${top}%`,
+            background: "#6b665e",
+            boxShadow: "inset 0 .5px 1px rgba(25,23,19,.6)",
           }}
         />
       ))}
+      {/* Where the shell meets the body. */}
+      <div
+        className="absolute right-[15.5%] top-[39.5%] h-[21%] w-[.8%]"
+        style={{ background: "rgba(0,0,0,.5)" }}
+      />
     </>
   );
 }

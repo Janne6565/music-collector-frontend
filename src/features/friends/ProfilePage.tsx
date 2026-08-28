@@ -220,7 +220,7 @@ export function ProfileBody({
       ) : logic.loadingLists ? (
         <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-[repeat(auto-fill,minmax(150px,1fr))] sm:gap-4">
           {[0, 1, 2, 3, 4, 5].map((tile) => (
-            <Skeleton key={tile} className="aspect-square rounded-lg" />
+            <Skeleton key={tile} className="aspect-[6/5] rounded-lg" />
           ))}
         </div>
       ) : collection ? (
@@ -562,7 +562,7 @@ function CollectionGrid({
                 below. Same wrapper the library grid and the skeleton above both use. */}
             <div
               className={cn(
-                "relative aspect-square rounded-lg transition-transform duration-(--mc-quick)",
+                "relative aspect-[6/5] rounded-lg transition-transform duration-(--mc-quick)",
                 "group-hover:-translate-y-0.5",
                 "group-focus-visible:ring-2 group-focus-visible:ring-ink group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-paper",
               )}
@@ -631,7 +631,7 @@ function WishRows({
             {/* The wanted format is the silhouette, not the artwork: an entry for the vinyl
                 of a record they already have on CD should look like the thing being hunted.
                 Same 44px thumb as the owner's own list, so the two read as one screen. */}
-            <div className="h-11 w-11 flex-none">
+            <div className="h-11 w-[53px] flex-none">
               <ReleaseArt
                 release={{
                   coverArtUrl:

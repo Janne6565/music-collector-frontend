@@ -133,7 +133,7 @@ export function CopyDetailsDialog({
             {editing ? (
               <PhotoManager logic={photos} release={release} />
             ) : (
-              <div className="h-45 w-45 max-sm:mx-auto">
+              <div className="h-45 w-[216px] max-sm:mx-auto">
                 <ReleaseArt
                   release={release}
                   format={logic.fields.format === "" ? undefined : logic.fields.format}

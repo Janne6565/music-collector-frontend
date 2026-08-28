@@ -173,7 +173,7 @@ function Cover({
     // the format silhouette the same way every other tile in the app does.
     <ReleaseArt
       release={{ coverArtUrl: url ?? null, format }}
-      className="h-10 w-10 flex-none"
+      className="h-10 w-12 flex-none"
       loading="lazy"
     />
   );
@@ -182,17 +182,17 @@ function Cover({
 /** The little fan of sleeves beside a collapsed burst. */
 function CoverStack({ covers }: { readonly covers: readonly string[] }) {
   return (
-    <div className="flex h-10 w-10 flex-none">
+    <div className="flex h-10 w-12 flex-none">
       {covers.slice(0, 3).map((url, index) => (
         <div
           key={url}
-          className="h-10 w-10 overflow-hidden rounded-md border border-surface bg-line"
-          style={{ marginLeft: index === 0 ? 0 : -26, zIndex: 3 - index }}
+          className="h-10 w-12 overflow-hidden rounded-md border border-surface bg-line"
+          style={{ marginLeft: index === 0 ? 0 : -34, zIndex: 3 - index }}
         >
           <ReleaseArt release={{ coverArtUrl: url }} className="h-full w-full" loading="lazy" />
         </div>
       ))}
-      {covers.length === 0 && <div className="h-10 w-10 rounded-md bg-line" />}
+      {covers.length === 0 && <div className="h-10 w-12 rounded-md bg-line" />}
     </div>
   );
 }

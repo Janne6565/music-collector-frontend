@@ -17,14 +17,16 @@ function release(overrides: Partial<Release> = {}): Release {
 }
 
 /**
- * The waveform bars, which are the only thing drawn at exactly 4% wide.
+ * Everything the mark leans out on the right, counted.
  *
- * Counted rather than matched by class: what matters is whether they are painted over the
- * sleeve at all, not how they are styled.
+ * The cover panel is the only piece anchored on the left, so anything positioned from the
+ * right edge is part of the object — the disc, the shell, the plug. Counted rather than
+ * matched by class: what matters is whether an object is drawn at all, not how it is
+ * styled.
  */
-function waveformBars(container: HTMLElement): number {
+function objectParts(container: HTMLElement): number {
   return [...container.querySelectorAll<HTMLElement>("div")].filter(
-    (node) => node.style.width === "4%",
+    (node) => node.className.includes("right-0") || /right-\[/.test(node.className),
   ).length;
 }
 
@@ -36,26 +38,26 @@ function cover(container: HTMLElement): HTMLImageElement {
 }
 
 describe("ReleaseArt", () => {
-  it("draws no furniture over the cover when the format is not known", () => {
+  it("leans nothing out when the format is not known", () => {
     // `OTHER` is what a copy falls back to when this client cannot describe its release
-    // yet -- on a device that has just signed in, that is the whole shelf. Painting the
-    // waveform there claimed a download nobody entered and stamped nine bars across the
-    // photo the copy did have.
+    // yet -- on a device that has just signed in, that is the whole shelf. There is no
+    // object to draw, so none is: claiming a format nobody entered is worse than saying
+    // nothing about it.
     const { container } = render(
       <ReleaseArt release={release({ format: "OTHER" })} format="OTHER" />,
     );
 
-    expect(waveformBars(container)).toBe(0);
-    // The sleeve still holds the frame; it is only the format furniture that goes.
+    expect(objectParts(container)).toBe(0);
+    // The cover still holds the frame; it is only the object beside it that goes.
     expect(cover(container).getAttribute("src")).toBe("https://covers.example/rel-1.jpg");
   });
 
-  it("still draws the waveform for an actual download", () => {
+  it("leans a plug out for an actual download", () => {
     const { container } = render(
       <ReleaseArt release={release({ format: "DIGITAL" })} format="DIGITAL" />,
     );
 
-    expect(waveformBars(container)).toBeGreaterThan(0);
+    expect(objectParts(container)).toBeGreaterThan(0);
   });
 
   it("holds the frame with the placeholder until the cover has loaded", () => {
@@ -90,13 +92,14 @@ describe("ReleaseArt", () => {
     expect(container.querySelector(".mc-sweep")).toBeNull();
   });
 
-  it("draws the cover into the sleeve, not over the whole tile", () => {
-    // A record sticks out past its cover and a CD sits in front of one. Covering the tile
-    // would bury the silhouette — the only thing saying which of the four formats this
-    // copy is, in the one view where a release appears once per format.
+  it("draws the cover into the cover panel, not across the whole mark", () => {
+    // The object leans out from behind the cover, so the artwork stops where the cover
+    // does. Filling the whole mark would bury the sliver, which is the only thing saying
+    // which of the four formats this copy is.
     const { container } = render(<ReleaseArt release={release()} />);
 
-    expect(cover(container).parentElement?.className).toContain("w-[88%]");
+    const panel = cover(container).parentElement?.parentElement;
+    expect(panel?.className).toContain("w-[83.333%]");
   });
 
   it("fills the frame edge to edge on the item detail", () => {

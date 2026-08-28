@@ -408,7 +408,7 @@ function LibrarySkeleton() {
     <div className={GRID_CLASS}>
       {SKELETON_CARDS.map(([title, subtitle]) => (
         <div key={title + subtitle}>
-          <Skeleton className="aspect-square rounded-sm" />
+          <Skeleton className="aspect-[6/5] rounded-sm" />
           <Skeleton className="mt-1.5 h-[11px] rounded-[3px]" style={{ width: title }} />
           <Skeleton tone="faint" className="mt-1.5 h-2 rounded-[3px]" style={{ width: subtitle }} />
         </div>
@@ -453,7 +453,7 @@ function GridItem({
       data-settle-key={row.copy.id}
       className={cn("group block", marked && "mc-mark")}
     >
-      <div className="relative aspect-square">
+      <div className="relative aspect-[6/5]">
         <ReleaseArt
           release={row.release}
           format={copyFormat(row.copy, row.release)}

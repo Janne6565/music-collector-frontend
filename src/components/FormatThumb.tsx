@@ -179,8 +179,7 @@ function Plug() {
       <div
         className="absolute right-[13.5%] top-[37%] h-[26%] w-[30%] rounded-[3px]"
         style={{
-          background:
-            "linear-gradient(180deg,#3a352d 0 10%,#2a2620 34%,#1d1b17 74%,#26231d 100%)",
+          background: "linear-gradient(180deg,#3a352d 0 10%,#2a2620 34%,#1d1b17 74%,#26231d 100%)",
           boxShadow:
             "0 3px 7px rgba(25,23,19,.3),inset 0 0 0 1px rgba(0,0,0,.45),inset 0 1px 0 rgba(250,248,245,.14)",
         }}

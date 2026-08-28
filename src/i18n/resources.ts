@@ -1769,8 +1769,7 @@ const deCommon: CommonSchema = {
       lede: "Deine aktuelle Adresse funktioniert weiter (Anmeldung, Reset, alles), bis die neue bestätigt ist.",
       current: "Aktuell",
       currentConfirmed: "Bestätigt",
-      currentUnconfirmed:
-        "Nicht bestätigt, sie wird verworfen, da über sie nie etwas belegt wurde",
+      currentUnconfirmed: "Nicht bestätigt, sie wird verworfen, da über sie nie etwas belegt wurde",
       newAddress: "Neue Adresse",
       password: "Dein Passwort",
       passwordWhy:

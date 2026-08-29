@@ -101,12 +101,20 @@ function Entry({ entry }: { readonly entry: ActivityEntryDto }) {
       {/*
        * The sleeve closes the line rather than opening it: the row reads as a sentence
        * about a person, and the record it is about belongs at its end.
+       *
+       * Only where there is one. An accepted friendship is about nobody's record: the
+       * server sends it with no title, no format and no cover, so what used to sit here was
+       * a format silhouette standing in for a record that does not exist.
        */}
-      {count > 1 ? (
-        <CoverStack covers={entry.collapsedCovers ?? []} />
-      ) : (
-        <Cover url={entry.coverArtUrl} format={entry.format} />
-      )}
+      {isAboutARecord(entry) &&
+        (count > 1 && (entry.collapsedCovers ?? []).length > 0 ? (
+          <CoverStack covers={entry.collapsedCovers ?? []} />
+        ) : (
+          // A burst whose sleeves all 404 has no stack to fan, and an empty grey rectangle
+          // is the same nothing this row just stopped drawing. The head's own tile, which
+          // falls back to the format silhouette, says more.
+          <Cover url={entry.coverArtUrl} format={entry.format} />
+        ))}
     </>
   );
 
@@ -130,6 +138,17 @@ function Entry({ entry }: { readonly entry: ActivityEntryDto }) {
       {body}
     </Link>
   );
+}
+
+/**
+ * Whether the line has a record in it at all.
+ *
+ * `FRIENDSHIP_ACCEPTED` is the one type the server stores with no release attached; the
+ * title check is there for the same line arriving hollow for any other reason, since a
+ * sleeve for a record with no name is the same empty box either way.
+ */
+function isAboutARecord(entry: ActivityEntryDto): boolean {
+  return entry.type !== "FRIENDSHIP_ACCEPTED" && (entry.title ?? "") !== "";
 }
 
 /**
@@ -236,7 +255,6 @@ function CoverStack({ covers }: { readonly covers: readonly string[] }) {
           <ReleaseArt release={{ coverArtUrl: url }} className="h-full w-full" loading="lazy" />
         </div>
       ))}
-      {covers.length === 0 && <div className="h-10 w-12 rounded-md bg-line" />}
     </div>
   );
 }

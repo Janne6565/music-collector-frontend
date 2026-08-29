@@ -53,12 +53,14 @@ const GRID_CLASS =
   // 24b: two columns at 390px puts the cover at 171px, and there they should fill the
   // width — a centred block on a phone is just two thin margins.
   //
-  // Above 640px the tiles keep a fixed 180px instead of stretching, and the block is
-  // centred in the pane. Stretching tracks meant the covers changed size with the window
-  // and the last row's leftovers hung off to the left; a fixed tile makes every sleeve
-  // the same size on every screen, and `auto-fit` drops the empty tracks so what is left
-  // can be centred rather than left-aligned against a gap.
-  "sm:grid-cols-[repeat(auto-fit,180px)] sm:justify-center sm:gap-x-4 sm:gap-y-5";
+  // Above 640px the tiles keep a fixed 180px instead of stretching: that way the covers do
+  // not change size with the window and every sleeve is the same size on every screen.
+  //
+  // Left-aligned, not centred. Centring the block moved the whole shelf sideways every time
+  // the window crossed a column boundary, and it put the first sleeve somewhere other than
+  // where the heading above it starts. A shelf has a left edge; the ragged gap at the end
+  // of the last row is what a shelf actually looks like.
+  "sm:grid-cols-[repeat(auto-fill,180px)] sm:justify-start sm:gap-x-4 sm:gap-y-5";
 
 export function LibraryPage() {
   const { t } = useTranslation();

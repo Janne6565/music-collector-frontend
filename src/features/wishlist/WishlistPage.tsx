@@ -205,7 +205,15 @@ export function WishlistPage() {
  * 112px is the widest label the button carries, the German "Gefunden" at 103px rather than
  * the width English happens to need; squeezed to fit, it folded onto two lines.
  */
-const GRID = "18px 44px minmax(0,1.5fr) 84px minmax(0,2fr) 96px 112px";
+/**
+ * The artwork track is 56px for a 53px box, not 44px.
+ *
+ * A format mark is a 6:5 composition — the sleeve, and the object leaning out from behind it
+ * on the right (turn 25). At 44px the box overran its own column by nine pixels and ate the
+ * gap, so the title sat almost against the edge of the vinyl. The track is now wider than
+ * the box, which is what makes the column gap the space you actually see.
+ */
+const GRID = "18px 56px minmax(0,1.5fr) 84px minmax(0,2fr) 96px 112px";
 
 function SortMenu({ logic }: { readonly logic: ReturnType<typeof useWishlistLogic> }) {
   const { t } = useTranslation();

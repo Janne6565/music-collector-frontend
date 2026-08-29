@@ -53,14 +53,17 @@ const GRID_CLASS =
   // 24b: two columns at 390px puts the cover at 171px, and there they should fill the
   // width — a centred block on a phone is just two thin margins.
   //
-  // Above 640px the tiles keep a fixed 180px instead of stretching: that way the covers do
-  // not change size with the window and every sleeve is the same size on every screen.
+  // Above 640px the columns fill the row. A fixed 180px track was the rule until now, and
+  // what it actually produced was dead space: at a 1134px shelf it fits five tiles and
+  // leaves 170px of empty paper down the right, which reads as a shelf that stopped early
+  // rather than a deliberate margin.
   //
-  // Left-aligned, not centred. Centring the block moved the whole shelf sideways every time
-  // the window crossed a column boundary, and it put the first sleeve somewhere other than
-  // where the heading above it starts. A shelf has a left edge; the ragged gap at the end
-  // of the last row is what a shelf actually looks like.
-  "sm:grid-cols-[repeat(auto-fill,180px)] sm:justify-start sm:gap-x-4 sm:gap-y-5";
+  // So the track has a floor rather than a size. 160px is low enough that one or two more
+  // records fit at most widths, and `1fr` spends whatever is left over on the tiles that
+  // are there instead of banking it. Turn 24 wanted every sleeve the same size on every
+  // screen; this keeps them between about 160 and 210px, which is a far narrower swing
+  // than `minmax(180px,1fr)` would give and never leaves a gap at the end of the row.
+  "sm:grid-cols-[repeat(auto-fill,minmax(160px,1fr))] sm:gap-x-4 sm:gap-y-5";
 
 export function LibraryPage() {
   const { t } = useTranslation();

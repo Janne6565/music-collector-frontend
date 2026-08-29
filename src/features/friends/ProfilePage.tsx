@@ -145,7 +145,7 @@ export function ProfileBody({
       )}
 
       <header className="flex items-center gap-3.5 sm:items-start sm:gap-4">
-        <Avatar name={name} size={56} />
+        <Avatar name={name} src={person.avatarUrl} size={56} />
         <div className="min-w-0 flex-1">
           <h1 className="font-serif text-[24px] leading-[1.1] text-ink sm:text-[26px] sm:leading-tight">
             {name}

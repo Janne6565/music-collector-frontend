@@ -2,6 +2,7 @@ import { buttonClassName } from "@/components/ui";
 import { AccountMenu } from "@/features/auth/AccountMenu";
 import { useAccountMenuLogic } from "@/features/auth/useAccountMenuLogic";
 import { useSidebarAccountLogic } from "@/features/auth/useSidebarAccountLogic";
+import { Avatar } from "@/features/friends/Avatar";
 import { cn } from "@/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { ChevronDown, ChevronUp, CloudOff } from "lucide-react";
@@ -93,7 +94,9 @@ export function SidebarAccount({ copyCount }: { readonly copyCount: number | und
       signOut={{ run: account.signOut, pending: account.signingOut }}
       trigger={
         <>
-          <div className="h-[30px] w-[30px] flex-none rounded-full bg-canvas shadow-[inset_0_0_0_1px_rgba(25,23,19,.08)]" />
+          {/* 27i keeps the chip at 28 while the two headers move to 56: it is a label on a
+              menu, not a portrait, and it sits on one line of text. */}
+          <Avatar name={account.name ?? ""} src={account.avatarUrl} size={28} />
           <div className="min-w-0 flex-1">
             <div className="truncate text-xs font-semibold">{account.name}</div>
             <div className="truncate text-[10.5px] text-ink-subtle">{account.email}</div>

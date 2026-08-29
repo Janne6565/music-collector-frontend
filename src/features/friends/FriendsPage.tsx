@@ -149,6 +149,7 @@ function FoundAndPending({ logic }: { readonly logic: Logic }) {
         <RequestCard
           key={invite.id}
           name={invite.from?.displayName ?? invite.from?.handle ?? ""}
+          avatarUrl={invite.from?.avatarUrl}
           handle={invite.from?.handle ?? ""}
           copies={invite.from?.copyCount}
           mutual={invite.mutualFriends ?? 0}
@@ -264,7 +265,7 @@ function PersonRow({
   const { t } = useTranslation();
   return (
     <div className="flex items-center gap-3 rounded-lg px-2.5 py-2 transition-colors duration-(--mc-quick) hover:bg-paper">
-      <Avatar name={person.displayName ?? person.handle ?? ""} />
+      <Avatar name={person.displayName ?? person.handle ?? ""} src={person.avatarUrl} />
       <Link
         to="/friends/$handle"
         params={{ handle: person.handle ?? "" }}
@@ -328,6 +329,7 @@ function RelationshipButton({
 
 interface RequestCardProps {
   readonly name: string;
+  readonly avatarUrl: string | undefined;
   readonly handle: string;
   readonly copies: number | undefined;
   readonly mutual: number;
@@ -339,6 +341,7 @@ interface RequestCardProps {
 /** Pinned above the feed, because a person waiting for an answer outranks any record. */
 function RequestCard({
   name,
+  avatarUrl,
   handle,
   copies,
   mutual,
@@ -349,7 +352,7 @@ function RequestCard({
   const { t } = useTranslation();
   return (
     <div className="mb-4 flex items-center gap-3 rounded-xl border border-accent/25 bg-accent/[0.06] px-4 py-3">
-      <Avatar name={name} />
+      <Avatar name={name} src={avatarUrl} />
       <div className="min-w-0 flex-1">
         <div className="truncate text-[13px] font-semibold text-ink">
           {t("friends.wantsToBeFriends", { name })}
@@ -399,7 +402,11 @@ function PeopleRail({ logic }: { readonly logic: Logic }) {
             params={{ handle: person.handle ?? "" }}
             className="flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 no-underline transition-colors duration-(--mc-quick) hover:bg-paper"
           >
-            <Avatar name={person.displayName ?? person.handle ?? ""} size={26} />
+            <Avatar
+              name={person.displayName ?? person.handle ?? ""}
+              src={person.avatarUrl}
+              size={26}
+            />
             <div className="min-w-0">
               <div className="truncate text-[12.5px] font-medium text-ink">
                 {person.displayName ?? person.handle}

@@ -6,6 +6,7 @@ import {
   resendEmailConfirmation,
   updateProfile,
 } from "@/api/generated/auth/auth";
+import { read as readSharing } from "@/api/generated/sharing/sharing";
 import { lookupAlbumCovers, lookupPressingCovers } from "@/api/releases";
 import { toCsv, wishlistToCsv } from "@/domain/csv";
 import { useStore } from "@/local/StoreProvider";
@@ -36,6 +37,13 @@ export function useAccountLogic() {
   const auth = useAppSelector((state) => state.auth);
 
   const stats = useQuery({ queryKey: ["stats"], queryFn: () => store.stats() });
+
+  /** Only for the handle: the picture row says where it is public, and that is the handle. */
+  const sharing = useQuery({
+    queryKey: ["sharing"],
+    queryFn: async () => await readSharing(),
+    enabled: auth.status === "signedIn",
+  });
 
   /**
    * The name in the field, or null while it is still just showing the account's.
@@ -221,6 +229,23 @@ export function useAccountLogic() {
   return {
     status: auth.status,
     name: auth.user?.displayName ?? auth.user?.email ?? null,
+    /** The account's picture, or null. Null for almost everybody, by design (27a). */
+    avatarUrl: auth.user?.avatarUrl ?? null,
+    /**
+     * The handle the picture is public at, or null while none is claimed.
+     *
+     * Same query key as the Sharing panel further down the page, so the two share one
+     * request rather than asking twice for the same row.
+     */
+    handle: sharing.data?.handle ?? null,
+    /** Told what the account's picture is now, so the header and the chip follow at once. */
+    avatarChanged: useCallback(
+      (url: string | null) => {
+        if (auth.user === null) return;
+        dispatch(accountChanged({ ...auth.user, avatarUrl: url ?? undefined }));
+      },
+      [auth.user, dispatch],
+    ),
     /** What the name field shows, which is the account's own name until it is edited. */
     nameDraft: nameDraft ?? accountName,
     editName: useCallback((next: string) => setNameDraft(next), []),

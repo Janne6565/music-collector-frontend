@@ -3,8 +3,11 @@ import { BackBar } from "@/components/layout/BackBar";
 import { Card, LinkRow, Row, SectionTitle } from "@/components/rows";
 import { Button, buttonClassName } from "@/components/ui";
 import { formatMoney } from "@/domain/currency";
+import { PictureRow } from "@/features/account/PictureRow";
 import { useAccountLogic } from "@/features/account/useAccountLogic";
 import { useCollectionSpend } from "@/features/account/useCollectionSpend";
+import { useProfilePictureLogic } from "@/features/account/useProfilePictureLogic";
+import { Avatar } from "@/features/friends/Avatar";
 import { SharingPanel } from "@/features/friends/SharingPanel";
 import { Link, Navigate } from "@tanstack/react-router";
 import {
@@ -25,6 +28,7 @@ export function AccountPage() {
   const { t, i18n } = useTranslation();
   const logic = useAccountLogic();
   const spend = useCollectionSpend();
+  const picture = useProfilePictureLogic(logic.avatarUrl, logic.avatarChanged);
 
   // Nothing on this page means anything without an account, and a signed-out person who
   // lands here wanted the sign-in screen.
@@ -46,8 +50,10 @@ export function AccountPage() {
 
       <div className="min-h-0 flex-1 overflow-auto px-4 pt-6 pb-10 sm:px-8 sm:pt-8">
         <div className="max-w-[720px]">
+          {/* 27i drops the header circle from 76 to 56: it is the same unit as the public
+              profile header, because it is the same circle showing the same person. */}
           <div className="flex items-center gap-[18px]">
-            <div className="h-[76px] w-[76px] flex-none rounded-full bg-canvas shadow-[inset_0_0_0_1px_rgba(25,23,19,.08)]" />
+            <Avatar name={logic.name ?? ""} src={picture.url} size={56} />
             <div className="min-w-0 flex-1">
               <h1 className="font-serif text-[32px] leading-[1.05]">{logic.name}</h1>
               <p className="mt-1.5 text-[13.5px] text-ink-muted">
@@ -122,6 +128,9 @@ export function AccountPage() {
 
           <SectionTitle>{t("account.section.profile")}</SectionTitle>
           <Card>
+            {/* Above the name, per 27a: it is the first thing about you that other people
+                see, and the only row here that anybody else ever looks at. */}
+            <PictureRow logic={picture} name={logic.name ?? ""} handle={logic.handle} />
             <NameRow
               value={logic.nameDraft}
               onChange={logic.editName}

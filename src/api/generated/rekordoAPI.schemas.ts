@@ -254,6 +254,7 @@ export interface UserDto {
   id?: string;
   email?: string;
   displayName?: string;
+  avatarUrl?: string;
   createdAt?: string;
   emailVerified?: boolean;
   hasPassword?: boolean;
@@ -395,6 +396,7 @@ export interface ProfileSummaryDto {
   id?: string;
   handle?: string;
   displayName?: string;
+  avatarUrl?: string;
   copyCount?: number;
   relationship?: ProfileSummaryDtoRelationship;
   collectionPrivate?: boolean;
@@ -417,6 +419,7 @@ export interface ProfileDto {
   id?: string;
   handle?: string;
   displayName?: string;
+  avatarUrl?: string;
   relationship?: ProfileDtoRelationship;
   canSeeCollection?: boolean;
   canSeeWishlist?: boolean;
@@ -580,10 +583,16 @@ export interface FriendsOverviewDto {
   outgoing?: ProfileSummaryDto[];
 }
 
+export interface AvatarDto {
+  url?: string;
+  updatedAt?: string;
+}
+
 export interface ActivityActorDto {
   id?: string;
   handle?: string;
   displayName?: string;
+  avatarUrl?: string;
 }
 
 export type ActivityEntryDtoType = typeof ActivityEntryDtoType[keyof typeof ActivityEntryDtoType];
@@ -638,6 +647,7 @@ export interface AccountDto {
   email?: string;
   displayName?: string;
   handle?: string;
+  avatarUrl?: string;
   createdAt?: string;
 }
 

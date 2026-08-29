@@ -67,7 +67,7 @@ function Entry({ entry }: { readonly entry: ActivityEntryDto }) {
 
   const body = (
     <>
-      <Avatar name={name} size={26} className="mt-0.5" />
+      <Avatar name={name} src={entry.actor?.avatarUrl} size={26} className="mt-0.5" />
       <div className="min-w-0 flex-1">
         <p className="text-[13px] leading-snug text-ink">
           <Sentence entry={entry} name={name} count={count} />

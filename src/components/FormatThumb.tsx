@@ -109,27 +109,36 @@ function Vinyl() {
   );
 }
 
+/**
+ * The compact disc: the same silhouette as the vinyl, separated from it by value rather
+ * than by outline, which is what makes them tell apart at 44px.
+ *
+ * The iridescence is a real one now. A conic sweep runs the prism — blue, violet, salmon,
+ * yellow, green — and a radial sheen from 58% out lays 55% white over the whole rim, which
+ * is the only part anyone sees. That is what keeps it a white disc catching light rather
+ * than a coloured one: the sweep supplies the hue and the sheen takes most of it back.
+ *
+ * The rings are doubled on purpose. A dark hairline draws the edge, and a wider white ring
+ * just inside it reads as the bevel of the polycarbonate — a single hairline made the disc
+ * look like a flat cutout at the sizes where the shadow is doing the separating anyway.
+ *
+ * The deck also carries the hub and the centre hole; they are not drawn here. The cover
+ * ends at 83.33% and both sit entirely behind it, so drawing them costs two elements per
+ * tile and shows nothing.
+ */
 function Disc() {
   return (
-    <>
-      {/* The same silhouette as the vinyl, and that is deliberate: both are discs, and what
-          separates them at 44px is value, not outline. White and faintly iridescent. */}
-      <div
-        className={DISC}
-        style={{
-          background:
-            "conic-gradient(from 210deg,rgba(255,255,255,.92),rgba(250,248,245,.72),rgba(255,255,255,.95),rgba(238,240,242,.7),rgba(255,255,255,.9))",
-          boxShadow: "0 2px 7px rgba(25,23,19,.18),inset 0 0 0 1px rgba(25,23,19,.16)",
-        }}
-      />
-      <div
-        className="absolute right-[24%] top-[39%] h-[22%] w-[22%] rounded-full"
-        style={{
-          background: "rgba(239,236,230,.9)",
-          boxShadow: "inset 0 0 0 1px rgba(25,23,19,.14)",
-        }}
-      />
-    </>
+    <div
+      className={DISC}
+      style={{
+        background: [
+          "radial-gradient(circle at 50% 50%,rgba(255,255,255,0) 0 58%,rgba(255,255,255,.55) 62% 100%)",
+          "conic-gradient(from 42deg,#f2f0ec 0 3%,rgba(159,190,214,.95) 9%,rgba(199,164,204,.85) 15%,rgba(214,170,158,.9) 21%,rgba(214,206,158,.75) 26%,rgba(170,206,190,.85) 31%,#f4f2ee 38%,#efede9 55%,rgba(159,190,214,.45) 70%,#f2f0ec 82% 100%)",
+        ].join(","),
+        boxShadow:
+          "0 2px 7px rgba(25,23,19,.26),inset 0 0 0 1.5px rgba(25,23,19,.28),inset 0 0 0 3px rgba(255,255,255,.6)",
+      }}
+    />
   );
 }
 

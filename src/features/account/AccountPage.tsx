@@ -130,7 +130,12 @@ export function AccountPage() {
           <Card>
             {/* Above the name, per 27a: it is the first thing about you that other people
                 see, and the only row here that anybody else ever looks at. */}
-            <PictureRow logic={picture} name={logic.name ?? ""} handle={logic.handle} />
+            <PictureRow
+              logic={picture}
+              name={logic.name ?? ""}
+              handle={logic.handle}
+              copies={logic.stats?.copyCount}
+            />
             <NameRow
               value={logic.nameDraft}
               onChange={logic.editName}

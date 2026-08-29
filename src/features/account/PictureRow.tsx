@@ -24,9 +24,12 @@ export function PictureRow({
   logic,
   name,
   handle,
+  copies,
 }: {
   readonly logic: ProfilePictureLogic;
   readonly name: string;
+  /** Passed straight through to the framing dialog, which shows the row you appear in. */
+  readonly copies: number | undefined;
   /** For the line that says where the picture is public. Null until a handle is claimed. */
   readonly handle: string | null;
 }) {
@@ -88,6 +91,8 @@ export function PictureRow({
       {state.kind === "framing" && (
         <FramingDialog
           picture={state.picture}
+          name={name}
+          copies={copies}
           onCancel={logic.cancelFraming}
           onConfirm={logic.confirmFraming}
         />

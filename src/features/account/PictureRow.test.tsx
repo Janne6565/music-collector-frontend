@@ -36,7 +36,7 @@ function logicWith(overrides: Partial<ProfilePictureLogic> = {}): ProfilePicture
 }
 
 function draw(logic: ProfilePictureLogic) {
-  render(<PictureRow logic={logic} name="Jonas Meyer" handle="jonasmeyer" />);
+  render(<PictureRow logic={logic} name="Jonas Meyer" handle="jonasmeyer" copies={21} />);
 }
 
 describe("the picture row", () => {

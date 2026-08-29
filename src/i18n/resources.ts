@@ -804,7 +804,6 @@ const enCommon = {
         hint: "starts centred · drag to reframe · scroll or slider to zoom",
         zoom: "Zoom",
         howItLooks: "How it will look",
-        atProfile: "56 · profile",
         public:
           "Anyone who opens your profile sees this picture, signed in or not, friend or stranger. Everything else keeps its sharing settings.",
         use: "Use this picture",
@@ -1883,7 +1882,6 @@ const deCommon: CommonSchema = {
         hint: "startet mittig · ziehen zum Verschieben · scrollen oder Regler zum Zoomen",
         zoom: "Zoom",
         howItLooks: "So wird es aussehen",
-        atProfile: "56 · Profil",
         public:
           "Wer dein Profil öffnet, sieht dieses Bild, angemeldet oder nicht, befreundet oder fremd. Alles andere behält seine Sichtbarkeitseinstellungen.",
         use: "Dieses Bild verwenden",

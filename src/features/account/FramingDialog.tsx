@@ -24,10 +24,16 @@ const MAX_ZOOM = 4;
  */
 export function FramingDialog({
   picture,
+  name,
+  copies,
   onCancel,
   onConfirm,
 }: {
   readonly picture: ChosenPicture;
+  /** For the card below, which is the row other people actually meet you in. */
+  readonly name: string;
+  /** Their own copy count, or undefined before the stats have arrived. */
+  readonly copies: number | undefined;
   readonly onCancel: () => void;
   readonly onConfirm: (crop: AvatarCrop) => void;
 }) {
@@ -63,27 +69,33 @@ export function FramingDialog({
           </div>
 
           <div className="flex min-w-0 flex-1 flex-col">
-            <span className="font-mono text-[10px] tracking-[0.1em] text-ink-subtle uppercase">
+            {/*
+             * Sentence case, against the grain of the app's 67 other mono-uppercase labels,
+             * because Janne asked for it here. If this is meant to be the house style, it is
+             * a change to `SectionTitle` and to `SharedDetailModal`'s LABEL, not to one
+             * dialog — as it stands this line is the odd one out.
+             */}
+            <span className="text-[11.5px] font-medium text-ink-subtle">
               {t("account.picture.framing.howItLooks")}
             </span>
             {/*
-             * One circle, at the size the profile header draws it. There used to be a second
-             * at 24 for the feed, on the grounds that it is where a face becomes only a
-             * colour — but that is the argument against showing it: nothing about a crop is
-             * decided at 24, and it cost the column the width the sentence below needed.
+             * The row itself, not a circle on its own.
+             *
+             * A bare 56 beside the word "profile" asks somebody to imagine the thing this
+             * can just show them: a crop is only ever seen next to a name, and whether it
+             * works is a question about the row, not about the circle.
              */}
-            <div className="mt-3">
-              <Preview
-                framing={framing}
-                picture={picture}
-                size={56}
-                label={t("account.picture.framing.atProfile")}
-              />
+            <div className="mt-2.5 flex items-center gap-3 rounded-lg border border-line bg-paper px-2.5 py-2">
+              <PreviewAvatar framing={framing} picture={picture} size={34} />
+              <div className="min-w-0">
+                <div className="truncate text-[13px] font-semibold text-ink">{name}</div>
+                {copies !== undefined && (
+                  <div className="truncate text-[11.5px] text-ink-muted">
+                    {t("friends.copies", { count: copies })}
+                  </div>
+                )}
+              </div>
             </div>
-
-            <p className="mt-4 hidden font-mono text-[10.5px] break-all text-ink-subtle sm:block">
-              {picture.name} · {megabytes(picture.bytes)} MB · {picture.width} × {picture.height}
-            </p>
           </div>
         </div>
 
@@ -224,32 +236,23 @@ function ZoomSlider({
   );
 }
 
-/** What the circle will actually look like at one of the sizes the app draws. */
-function Preview({
+/** The crop as a circle, exactly as the app will draw it. */
+function PreviewAvatar({
   framing,
   picture,
   size,
-  label,
 }: {
   readonly framing: Framing;
   readonly picture: ChosenPicture;
   readonly size: number;
-  readonly label: string;
 }) {
   return (
-    <div className="flex flex-col items-center gap-[7px]">
-      <div
-        aria-hidden
-        className="rounded-full bg-canvas shadow-[inset_0_0_0_1px_rgba(25,23,19,.12)]"
-        style={{ backgroundImage: `url(${picture.previewUrl})`, ...framing.previewStyle(size) }}
-      />
-      <span className="hidden font-mono text-[9.5px] text-ink-subtle sm:block">{label}</span>
-    </div>
+    <div
+      aria-hidden
+      className="flex-none rounded-full bg-canvas shadow-[inset_0_0_0_1px_rgba(25,23,19,.12)]"
+      style={{ backgroundImage: `url(${picture.previewUrl})`, ...framing.previewStyle(size) }}
+    />
   );
-}
-
-function megabytes(bytes: number): string {
-  return (bytes / 1_000_000).toFixed(1);
 }
 
 interface Framing {

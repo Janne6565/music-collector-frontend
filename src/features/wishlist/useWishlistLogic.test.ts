@@ -161,3 +161,79 @@ describe("the cover a row shows", () => {
     expect(vi.mocked(releases.lookupPressingCovers)).not.toHaveBeenCalled();
   });
 });
+
+/**
+ * The box over the list.
+ *
+ * What it matches on is the shared package's decision and is tested there; what is tested
+ * here is the part the page hangs on — that the count stays the whole list while the rows
+ * narrow, and that "nothing matches" is a different state from "nothing on the list".
+ */
+describe("searching the list", () => {
+  beforeEach(() => {
+    photos = [];
+    wishes = [
+      createWishlistItem(
+        {
+          albumId: "local:a",
+          releaseId: null,
+          title: "Tago Mago",
+          artistName: "Can",
+          year: null,
+          desiredFormat: null,
+          note: "green label",
+        },
+        clock,
+        1000,
+        "wish-1",
+      ),
+      createWishlistItem(
+        {
+          albumId: "local:b",
+          releaseId: null,
+          title: "Selected Ambient Works",
+          artistName: "Aphex Twin",
+          year: null,
+          desiredFormat: null,
+          note: null,
+        },
+        clock,
+        2000,
+        "wish-2",
+      ),
+    ];
+  });
+
+  it("narrows the rows but not the count in the header", async () => {
+    const { result } = harness();
+    await waitFor(() => expect(result.current.items).toHaveLength(2));
+
+    act(() => result.current.handleSearch("aphex"));
+
+    await waitFor(() => expect(result.current.items).toHaveLength(1));
+    expect(result.current.items[0].id).toBe("wish-2");
+    // The header says how many records you are hunting, which a search does not change.
+    expect(result.current.count).toBe(2);
+    expect(result.current.filtering).toBe(true);
+  });
+
+  it("tells a term that names nothing apart from a wishlist with nothing on it", async () => {
+    const { result } = harness();
+    await waitFor(() => expect(result.current.items).toHaveLength(2));
+
+    act(() => result.current.handleSearch("bowie"));
+
+    await waitFor(() => expect(result.current.noMatches).toBe(true));
+    expect(result.current.count).toBe(2);
+  });
+
+  it("is not filtering on whitespace alone", async () => {
+    const { result } = harness();
+    await waitFor(() => expect(result.current.items).toHaveLength(2));
+
+    act(() => result.current.handleSearch("   "));
+
+    await waitFor(() => expect(result.current.filtering).toBe(false));
+    expect(result.current.items).toHaveLength(2);
+  });
+});

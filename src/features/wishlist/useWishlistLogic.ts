@@ -5,6 +5,7 @@ import { readWishlistSort, writeWishlistSort } from "@/local/settings";
 import type { WishPatch, WishSort, WishlistItem } from "@janne6565/rekordo-shared";
 import {
   applyWishPatch,
+  filterWishlist,
   hasManualOrder,
   isManualReleaseId,
   manualOrderWrites,
@@ -14,7 +15,7 @@ import {
   tombstoneWishlistItem,
 } from "@janne6565/rekordo-shared";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 /**
  * The wishlist page (screen 16g) and, through the same hook, the list on mobile.
@@ -41,6 +42,16 @@ export function useWishlistLogic() {
 
   const items = wishlist.data ?? [];
   const ordered = useMemo(() => sortWishlist(items, sort), [items, sort]);
+
+  /**
+   * What is typed in the box over the list.
+   *
+   * Not debounced, unlike the library's: that one re-queries the store and reflows a grid
+   * of sleeves, this one is a `filter` over a list already in memory that is two dozen rows
+   * at its longest. Making it wait would be inventing a lag to look busy.
+   */
+  const [search, setSearch] = useState("");
+  const shown = useMemo(() => filterWishlist(ordered, search), [ordered, search]);
 
   /**
    * The albums on the list, sorted and de-duplicated so the query key is the *set* rather
@@ -161,8 +172,15 @@ export function useWishlistLogic() {
   });
 
   return {
-    items: ordered,
+    items: shown,
+    /** The whole list, which is what the header counts and what "empty" means. */
     count: items.length,
+    search,
+    handleSearch: useCallback((next: string) => setSearch(next), []),
+    /** True while a term is narrowing the list, which several things below hang on. */
+    filtering: search.trim() !== "",
+    /** A term that names nothing — a different state from a wishlist with nothing on it. */
+    noMatches: items.length > 0 && shown.length === 0,
     /**
      * The catalogue's artwork: the sleeve of the pressing this entry was made from, and the
      * album's only when there is no pressing or the mirror has never seen it. Null while

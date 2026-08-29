@@ -79,9 +79,33 @@ export function WishlistPage() {
         </div>
       </header>
 
+      {/* Only once there is a list to narrow: a box over an empty screen is a box that
+          can only ever return nothing. */}
+      {logic.count > 0 && (
+        <div className="flex-none px-4 pb-3 sm:px-7">
+          <label className="flex h-11 items-center gap-2 rounded-lg border border-line bg-surface px-3.5 sm:h-9">
+            <Search
+              size={16}
+              strokeWidth={1.75}
+              className="flex-none text-ink-subtle"
+              aria-hidden
+            />
+            <input
+              type="search"
+              value={logic.search}
+              onChange={(event) => logic.handleSearch(event.target.value)}
+              placeholder={t("wishlist.filterPlaceholder")}
+              className="min-w-0 flex-1 bg-transparent text-[13.5px] outline-none placeholder:text-ink-subtle"
+            />
+          </label>
+        </div>
+      )}
+
       <div className="min-h-0 flex-1 overflow-auto px-4 pb-8 sm:px-7">
         {logic.loading ? null : logic.count === 0 ? (
           <EmptyWishlist onAdd={() => setSheet(true)} />
+        ) : logic.noMatches ? (
+          <p className="mc-cross pt-8 text-sm text-ink-muted">{t("wishlist.filterNoMatches")}</p>
         ) : (
           <>
             {/* 24d: no column heads under 640px — there are no columns left to head. */}
@@ -104,9 +128,12 @@ export function WishlistPage() {
                 item={item}
                 coverArtUrl={logic.coverOf(item)}
                 pictureSrc={logic.pictureOf(item)}
-                draggable={drag.isDraggable(index)}
+                draggable={!logic.filtering && drag.isDraggable(index)}
                 lifted={drag.isLifted(index)}
-                onArm={() => drag.arm(index)}
+                // A drag reorders the *whole* list, and an index into a narrowed one
+                // points at the wrong entry — so the handle goes quiet until the box is
+                // empty again rather than silently moving somebody else's row.
+                onArm={logic.filtering ? null : () => drag.arm(index)}
                 onLift={() => drag.lift(index)}
                 onDragEnd={drag.putDown}
                 onDrop={() => drag.dropOn(index)}
@@ -118,7 +145,7 @@ export function WishlistPage() {
 
             {/* Dragging is a pointer gesture; the phone reorders from the sort sheet. */}
             <p className="hidden pt-4 text-[11.5px] text-ink-muted sm:block">
-              {t("wishlist.dragHint")}
+              {logic.filtering ? t("wishlist.dragWhileFiltered") : t("wishlist.dragHint")}
             </p>
           </>
         )}
@@ -231,7 +258,8 @@ interface RowProps {
   readonly pictureSrc: string | null;
   readonly draggable: boolean;
   readonly lifted: boolean;
-  readonly onArm: () => void;
+  /** Null while a search term narrows the list, which is when a drag cannot be trusted. */
+  readonly onArm: (() => void) | null;
   readonly onLift: () => void;
   readonly onDragEnd: () => void;
   readonly onDrop: () => void;
@@ -297,10 +325,11 @@ function Row({
         // Mouse-down rather than a click: the drag has to be armed before the browser's
         // own dragstart fires, and dragstart never waits for a click to complete.
         // Stopped here: pressing the handle arms a drag, it does not open the entry.
-        onMouseDown={onArm}
+        onMouseDown={onArm ?? undefined}
         onClick={(event) => event.stopPropagation()}
+        disabled={onArm === null}
         aria-label={t("wishlist.reorder")}
-        className="hidden cursor-grab text-ink-subtle opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 sm:block"
+        className="hidden cursor-grab text-ink-subtle opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 disabled:cursor-default disabled:opacity-0 sm:block"
       >
         <GripVertical size={15} strokeWidth={1.75} aria-hidden />
       </button>

@@ -48,6 +48,11 @@ const enCommon = {
     importsAreSilent: "Imports are silent. Only single adds and wishlist moves show up here.",
     seeAll_one: "See it",
     seeAll_other: "See all {{count}}",
+    action: {
+      shelf: "See it on their shelf",
+      wishlist: "See it on their wishlist",
+      profile: "See their profile",
+    },
     state: {
       add: "Add",
       requested: "Requested",
@@ -319,6 +324,11 @@ const enCommon = {
     remove: "Remove from wishlist",
     editNote: "Edit entry",
     reorder: "Drag to reorder",
+    // The box over the list, not the one in the add sheet: that one searches a catalogue,
+    // this one narrows what is already on your list.
+    filterPlaceholder: "Search your wishlist",
+    filterNoMatches: "Nothing on the list says that.",
+    dragWhileFiltered: "Clear the search to reorder the list.",
     collectFailed: "Could not find that release to add. Try adding it from search instead.",
     addToWishlist: "Add to wishlist",
     onWishlist: "On your wishlist",
@@ -1075,6 +1085,11 @@ const deCommon: CommonSchema = {
       "Importe bleiben still. Hier erscheinen nur einzeln hinzugefügte Exemplare und Wunschlisten-Einträge.",
     seeAll_one: "Ansehen",
     seeAll_other: "Alle {{count}} ansehen",
+    action: {
+      shelf: "Im Regal ansehen",
+      wishlist: "Auf der Wunschliste ansehen",
+      profile: "Profil ansehen",
+    },
     state: {
       add: "Hinzufügen",
       requested: "Angefragt",
@@ -1346,6 +1361,9 @@ const deCommon: CommonSchema = {
     remove: "Von der Wunschliste entfernen",
     editNote: "Eintrag bearbeiten",
     reorder: "Zum Umsortieren ziehen",
+    filterPlaceholder: "Wunschliste durchsuchen",
+    filterNoMatches: "Auf der Liste steht nichts, das so heißt.",
+    dragWhileFiltered: "Suche leeren, um die Liste umzusortieren.",
     collectFailed: "Die Veröffentlichung wurde nicht gefunden. Füge sie über die Suche hinzu.",
     addToWishlist: "Auf die Wunschliste",
     onWishlist: "Auf deiner Wunschliste",

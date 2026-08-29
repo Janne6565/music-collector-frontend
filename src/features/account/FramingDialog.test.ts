@@ -1,5 +1,5 @@
 import type { AvatarCrop } from "@/api/avatar";
-import { squareOf } from "@/features/account/FramingDialog";
+import { squareOf, stageBox } from "@/features/account/FramingDialog";
 import { describe, expect, it } from "vitest";
 
 /**
@@ -86,5 +86,34 @@ describe("squareOf", () => {
     expect(crop.x).toBeCloseTo(500, 9);
     expect(crop.y).toBeCloseTo(0, 9);
     expect(crop.x + crop.size).toBeCloseTo(1000, 9);
+  });
+});
+
+/**
+ * The measurement, and specifically the zero.
+ *
+ * A stage that has not been laid out reports 0, and every position in the dialog is derived
+ * from the box: the circle's own left is `(width - diameter) / 2`, which at width zero is
+ * minus half a circle. That put the circle's centre on the stage's top-left corner and
+ * dragged the picture off after it.
+ */
+describe("stageBox", () => {
+  it("refuses a stage that has not been laid out yet", () => {
+    expect(stageBox(0, 0)).toBeNull();
+    expect(stageBox(300, 0)).toBeNull();
+    expect(stageBox(0, 300)).toBeNull();
+  });
+
+  it("gives the desktop circle its 10px of dark all round", () => {
+    expect(stageBox(300, 300)).toEqual({ width: 300, height: 300, diameter: 280 });
+  });
+
+  it("drops to the phone circle on a narrower sheet", () => {
+    expect(stageBox(260, 280)).toEqual({ width: 260, height: 280, diameter: 240 });
+  });
+
+  it("never returns a circle wider than the stage holding it", () => {
+    const box = stageBox(180, 200);
+    expect(box?.diameter).toBeLessThanOrEqual(180);
   });
 });

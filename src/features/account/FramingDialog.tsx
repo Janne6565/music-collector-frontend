@@ -19,8 +19,8 @@ const MAX_ZOOM = 4;
  * case and still an answer for the picture where the face is off to one side.
  *
  * <p>It says the one thing that matters about this particular upload — that strangers see
- * it — and shows the two sizes that actually decide whether a crop works: 56, where the
- * profile header draws it, and 24, where the feed does and a face is only a colour.
+ * it, across the bottom where the sentence has room to be read — and shows the crop at 56,
+ * the size the profile header draws it at.
  */
 export function FramingDialog({
   picture,
@@ -63,50 +63,48 @@ export function FramingDialog({
           </div>
 
           <div className="flex min-w-0 flex-1 flex-col">
-            {/* Desktop stacks the two previews under a label; the phone stands them beside
-                the public line, which is the only place there is room for either. */}
-            <span className="hidden font-mono text-[10px] tracking-[0.1em] text-ink-subtle uppercase sm:block">
+            <span className="font-mono text-[10px] tracking-[0.1em] text-ink-subtle uppercase">
               {t("account.picture.framing.howItLooks")}
             </span>
-            <div className="mt-0 flex items-center justify-between gap-4 sm:mt-3 sm:items-end sm:justify-start sm:gap-[18px]">
-              <div className="flex items-center gap-3 sm:contents">
-                <Preview
-                  framing={framing}
-                  picture={picture}
-                  size={56}
-                  label={t("account.picture.framing.atProfile")}
-                />
-                <Preview
-                  framing={framing}
-                  picture={picture}
-                  size={24}
-                  label={t("account.picture.framing.atFeed")}
-                />
-              </div>
-              <p className="max-w-[190px] text-right text-[12px] leading-[1.5] text-ink-muted text-pretty sm:hidden">
-                {t("account.picture.framing.publicShort")}
-              </p>
+            {/*
+             * One circle, at the size the profile header draws it. There used to be a second
+             * at 24 for the feed, on the grounds that it is where a face becomes only a
+             * colour — but that is the argument against showing it: nothing about a crop is
+             * decided at 24, and it cost the column the width the sentence below needed.
+             */}
+            <div className="mt-3">
+              <Preview
+                framing={framing}
+                picture={picture}
+                size={56}
+                label={t("account.picture.framing.atProfile")}
+              />
             </div>
 
-            <p className="mt-4 hidden font-mono text-[10.5px] text-ink-subtle sm:block">
+            <p className="mt-4 hidden font-mono text-[10.5px] break-all text-ink-subtle sm:block">
               {picture.name} · {megabytes(picture.bytes)} MB · {picture.width} × {picture.height}
             </p>
-
-            <div className="mt-3.5 hidden items-start gap-2.5 rounded-[10px] border border-line bg-paper px-3.5 py-3 sm:flex">
-              <Globe
-                size={15}
-                strokeWidth={1.75}
-                aria-hidden
-                className="mt-0.5 flex-none text-ink-muted"
-              />
-              <span className="text-[12px] leading-[1.55] text-ink-muted text-pretty">
-                {t("account.picture.framing.public")}
-              </span>
-            </div>
-
-            <Actions onConfirm={() => onConfirm(framing.crop())} />
           </div>
         </div>
+
+        {/*
+         * Across the bottom, not down the side. Beside a 300 stage this sentence had about
+         * fourteen characters a line and broke into eight of them; it is the one thing the
+         * dialog has to actually say, and a column that narrow made it look like fine print.
+         */}
+        <div className="mt-4 flex items-start gap-2.5 rounded-[10px] border border-line bg-paper px-3.5 py-3">
+          <Globe
+            size={15}
+            strokeWidth={1.75}
+            aria-hidden
+            className="mt-0.5 flex-none text-ink-muted"
+          />
+          <span className="text-[12px] leading-[1.55] text-ink-muted text-pretty">
+            {t("account.picture.framing.public")}
+          </span>
+        </div>
+
+        <Actions onConfirm={() => onConfirm(framing.crop())} />
       </div>
     </Modal>
   );
@@ -118,13 +116,13 @@ function Actions({ onConfirm }: { readonly onConfirm: () => void }) {
   const dismiss = useModalDismiss();
 
   return (
-    <div className="mt-4 flex flex-col items-center gap-3 sm:mt-auto sm:flex-row sm:justify-end sm:gap-4 sm:pt-4">
+    <div className="mt-4 flex flex-col items-center gap-3 sm:flex-row sm:justify-end sm:gap-4">
       <Button
         onClick={() => {
           onConfirm();
           dismiss();
         }}
-        className="h-[46px] w-full rounded-[10px] text-[14px] sm:h-9 sm:w-auto sm:rounded-lg sm:px-4 sm:text-[12.5px]"
+        className="h-[46px] w-full rounded-[10px] text-[14px] whitespace-nowrap sm:h-9 sm:w-auto sm:rounded-lg sm:px-4 sm:text-[12.5px]"
       >
         {t("account.picture.framing.use")}
       </Button>
@@ -166,20 +164,26 @@ function Stage({
         "h-[280px] w-full cursor-grab active:cursor-grabbing sm:h-[300px] sm:w-[300px]",
       )}
     >
-      <img
-        src={picture.previewUrl}
-        alt=""
-        draggable={false}
-        className="absolute max-w-none select-none"
-        style={framing.imageStyle()}
-      />
+      {/* Held back for the one frame before the stage has a size. Drawing from a guess and
+          correcting it is a visible jump on every open. */}
+      {framing.measured && (
+        <img
+          src={picture.previewUrl}
+          alt=""
+          draggable={false}
+          className="absolute max-w-none select-none"
+          style={framing.imageStyle()}
+        />
+      )}
       {/* One element does the whole mask: an enormous spread shadow dims everything outside
           the circle, and the inset hairline is the lit edge of it. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute rounded-full"
-        style={framing.circleStyle()}
-      />
+      {framing.measured && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute rounded-full"
+          style={framing.circleStyle()}
+        />
+      )}
     </div>
   );
 }
@@ -250,6 +254,8 @@ function megabytes(bytes: number): string {
 
 interface Framing {
   readonly zoom: number;
+  /** False until the stage has a real size. Nothing is drawn over it before then. */
+  readonly measured: boolean;
   readonly setZoom: (zoom: number) => void;
   readonly stageRef: React.RefObject<HTMLDivElement | null>;
   readonly onPointerDown: (event: React.PointerEvent) => void;
@@ -285,7 +291,11 @@ function useFraming(picture: ChosenPicture): Framing {
    * sheet's is as wide as the sheet, so both the circle and where it sits inside the dark
    * have to come from the element itself.
    */
-  const [stage, setStage] = useState({ width: 300, height: 300, diameter: CIRCLE });
+  const [stage, setStage] = useState<{
+    readonly width: number;
+    readonly height: number;
+    readonly diameter: number;
+  } | null>(null);
 
   /**
    * Every finger currently down, by pointer id.
@@ -297,15 +307,34 @@ function useFraming(picture: ChosenPicture): Framing {
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const gesture = useRef<{ centre: { x: number; y: number }; spread: number } | null>(null);
 
-  const diameter = stage.diameter;
+  const box = stage ?? { width: 300, height: 300, diameter: CIRCLE };
+  const diameter = box.diameter;
   const base = diameter / Math.min(picture.width, picture.height);
   const fitted = { width: picture.width * base, height: picture.height * base };
 
+  /*
+   * Watched, not measured once.
+   *
+   * A single `useLayoutEffect` read the stage before the dialog had been laid out and got
+   * zero back, and every position here is derived from that width: the circle's own left is
+   * `(width - diameter) / 2`, which at width zero is *minus* half a circle. The result was a
+   * circle centred on the stage's top-left corner with the picture dragged off after it,
+   * which is what "it doesn't seem to be centred" was.
+   *
+   * A zero is now ignored rather than believed, and an observer keeps the numbers right
+   * through the dialog's own entrance and any resize after it.
+   */
   useLayoutEffect(() => {
     const element = stageRef.current;
     if (element === null) return;
-    const across = element.clientWidth < 300 ? PHONE_CIRCLE : CIRCLE;
-    setStage({ width: element.clientWidth, height: element.clientHeight, diameter: across });
+    const measure = () => {
+      const next = stageBox(element.clientWidth, element.clientHeight);
+      if (next !== null) setStage(next);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => observer.disconnect();
   }, []);
 
   const limit = useCallback(
@@ -448,17 +477,18 @@ function useFraming(picture: ChosenPicture): Framing {
      * which is the difference between a picture that follows the pointer and one that
      * arrives after it.
      */
+    measured: stage !== null,
     imageStyle: () => ({
-      left: (stage.width - fitted.width) / 2,
-      top: (stage.height - fitted.height) / 2,
+      left: (box.width - fitted.width) / 2,
+      top: (box.height - fitted.height) / 2,
       width: fitted.width,
       height: fitted.height,
       transform: `translate(${at.x}px, ${at.y}px) scale(${zoom})`,
       willChange: "transform",
     }),
     circleStyle: () => ({
-      left: (stage.width - diameter) / 2,
-      top: (stage.height - diameter) / 2,
+      left: (box.width - diameter) / 2,
+      top: (box.height - diameter) / 2,
       width: diameter,
       height: diameter,
       boxShadow: "0 0 0 999px rgba(20,19,17,.55), inset 0 0 0 1.5px rgba(255,255,255,.55)",
@@ -511,4 +541,20 @@ export function squareOf({
     ),
     size,
   };
+}
+
+/**
+ * What a measured stage means, or `null` if it has not been measured yet.
+ *
+ * Separate and exported for the zero: an unlaid-out element reports `0`, every position in
+ * the dialog is derived from the box, and `(0 - diameter) / 2` puts the circle's centre on
+ * the stage's top-left corner. Believing that measurement once is the bug this guards.
+ */
+export function stageBox(
+  width: number,
+  height: number,
+): { readonly width: number; readonly height: number; readonly diameter: number } | null {
+  if (width <= 0 || height <= 0) return null;
+  const across = Math.min(width, height) < 300 ? PHONE_CIRCLE : CIRCLE;
+  return { width, height, diameter: Math.min(across, Math.min(width, height)) };
 }

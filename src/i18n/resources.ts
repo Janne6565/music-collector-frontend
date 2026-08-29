@@ -805,10 +805,8 @@ const enCommon = {
         zoom: "Zoom",
         howItLooks: "How it will look",
         atProfile: "56 · profile",
-        atFeed: "24 · feed",
         public:
           "Anyone who opens your profile sees this picture, signed in or not, friend or stranger. Everything else keeps its sharing settings.",
-        publicShort: "Public: strangers see this too.",
         use: "Use this picture",
       },
       removeDialog: {
@@ -1886,10 +1884,8 @@ const deCommon: CommonSchema = {
         zoom: "Zoom",
         howItLooks: "So wird es aussehen",
         atProfile: "56 · Profil",
-        atFeed: "24 · Feed",
         public:
           "Wer dein Profil öffnet, sieht dieses Bild, angemeldet oder nicht, befreundet oder fremd. Alles andere behält seine Sichtbarkeitseinstellungen.",
-        publicShort: "Öffentlich: auch Fremde sehen das.",
         use: "Dieses Bild verwenden",
       },
       removeDialog: {

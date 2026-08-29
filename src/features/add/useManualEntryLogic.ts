@@ -1,3 +1,4 @@
+import { scalePhoto } from "@/features/photos/scalePhoto";
 import { useStore } from "@/local/StoreProvider";
 import { rememberCopyOrigins } from "@/local/dexieStore";
 import { readDefaultCurrency } from "@/local/settings";
@@ -138,11 +139,17 @@ export function useManualEntryLogic(onAdded: (copyId: string) => void) {
       // artwork to prefer, so the photo order alone decides the preview.
       if (cover !== null && ACCEPTED.includes(cover.type)) {
         const photoId = crypto.randomUUID();
+        const scaled = await scalePhoto(cover);
         // Bytes first: a photo record with no bytes renders as a permanent placeholder.
-        await store.putPhotoBytes(photoId, await cover.arrayBuffer(), cover.type);
+        await store.putPhotoBytes(photoId, await scaled.blob.arrayBuffer(), scaled.contentType);
         await store.putPhoto(
           createPhoto(
-            { copyId: copy.id, contentType: cover.type, byteSize: cover.size, sortIndex: 0 },
+            {
+              copyId: copy.id,
+              contentType: scaled.contentType,
+              byteSize: scaled.blob.size,
+              sortIndex: 0,
+            },
             clock,
             Date.now(),
             photoId,

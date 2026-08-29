@@ -1,3 +1,4 @@
+import { scalePhoto } from "@/features/photos/scalePhoto";
 import type { ShownImage } from "@/features/photos/shownImage";
 import { useStore } from "@/local/StoreProvider";
 import type { CatalogArtChoice, Photo } from "@janne6565/rekordo-shared";
@@ -83,15 +84,18 @@ export function usePhotoStripLogic(copyId: string) {
         return;
       }
       const id = crypto.randomUUID();
+      // Scaled before it is stored, not before it is uploaded: the device keeps the same
+      // bytes the bucket does, so one photo id is one picture everywhere.
+      const scaled = await scalePhoto(file);
       // Bytes first: a record whose image is missing would render as a permanent
       // placeholder, whereas bytes with no record are simply unreferenced.
-      await store.putPhotoBytes(id, await file.arrayBuffer(), file.type);
+      await store.putPhotoBytes(id, await scaled.blob.arrayBuffer(), scaled.contentType);
       await store.putPhoto(
         createPhoto(
           {
             copyId,
-            contentType: file.type,
-            byteSize: file.size,
+            contentType: scaled.contentType,
+            byteSize: scaled.blob.size,
             sortIndex: photos.data?.length ?? 0,
           },
           clock,

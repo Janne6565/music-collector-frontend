@@ -11,13 +11,26 @@ for copies. The server participates only as a sync peer.
  */
 import type {
   AccountExportDto,
-  ConsentDto
+  ConsentDto,
+  StorageUsageDto
 } from '../rekordoAPI.schemas';
 
 import { customInstance } from '../../axios-instance';
 
 
 
+  /**
+ * Sleeve photos and the profile picture, which are the only things a person uploads. Cover art is fetched from MusicBrainz and Discogs when it is drawn and never stored, so it costs nothing here. The allowance is the same number the upload endpoints refuse by, so a client can say no before sending anything.
+ * @summary How much picture storage this account has used, and how much it has
+ */
+export const storage = (
+    
+ ) => {
+      return customInstance<StorageUsageDto>(
+      {url: `/api/v1/account/storage`, method: 'GET'
+    },
+      );
+    }
   /**
  * The Art. 15 and Art. 20 answer in one JSON file: account, consents, sharing settings, copies, wishlist, photo metadata and friendships. Photo bytes are not inlined -- each photo's metadata carries the URL they live at. A device with no account has nothing here and exports from its own store instead.
  * @summary Everything the server holds about this account
@@ -42,5 +55,6 @@ export const consents = (
     },
       );
     }
-  export type _ExportResult = NonNullable<Awaited<ReturnType<typeof _export>>>
+  export type StorageResult = NonNullable<Awaited<ReturnType<typeof storage>>>
+export type _ExportResult = NonNullable<Awaited<ReturnType<typeof _export>>>
 export type ConsentsResult = NonNullable<Awaited<ReturnType<typeof consents>>>

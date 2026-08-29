@@ -1,5 +1,6 @@
 import { lookupAlbumCovers, lookupPressingCovers, lookupPressings } from "@/api/releases";
 import { useUndo } from "@/features/detail/UndoDelete";
+import { scalePhoto } from "@/features/photos/scalePhoto";
 import { ACCEPTED_IMAGES, type ImageRejection, rejectionFor } from "@/features/wishlist/coverImage";
 import { useStore } from "@/local/StoreProvider";
 import type { Release, WishFormat, WishlistItem } from "@janne6565/rekordo-shared";
@@ -170,10 +171,11 @@ export function useWishDetailsLogic(wishId: string, onClose: () => void) {
     mutationFn: async (file: File) => {
       const previous = (await store.listWishPhotos([wishId])).get(wishId);
       const id = crypto.randomUUID();
-      await store.putPhotoBytes(id, await file.arrayBuffer(), file.type);
+      const scaled = await scalePhoto(file);
+      await store.putPhotoBytes(id, await scaled.blob.arrayBuffer(), scaled.contentType);
       await store.putPhoto(
         createPhoto(
-          { wishId, contentType: file.type, byteSize: file.size, sortIndex: 0 },
+          { wishId, contentType: scaled.contentType, byteSize: scaled.blob.size, sortIndex: 0 },
           clock,
           Date.now(),
           id,

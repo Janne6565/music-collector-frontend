@@ -234,6 +234,11 @@ export interface SendFriendRequest {
   handle: string;
 }
 
+export interface AvatarDto {
+  url?: string;
+  updatedAt?: string;
+}
+
 export interface ResetPasswordRequest {
   /** @minLength 1 */
   token: string;
@@ -583,11 +588,6 @@ export interface FriendsOverviewDto {
   outgoing?: ProfileSummaryDto[];
 }
 
-export interface AvatarDto {
-  url?: string;
-  updatedAt?: string;
-}
-
 export interface ActivityActorDto {
   id?: string;
   handle?: string;
@@ -640,6 +640,14 @@ export interface ActivityFeedDto {
 export interface AuthProviderDto {
   id?: string;
   displayName?: string;
+}
+
+export interface StorageUsageDto {
+  photoBytes?: number;
+  photoCount?: number;
+  avatarBytes?: number;
+  usedBytes?: number;
+  quotaBytes?: number;
 }
 
 export interface AccountDto {
@@ -701,6 +709,16 @@ wishId?: string;
 };
 
 export type UploadBody = {
+  file: Blob;
+};
+
+export type Upload1Params = {
+x: number;
+y: number;
+size: number;
+};
+
+export type Upload1Body = {
   file: Blob;
 };
 

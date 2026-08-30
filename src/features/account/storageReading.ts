@@ -33,7 +33,12 @@ export type StorageReading =
   | { readonly kind: "loading" }
   | { readonly kind: "offline" }
   | { readonly kind: "empty"; readonly freeBytes: number }
-  | { readonly kind: "normal"; readonly photos: number; readonly used: number; readonly quota: number }
+  | {
+      readonly kind: "normal";
+      readonly photos: number;
+      readonly used: number;
+      readonly quota: number;
+    }
   | {
       readonly kind: "nearlyFull";
       readonly photos: number;
@@ -41,7 +46,12 @@ export type StorageReading =
       readonly quota: number;
       readonly roomForPhotos: number;
     }
-  | { readonly kind: "full"; readonly photos: number; readonly used: number; readonly quota: number }
+  | {
+      readonly kind: "full";
+      readonly photos: number;
+      readonly used: number;
+      readonly quota: number;
+    }
   | {
       readonly kind: "over";
       readonly photos: number;

@@ -1,5 +1,4 @@
 import { ReleaseArt } from "@/components/ReleaseArt";
-import { Link } from "@tanstack/react-router";
 import { ConfirmDialog } from "@/components/ui";
 import {
   type ShownImage,
@@ -8,10 +7,11 @@ import {
   sameImage,
 } from "@/features/photos/shownImage";
 import type { PhotoStripLogic } from "@/features/photos/usePhotoStripLogic";
+import { useUploadRefusal } from "@/features/photos/useUploadRefusal";
 import { cn } from "@/lib/utils";
 import type { Release } from "@janne6565/rekordo-shared";
 import { catalogArtShown } from "@janne6565/rekordo-shared";
-import { useUploadRefusal } from "@/features/photos/useUploadRefusal";
+import { Link } from "@tanstack/react-router";
 import { CloudOff, ImagePlus, Star, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -321,11 +321,14 @@ function RefusalBanner() {
 
   return (
     <div className="mt-3 flex items-start gap-2.5 rounded-[10px] bg-ink/5 px-3.25 py-2.75">
-      <CloudOff size={15} strokeWidth={1.75} className="mt-0.25 flex-none text-ink-muted" aria-hidden />
+      <CloudOff
+        size={15}
+        strokeWidth={1.75}
+        className="mt-0.25 flex-none text-ink-muted"
+        aria-hidden
+      />
       <p className="text-[11.5px] leading-[1.55] text-ink-muted text-pretty">
-        {refusal.reason === "tooLarge"
-          ? t("photos.refusal.tooLarge")
-          : t("photos.refusal.full")}{" "}
+        {refusal.reason === "tooLarge" ? t("photos.refusal.tooLarge") : t("photos.refusal.full")}{" "}
         {refusal.reason === "full" && (
           <Link to="/account" className="font-semibold text-accent">
             {t("photos.refusal.showStorage")}

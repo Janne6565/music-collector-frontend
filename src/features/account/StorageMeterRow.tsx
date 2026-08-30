@@ -102,8 +102,7 @@ function Track({ reading }: { readonly reading: StorageReading }) {
           className="absolute top-0 right-0 h-1.5 rounded-r-full"
           style={{
             left: `${tick}%`,
-            backgroundImage:
-              "repeating-linear-gradient(135deg, #191713 0 3px, #8a857c 3px 6px)",
+            backgroundImage: "repeating-linear-gradient(135deg, #191713 0 3px, #8a857c 3px 6px)",
           }}
         />
         <div className="absolute top-[-4px] h-3.5 w-0.5 bg-ink" style={{ left: `${tick}%` }} />

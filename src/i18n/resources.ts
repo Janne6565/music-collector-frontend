@@ -752,7 +752,8 @@ const enCommon = {
       },
       nearlyFull: {
         body_one: "Room for about one more photo. Deleting a photo frees its space right away.",
-        body_other: "Room for about {{count}} more photos. Deleting a photo frees its space right away.",
+        body_other:
+          "Room for about {{count}} more photos. Deleting a photo frees its space right away.",
       },
       full: {
         body: "Full. New photos stay on the device that took them and upload by themselves once something is deleted.",
@@ -1868,8 +1869,10 @@ const deCommon: CommonSchema = {
         body: "Der Server ist nicht erreichbar. Fotos werden weiter auf diesem Gerät gespeichert; die Zahl kommt mit der Verbindung zurück.",
       },
       nearlyFull: {
-        body_one: "Platz für etwa ein weiteres Foto. Ein gelöschtes Foto gibt seinen Platz sofort frei.",
-        body_other: "Platz für etwa {{count}} weitere Fotos. Ein gelöschtes Foto gibt seinen Platz sofort frei.",
+        body_one:
+          "Platz für etwa ein weiteres Foto. Ein gelöschtes Foto gibt seinen Platz sofort frei.",
+        body_other:
+          "Platz für etwa {{count}} weitere Fotos. Ein gelöschtes Foto gibt seinen Platz sofort frei.",
       },
       full: {
         body: "Voll. Neue Fotos bleiben auf dem Gerät, das sie aufgenommen hat, und laden von selbst hoch, sobald etwas gelöscht wird.",

@@ -10,23 +10,24 @@ import {
   useAddDialogLogic,
 } from "@/features/add/useAddDialogLogic";
 import { useArtistSearchLogic } from "@/features/add/useArtistSearchLogic";
-import { WishDialog } from "@/features/wishlist/WishDialog";
 import { cn } from "@/lib/utils";
 import type { Format, Release, WishlistItem } from "@janne6565/rekordo-shared";
-import { FORMAT_LABELS } from "@janne6565/rekordo-shared";
+import { CONDITION_SHORT, FORMAT_LABELS } from "@janne6565/rekordo-shared";
 import {
   ArrowUpLeft,
+  Check,
   Clock,
+  CopyPlus,
   FileUp,
   Heart,
+  LibraryBig,
   Pencil,
-  Plus,
   ScanBarcode,
   Search,
   SearchX,
   X,
 } from "lucide-react";
-import { useId, useRef, useState } from "react";
+import { useId, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
 const FILTERS: readonly AddFormatFilter[] = ["ALL", "VINYL", "CD", "CASSETTE", "DIGITAL"];
@@ -59,7 +60,7 @@ interface AddDialogProps {
 /** Screen 6a — the add sheet over a dimmed library. */
 export function AddDialog({ onClose, onAdded, seedTerm = "", hunting = null }: AddDialogProps) {
   const { t } = useTranslation();
-  const logic = useAddDialogLogic(onClose, onAdded, seedTerm);
+  const logic = useAddDialogLogic(onClose, seedTerm);
   const titleId = useId();
 
   return (
@@ -125,6 +126,8 @@ export function AddDialog({ onClose, onAdded, seedTerm = "", hunting = null }: A
             onBack={logic.closeArtist}
             onClose={onClose}
             onAdd={logic.addRelease}
+            onWish={logic.addWish}
+            wishingMbid={logic.wishingMbid}
             addingMbid={logic.addingMbid}
             isOwned={logic.isOwned}
             selected={logic.selected}
@@ -132,7 +135,7 @@ export function AddDialog({ onClose, onAdded, seedTerm = "", hunting = null }: A
           />
           {/* The sheet keeps its footer inside the discography (10d): the way out of the
               modal should not depend on which pane of it you happen to be looking at. */}
-          <SheetFooter logic={logic} hint={t("artists.footerHint")} />
+          <SheetFooter logic={logic} />
         </>
       ) : (
         <SearchTab logic={logic} hunting={hunting} />
@@ -149,8 +152,6 @@ function SearchTab({
 }: { readonly logic: Logic; readonly hunting: WishlistItem | null }) {
   const { t } = useTranslation();
   const barcode = logic.tab === "BARCODE";
-  /** A release the heart was pressed on, which opens the wishlist sheet over this one. */
-  const [wishing, setWishing] = useState<Release | null>(null);
 
   return (
     <>
@@ -238,13 +239,11 @@ function SearchTab({
          * happening.
          */}
         <div key={logic.submittedTerm} className="mc-cross">
-          <Results logic={logic} onWish={setWishing} />
+          <Results logic={logic} />
         </div>
       </div>
 
-      <SheetFooter logic={logic} hint={t("addDialog.footerHint")} />
-
-      {wishing !== null && <WishDialog onClose={() => setWishing(null)} release={wishing} />}
+      <SheetFooter logic={logic} />
     </>
   );
 }
@@ -278,48 +277,44 @@ function HuntingBanner({ item }: { readonly item: WishlistItem }) {
 }
 
 /**
- * The sheet's standing footer — the same one under the search results and the discography.
+ * The sheet's standing footer — a receipt, not a control.
  *
- * The primary acts on whichever row is picked, wherever it was picked: a pressing chosen
- * three levels into an artist's discography is as much "the one you meant" as a row in the
- * search list, and 10d draws the button live for exactly that reason.
+ * It used to hold "Add and edit details", which made every addition a two-step: pick a
+ * row, press the footer, dismiss a form. Both destinations now live on the row itself and
+ * write on the click, so what is left down here is what actually helps — how many you have
+ * added this sitting, and the promise that nothing is waiting on you to fill anything in.
  */
-function SheetFooter({ logic, hint }: { readonly logic: Logic; readonly hint: string }) {
+function SheetFooter({ logic }: { readonly logic: Logic }) {
   const { t } = useTranslation();
+  const total = logic.added.shelf + logic.added.wishlist;
 
   return (
     <div className="flex flex-none items-center justify-between gap-4 border-t border-line bg-surface px-4 py-3 pb-safe sm:px-6 sm:py-3.5">
-      {/* The hint explains what pressing the button does; under 640px the button is the
-          only thing left on the row and the sentence would take three lines of it. */}
-      <span className="hidden text-[11.5px] text-ink-muted sm:block">{hint}</span>
-      <div className="flex w-full gap-2.5 sm:w-auto sm:flex-none">
-        <Button
-          variant="secondary"
-          onClick={logic.close}
-          className="h-11 flex-none rounded-lg px-3.5 text-[13px] sm:h-[34px] sm:text-[12.5px]"
-        >
-          {t("common.cancel")}
-        </Button>
-        <Button
-          onClick={() => {
-            if (logic.selected === null) return;
-            logic.addRelease(logic.selected);
-          }}
-          disabled={logic.selected === null}
-          loading={logic.selected !== null && logic.addingMbid === logic.selected.id}
-          className="h-11 flex-1 rounded-lg px-3.5 text-[13px] sm:h-[34px] sm:flex-none sm:text-[12.5px]"
-        >
-          {t("addDialog.addAndEdit")}
-        </Button>
-      </div>
+      {/* Nothing on the left until something has been added: an empty count would be a
+          zero nobody needs, and the header already says what the sheet is for. */}
+      {total === 0 ? (
+        <span />
+      ) : (
+        <div className="flex items-center gap-2.5 text-[12px] font-medium text-ink-muted">
+          <span className="flex size-[22px] items-center justify-center rounded-full bg-ink text-surface">
+            <Check size={12} strokeWidth={2.4} aria-hidden />
+          </span>
+          {t("addDialog.addedThisSession", {
+            count: total,
+            shelf: logic.added.shelf,
+            wishlist: logic.added.wishlist,
+          })}
+        </div>
+      )}
+      {/* Under 640px the sentence takes three lines of a footer that is one line tall. */}
+      <span className="hidden text-[11.5px] text-ink-muted sm:block">
+        {t("addDialog.savesInstantly")}
+      </span>
     </div>
   );
 }
 
-function Results({
-  logic,
-  onWish,
-}: { readonly logic: Logic; readonly onWish: (release: Release) => void }) {
+function Results({ logic }: { readonly logic: Logic }) {
   const { t } = useTranslation();
   /**
    * Artists are a second request, a second behind the releases one — MusicBrainz allows
@@ -361,7 +356,7 @@ function Results({
             </p>
           ) : (
             logic.results.map((release) => (
-              <ResultRow key={release.id} release={release} logic={logic} onWish={onWish} />
+              <ResultRow key={release.id} release={release} logic={logic} />
             ))
           )}
         </section>
@@ -484,82 +479,89 @@ function NoMatches({ logic }: { readonly logic: Logic }) {
   );
 }
 
-function ResultRow({
+/**
+ * One result, with both destinations on it.
+ *
+ * Equal weight, wishlist left and shelf right, because a search turns up records you own
+ * and records you covet in the same list and neither is the correction of the other. The
+ * row is no longer selectable: there is no footer left to act on a selection, and a click
+ * now means one specific thing rather than "this is the one I mean".
+ *
+ * Owning a copy already does not take the buttons away. It says so on the line and renames
+ * the right-hand one, because a second pressing is a normal thing to buy and hiding the
+ * button is how a shelf ends up missing the record somebody was standing there holding.
+ */
+export function ResultRow({
   release,
   logic,
-  onWish,
 }: {
   readonly release: Release;
   readonly logic: Logic;
-  readonly onWish: (release: Release) => void;
 }) {
   const { t } = useTranslation();
-  const owned = logic.isOwned(release);
-  const selected = logic.selected?.id === release.id;
+  const owned = logic.ownedCopy(release);
   const subtitle = releaseDisambiguation(release);
 
   return (
-    <div
-      className={cn(
-        "flex items-center gap-3.5 border-t border-line py-3",
-        selected && "bg-canvas/60",
-      )}
-    >
-      {/* Selecting a row is what the footer's primary acts on. */}
-      <button
-        type="button"
-        onClick={() => logic.select(selected ? null : release)}
-        aria-pressed={selected}
-        className="flex min-w-0 flex-1 items-center gap-3.5 text-left"
-      >
-        {/* The real cover, not just the format silhouette. Picking between four pressings
-            of the same album is largely a visual job, and the sleeve is the thing people
-            recognise. The format is still named in the line below, and ReleaseArt falls
-            back to the silhouette whenever the archive has nothing. */}
-        <div className="h-13 w-[62px] flex-none">
-          <ReleaseArt release={release} />
+    <div className="flex items-center gap-3.5 border-t border-line py-3">
+      {/* The real cover, not just the format silhouette. Picking between four pressings
+          of the same album is largely a visual job, and the sleeve is the thing people
+          recognise. The format is still named in the line below, and ReleaseArt falls
+          back to the silhouette whenever the archive has nothing. */}
+      <div className="h-13 w-[62px] flex-none">
+        <ReleaseArt release={release} />
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-[13.5px] font-semibold leading-tight">{release.title}</div>
+        <div className="truncate text-[11.5px] leading-snug text-ink-muted">
+          {release.artistName}
+          {release.year !== null && ` · ${release.year}`}
+          {` · ${FORMAT_LABELS[release.format]}`}
         </div>
-        <div className="min-w-0 flex-1">
-          <div className="truncate text-[13.5px] font-semibold leading-tight">{release.title}</div>
-          <div className="truncate text-[11.5px] leading-snug text-ink-muted">
-            {release.artistName}
-            {release.year !== null && ` · ${release.year}`}
-            {` · ${FORMAT_LABELS[release.format]}`}
+        {owned !== null ? (
+          <div className="flex items-center gap-1.5 truncate font-mono text-[10px] leading-snug text-accent-strong">
+            <LibraryBig size={11} strokeWidth={2.2} aria-hidden />
+            {owned.condition === null
+              ? t("addDialog.ownedNoGrade", { year: new Date(owned.addedAt).getFullYear() })
+              : t("addDialog.owned", {
+                  grade: CONDITION_SHORT[owned.condition],
+                  year: new Date(owned.addedAt).getFullYear(),
+                })}
           </div>
-          {subtitle !== "" && (
+        ) : (
+          subtitle !== "" && (
             <div className="truncate font-mono text-[10px] leading-snug text-ink-subtle">
               {subtitle}
             </div>
-          )}
-        </div>
-      </button>
+          )
+        )}
+      </div>
 
-      {owned ? (
-        // A statement, not a disabled button: owning a copy is no reason you cannot own a
-        // second one, and the row's Add stays available for exactly that.
-        <span className="flex-none px-1.5 font-mono text-[10px] uppercase tracking-[0.08em] text-ink-subtle">
-          {t("addDialog.inLibrary")}
-        </span>
-      ) : null}
-      {/* Screen 16c's first way in. A search that turned up the record but not one you can
-          buy today is exactly the moment a wishlist entry is worth making. */}
-      <button
-        type="button"
-        onClick={() => onWish(release)}
-        aria-label={t("wishlist.addToWishlist")}
-        title={t("wishlist.addToWishlist")}
-        className="flex-none p-1.5 text-ink-subtle hover:text-accent"
-      >
-        <Heart size={15} strokeWidth={1.75} aria-hidden />
-      </button>
-      <Button
-        onClick={() => logic.addRelease(release)}
-        loading={logic.addingMbid === release.id}
-        className="h-8 flex-none rounded-lg px-3 text-xs"
-      >
-        {logic.addingMbid !== release.id && <Plus size={14} strokeWidth={2} aria-hidden />}
-        {t("addDialog.add")}
-      </Button>
+      <div className="flex flex-none gap-1.5">
+        <Button
+          variant={owned === null ? "primary" : "secondary"}
+          onClick={() => logic.addWish(release)}
+          loading={logic.wishingMbid === release.id}
+          className="h-8 flex-none rounded-full px-3 text-xs"
+        >
+          {logic.wishingMbid !== release.id && <Heart size={13} strokeWidth={2} aria-hidden />}
+          {t("addDialog.wishlist")}
+        </Button>
+        <Button
+          variant={owned === null ? "primary" : "secondary"}
+          onClick={() => logic.addRelease(release)}
+          loading={logic.addingMbid === release.id}
+          className="h-8 flex-none whitespace-nowrap rounded-full px-3 text-xs"
+        >
+          {logic.addingMbid !== release.id &&
+            (owned === null ? (
+              <LibraryBig size={13} strokeWidth={2} aria-hidden />
+            ) : (
+              <CopyPlus size={13} strokeWidth={2} aria-hidden />
+            ))}
+          {owned === null ? t("addDialog.shelf") : t("addDialog.secondCopy")}
+        </Button>
+      </div>
     </div>
   );
 }

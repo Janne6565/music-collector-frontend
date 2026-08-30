@@ -35,6 +35,7 @@ function wishToDto(item: WishlistItem): SyncWishDto {
     id: item.id,
     albumId: item.albumId,
     releaseId: item.releaseId ?? undefined,
+    pendingBarcode: item.pendingBarcode ?? undefined,
     title: item.title,
     artistName: item.artistName,
     year: item.year ?? undefined,
@@ -129,6 +130,7 @@ export function wishFromDto(dto: SyncWishDto): WishlistItem | null {
     albumId: dto.albumId,
     // Absent means a server older than the field, which reads as no pressing picked.
     releaseId: dto.releaseId ?? null,
+    pendingBarcode: dto.pendingBarcode ?? null,
     title: dto.title,
     artistName: dto.artistName,
     year: dto.year ?? null,
@@ -145,6 +147,7 @@ function toDto(copy: Copy): SyncCopyDto {
   return {
     id: copy.id,
     releaseId: copy.releaseId,
+    pendingBarcode: copy.pendingBarcode ?? undefined,
     manualTitle: copy.manualTitle ?? undefined,
     manualArtist: copy.manualArtist ?? undefined,
     manualYear: copy.manualYear ?? undefined,
@@ -189,6 +192,7 @@ export function fromDto(dto: SyncCopyDto): Copy | null {
   return {
     id: dto.id,
     releaseId: dto.releaseId,
+    pendingBarcode: dto.pendingBarcode ?? null,
     manualTitle: dto.manualTitle ?? null,
     manualArtist: dto.manualArtist ?? null,
     manualYear: dto.manualYear ?? null,

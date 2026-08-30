@@ -24,8 +24,12 @@ const store = {
     copies.push(copy);
   },
   listWishlist: async () => wishes,
+  // An upsert, like the real store: the heart pill writes a new entry, and the wishlist
+  // tombstone rewrites an existing one.
   putWishlistItem: async (item: { id: string }) => {
-    wishes = wishes.map((wish) => ((wish as { id: string }).id === item.id ? item : wish));
+    const at = wishes.findIndex((wish) => (wish as { id: string }).id === item.id);
+    if (at === -1) wishes.push(item);
+    else wishes[at] = item;
   },
   readSetting: async (key: string) => settings.get(key),
   writeSetting: async (key: string, value: string) => {
@@ -40,11 +44,11 @@ vi.mock("@/local/StoreProvider", () => ({
 // Imported after the mocks above are registered, so the hook picks them up.
 const { useAddDialogLogic } = await import("@/features/add/useAddDialogLogic");
 
-function harness(onAdded: (copyId: string) => void = vi.fn()) {
+function harness() {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: 0 } },
   });
-  return renderHook(() => useAddDialogLogic(vi.fn(), onAdded), {
+  return renderHook(() => useAddDialogLogic(vi.fn()), {
     wrapper: ({ children }) => createElement(QueryClientProvider, { client }, children),
   });
 }
@@ -176,19 +180,35 @@ describe("useAddDialogLogic", () => {
     expect(result.current.hasSearched).toBe(false);
   });
 
-  it("hands every add to the details step, however it was added", async () => {
-    // Screen 8d is step two of adding, not a branch of it: a copy written and then left
-    // blank is the failure this exists to prevent, so the row's Add has to reach the step
-    // just as the footer's primary does.
-    const onAdded = vi.fn();
-    const { result } = harness(onAdded);
+  it("writes the copy on the click and asks for nothing else", async () => {
+    // The details step used to sit between the click and the copy, which made adding four
+    // pressings in one sitting four dismissals long. Condition and price are now added
+    // from the copy itself, whenever there is a reason to.
+    const { result } = harness();
 
     await act(async () => result.current.addRelease(RELEASE));
     await settle();
 
     expect(copies).toHaveLength(1);
-    expect(onAdded).toHaveBeenCalledTimes(1);
-    expect(onAdded).toHaveBeenCalledWith((copies[0] as { id: string }).id);
+    expect(result.current.added).toEqual({ shelf: 1, wishlist: 0 });
+  });
+
+  it("writes a wishlist entry on the click, with the format of the row", async () => {
+    // The pill used to open a sheet asking for the format and a note. The row already
+    // named the format, and a note is something people write on the wishlist itself.
+    const { result } = harness();
+
+    await act(async () => result.current.addWish(RELEASE));
+    await settle();
+
+    expect(wishes).toHaveLength(1);
+    expect(wishes[0]).toMatchObject({
+      albumId: RELEASE.albumId,
+      releaseId: RELEASE.id,
+      title: RELEASE.title,
+      desiredFormat: RELEASE.format,
+    });
+    expect(result.current.added).toEqual({ shelf: 0, wishlist: 1 });
   });
 
   it("takes the record off the wishlist when the copy that satisfies it is filed", async () => {

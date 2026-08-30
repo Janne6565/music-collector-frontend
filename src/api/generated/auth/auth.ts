@@ -296,7 +296,7 @@ export const providers = (
       );
     }
   /**
- * Redirects to the provider. Navigate to this, never fetch it. `client=mobile` finishes the flow by reopening the native app with a one-time code instead of setting the browser's refresh cookie.
+ * Redirects to the provider. Navigate to this, never fetch it -- it sets the cookie that ties the flow to this browser, and a fetched redirect keeps it. `client=mobile` finishes the flow by reopening the native app with a one-time code instead of setting the refresh cookie.
  * @summary Begin an external sign-in
  */
 export const authorize = (

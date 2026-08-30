@@ -11,6 +11,7 @@ import {
 } from "@/local/settings";
 import type {
   Artist,
+  Copy,
   CopyDraft,
   Format,
   LocalStore,
@@ -21,8 +22,10 @@ import {
   MC_EXTENSION,
   applyCopyPatch,
   applyMcArchive,
+  asWishFormat,
   createCopy,
   createManualCopy,
+  createWishlistItem,
   isManualReleaseId,
   readMcArchive,
 } from "@janne6565/rekordo-shared";
@@ -106,7 +109,6 @@ export interface CsvImportResult {
  */
 export function useAddDialogLogic(
   onClose: () => void,
-  onAdded: (copyId: string) => void,
   /** A search to open with, so "I found a copy" lands on the wish's own results (16d). */
   seedTerm = "",
 ) {
@@ -125,6 +127,14 @@ export function useAddDialogLogic(
    * discography (screen 10d) is not in `results`, so there is nothing to look an id up in.
    */
   const [selected, setSelected] = useState<Release | null>(null);
+  /**
+   * What this sitting has produced, for the footer's running count.
+   *
+   * Session state rather than a read of the collection: the footer is reporting on what
+   * *you just did*, and a number derived from the library would also move when a sync
+   * landed something from another device.
+   */
+  const [added, setAdded] = useState({ shelf: 0, wishlist: 0 });
   /**
    * The artist whose discography is open over the results, if any (screen 10d). A pane
    * rather than a route: opening an artist is a detour inside adding a record, and the
@@ -148,9 +158,27 @@ export function useAddDialogLogic(
    * Read from the local store rather than tracked in this component's state: a copy added
    * on another device and pulled in by sync should show as owned here too.
    */
+  /**
+   * What is already on the shelf, and enough about it to say so on the row.
+   *
+   * The grade and the year, not only the fact: "in your library" alone leaves you standing
+   * in a shop unable to tell whether the copy at home is the one worth replacing. Keyed by
+   * release rather than album — owning the CD is not owning the LP.
+   */
   const owned = useQuery({
     queryKey: ["ownedMbids"],
-    queryFn: async () => new Set((await store.listCopies()).map((copy) => copy.releaseId)),
+    queryFn: async () => {
+      const copies = await store.listCopies();
+      const byRelease = new Map<string, { condition: Copy["condition"]; addedAt: number }>();
+      for (const copy of copies) {
+        const existing = byRelease.get(copy.releaseId);
+        // The oldest one is the copy somebody thinks of as "the one I have".
+        if (existing === undefined || copy.createdAt < existing.addedAt) {
+          byRelease.set(copy.releaseId, { condition: copy.condition, addedAt: copy.createdAt });
+        }
+      }
+      return byRelease;
+    },
   });
 
   /** The empty state of the search tab, and the mobile search screen (5a). */
@@ -197,10 +225,45 @@ export function useAddDialogLogic(
       // The row that was acted on has been acted on; leaving it lit invites a second copy
       // of the same pressing from a footer press meant for the sheet as a whole.
       setSelected(null);
-      // Every add hands the copy straight to the details step (screen 8d). Here rather
-      // than at each call site so the row's Add, the footer and a pressing picked inside a
-      // discography cannot end up being three different amounts of "added".
-      onAdded(copy.id);
+      // Deliberately no details step. A copy saves the moment the pill is clicked, and
+      // condition and price can be added any time from the copy itself — the same rule the
+      // phone follows. Interrupting each add with a form is what made adding four pressings
+      // in one sitting four dismissals long.
+      setAdded((counts) => ({ ...counts, shelf: counts.shelf + 1 }));
+    },
+  });
+
+  /**
+   * Wanting one, written on the click.
+   *
+   * No sheet in between. A wish is a release plus the format you want, and the row you
+   * clicked already named both — asking again would be asking you to confirm what you just
+   * pointed at. Format and note stay editable on the wishlist itself, which is where
+   * somebody actually curates the list rather than while they are still searching.
+   */
+  const wish = useMutation({
+    mutationFn: async (release: Release) => {
+      await store.cacheReleases([release]);
+      const item = createWishlistItem(
+        {
+          albumId: release.albumId,
+          releaseId: release.id,
+          title: release.title,
+          artistName: release.artistName,
+          year: release.year,
+          desiredFormat: asWishFormat(release.format),
+          note: null,
+        },
+        clock,
+        Date.now(),
+        crypto.randomUUID(),
+      );
+      await store.putWishlistItem(item);
+      return item;
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["wishlist"] });
+      setAdded((counts) => ({ ...counts, wishlist: counts.wishlist + 1 }));
     },
   });
 
@@ -425,6 +488,8 @@ export function useAddDialogLogic(
     hasSearched: submitted !== "" || waiting,
     submittedTerm: submitted,
     isOwned: (release: Release) => owned.data?.has(release.id) === true,
+    /** The grade and year of the copy already on the shelf, for the row's own line. */
+    ownedCopy: (release: Release) => owned.data?.get(release.id) ?? null,
     selected,
     select: setSelected,
     /**
@@ -442,6 +507,11 @@ export function useAddDialogLogic(
       add.mutate(release);
     },
     addingMbid: add.isPending ? add.variables?.id : undefined,
+    /** The heart pill: the entry is written on the click, like the shelf pill beside it. */
+    addWish: (release: Release) => wish.mutate(release),
+    wishingMbid: wish.isPending ? wish.variables?.id : undefined,
+    /** What this sitting has produced, for the footer's running count. */
+    added,
     /** Artists are only worth asking about for a title search — no artist is named 602537. */
     artistQuery: tab === "BARCODE" ? "" : submitted,
     openArtist,

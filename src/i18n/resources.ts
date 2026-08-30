@@ -447,13 +447,19 @@ const enCommon = {
     barcodePlaceholder: "Scan or type the barcode",
     allFormats: "All formats",
     matchCount: "{{count}} matching releases",
-    inLibrary: "In library",
     noReleasesButArtists: "Nothing is titled that. Open an artist above to see their records.",
     recent: "Recent searches",
     clearRecent: "Clear",
     add: "Add",
-    addAndEdit: "Add and edit details",
-    footerHint: "Adding saves the copy and opens its details, and the search stays behind it.",
+    wishlist: "Wishlist",
+    shelf: "Shelf",
+    secondCopy: "Second copy",
+    owned: "in your library · {{grade}} · added {{year}}",
+    ownedNoGrade: "in your library · added {{year}}",
+    addedThisSession_one: "1 added this session · {{shelf}} shelf, {{wishlist}} wishlist",
+    addedThisSession_other: "{{count}} added this session · {{shelf}} shelf, {{wishlist}} wishlist",
+    savesInstantly:
+      "Copies save instantly. Condition and price can be added any time from the copy.",
     noBarcodeMatch:
       "No release with the barcode {{barcode}}. Common with promos, club editions and anything pressed before the mid-eighties.",
     noMatches: {
@@ -483,7 +489,6 @@ const enCommon = {
     discography: "Discography",
     showMore: "Show {{count}} more artists with that name",
     backToResults: "Back to results for “{{query}}”",
-    footerHint: "Adding a pressing keeps this open, and the search is still behind it.",
     releaseCount: "{{count}} releases",
     filterPlaceholder: "Filter {{name}}'s releases",
     filterMatches: "{{shown}} of {{total}} match",
@@ -897,6 +902,7 @@ const enCommon = {
     finishSetup: "Finish setting up sync",
   },
   manual: {
+    footerHint: "Only artist, title and format are required. Everything else can wait.",
     lede: "Bootlegs, test presses, tapes: anything no database has.",
     artist: "Artist",
     artistPlaceholder: "Who made it",
@@ -915,7 +921,6 @@ const enCommon = {
     dropCover: "drop cover",
     coverHint: "Or leave it, and the shelf uses a format tile.",
     removeCover: "Remove",
-    footerHint: "Only artist, title and format are required. Everything else can wait.",
     save: "Save copy",
     nothingLookedUp: "Nothing is looked up. This copy stays exactly as you type it.",
     pressing: "Pressing",
@@ -1549,15 +1554,20 @@ const deCommon: CommonSchema = {
     barcodePlaceholder: "Barcode scannen oder eingeben",
     allFormats: "Alle Formate",
     matchCount: "{{count}} passende Veröffentlichungen",
-    inLibrary: "In der Sammlung",
     noReleasesButArtists:
       "Nichts trägt diesen Titel. Öffne oben einen Künstler, um seine Platten zu sehen.",
     recent: "Zuletzt gesucht",
     clearRecent: "Löschen",
     add: "Hinzufügen",
-    addAndEdit: "Hinzufügen und Details bearbeiten",
-    footerHint:
-      "Hinzufügen speichert das Exemplar und öffnet seine Details, die Suche bleibt dahinter.",
+    wishlist: "Wunschliste",
+    shelf: "Regal",
+    secondCopy: "Zweites Exemplar",
+    owned: "in deiner Sammlung · {{grade}} · seit {{year}}",
+    ownedNoGrade: "in deiner Sammlung · seit {{year}}",
+    addedThisSession_one: "1 hinzugefügt · {{shelf}} Regal, {{wishlist}} Wunschliste",
+    addedThisSession_other: "{{count}} hinzugefügt · {{shelf}} Regal, {{wishlist}} Wunschliste",
+    savesInstantly:
+      "Exemplare werden sofort gespeichert. Zustand und Preis lassen sich jederzeit am Exemplar ergänzen.",
     noBarcodeMatch:
       "Keine Veröffentlichung mit dem Barcode {{barcode}}. Typisch für Promos, Clubauflagen und alles vor Mitte der Achtziger.",
     noMatches: {
@@ -1587,7 +1597,6 @@ const deCommon: CommonSchema = {
     discography: "Diskografie",
     showMore: "{{count}} weitere Künstler mit diesem Namen anzeigen",
     backToResults: "Zurück zu den Treffern für „{{query}}“",
-    footerHint: "Eine Pressung hinzuzufügen lässt dies offen, die Suche bleibt dahinter.",
     releaseCount: "{{count}} Veröffentlichungen",
     filterPlaceholder: "Veröffentlichungen von {{name}} filtern",
     filterMatches: "{{shown}} von {{total}} passen",
@@ -2004,6 +2013,7 @@ const deCommon: CommonSchema = {
     finishSetup: "Sync einrichten",
   },
   manual: {
+    footerHint: "Nur Künstler, Titel und Format sind Pflicht. Alles andere kann warten.",
     lede: "Bootlegs, Testpressungen, Kassetten: alles, was in keiner Datenbank steht.",
     artist: "Künstler",
     artistPlaceholder: "Wer es gemacht hat",
@@ -2022,7 +2032,6 @@ const deCommon: CommonSchema = {
     dropCover: "cover ablegen",
     coverHint: "Oder weglassen, dann nimmt das Regal eine Formatkachel.",
     removeCover: "Entfernen",
-    footerHint: "Nur Künstler, Titel und Format sind Pflicht. Alles andere kann warten.",
     save: "Exemplar speichern",
     nothingLookedUp:
       "Hier wird nichts nachgeschlagen. Das Exemplar bleibt genau so, wie du es eintippst.",

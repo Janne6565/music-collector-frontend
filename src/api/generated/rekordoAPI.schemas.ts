@@ -107,6 +107,7 @@ export type SyncCopyDtoFieldClocks = {[key: string]: string};
 export interface SyncCopyDto {
   id?: string;
   releaseId?: string;
+  pendingBarcode?: string;
   manualTitle?: string;
   manualArtist?: string;
   manualYear?: number;
@@ -176,6 +177,7 @@ export interface SyncWishDto {
   id?: string;
   albumId?: string;
   releaseId?: string;
+  pendingBarcode?: string;
   title?: string;
   artistName?: string;
   year?: number;

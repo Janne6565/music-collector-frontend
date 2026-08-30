@@ -491,6 +491,22 @@ export class DexieLocalStore implements LocalStore {
     await this.db.photoBytes.delete(id);
   }
 
+  /**
+   * Scanned, kept, and still nameless.
+   *
+   * Filtered rather than indexed: `pendingBarcode` is null on all but the handful of rows
+   * a shopping trip without signal produced, so an index would be almost entirely empty
+   * and Dexie would still walk the table to build it.
+   */
+  async listPendingScans(): Promise<{ copies: Copy[]; wishes: WishlistItem[] }> {
+    const pending = (record: { pendingBarcode: string | null; deletedAt: number | null }) =>
+      record.deletedAt === null && record.pendingBarcode !== null;
+    return {
+      copies: await this.db.copies.filter(pending).toArray(),
+      wishes: await this.db.wishlist.filter(pending).toArray(),
+    };
+  }
+
   async listWishlist(): Promise<WishlistItem[]> {
     const items = await this.db.wishlist.filter((item) => item.deletedAt === null).toArray();
     return items.sort((a, b) => b.createdAt - a.createdAt);

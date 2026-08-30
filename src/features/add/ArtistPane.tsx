@@ -10,7 +10,15 @@ import {
 import { cn } from "@/lib/utils";
 import type { Album, Artist, Release } from "@janne6565/rekordo-shared";
 import { FORMAT_LABELS } from "@janne6565/rekordo-shared";
-import { ChevronDown, ChevronLeft, ChevronUp, Plus, Search } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronUp,
+  CopyPlus,
+  Heart,
+  LibraryBig,
+  Search,
+} from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -23,6 +31,8 @@ interface ArtistPaneProps {
   readonly onAdd: (release: Release) => void;
   readonly addingMbid: string | undefined;
   readonly isOwned: (release: Release) => boolean;
+  readonly onWish: (release: Release) => void;
+  readonly wishingMbid: string | undefined;
   /** The pressing the sheet's footer will act on, picked by clicking its row. */
   readonly selected: Release | null;
   readonly onSelect: (release: Release | null) => void;
@@ -42,6 +52,8 @@ export function ArtistPane({
   onAdd,
   addingMbid,
   isOwned,
+  onWish,
+  wishingMbid,
   selected,
   onSelect,
 }: ArtistPaneProps) {
@@ -139,6 +151,8 @@ export function ArtistPane({
               onAdd={onAdd}
               addingMbid={addingMbid}
               isOwned={isOwned}
+              onWish={onWish}
+              wishingMbid={wishingMbid}
               selected={selected}
               onSelect={onSelect}
             />
@@ -206,6 +220,8 @@ interface AlbumRowProps {
   readonly onAdd: (release: Release) => void;
   readonly addingMbid: string | undefined;
   readonly isOwned: (release: Release) => boolean;
+  readonly onWish: (release: Release) => void;
+  readonly wishingMbid: string | undefined;
   readonly selected: Release | null;
   readonly onSelect: (release: Release | null) => void;
 }
@@ -220,6 +236,8 @@ function AlbumRow({
   onAdd,
   addingMbid,
   isOwned,
+  onWish,
+  wishingMbid,
   selected,
   onSelect,
 }: AlbumRowProps) {
@@ -283,6 +301,8 @@ function AlbumRow({
               onAdd={onAdd}
               addingMbid={addingMbid}
               isOwned={isOwned}
+              onWish={onWish}
+              wishingMbid={wishingMbid}
               selected={selected}
               onSelect={onSelect}
             />
@@ -300,6 +320,8 @@ function PressingTable({
   onAdd,
   addingMbid,
   isOwned,
+  onWish,
+  wishingMbid,
   selected,
   onSelect,
 }: {
@@ -307,6 +329,8 @@ function PressingTable({
   readonly onAdd: (release: Release) => void;
   readonly addingMbid: string | undefined;
   readonly isOwned: (release: Release) => boolean;
+  readonly onWish: (release: Release) => void;
+  readonly wishingMbid: string | undefined;
   readonly selected: Release | null;
   readonly onSelect: (release: Release | null) => void;
 }) {
@@ -341,6 +365,8 @@ function PressingTable({
             owned={isOwned(pressing)}
             adding={addingMbid === pressing.id}
             onAdd={() => onAdd(pressing)}
+            wishing={wishingMbid === pressing.id}
+            onWish={() => onWish(pressing)}
             selected={selected?.id === pressing.id}
             onSelect={() => onSelect(selected?.id === pressing.id ? null : pressing)}
             detailsOpen={openDetails === pressing.id}
@@ -362,6 +388,8 @@ interface PressingRowProps {
   readonly owned: boolean;
   readonly adding: boolean;
   readonly onAdd: () => void;
+  readonly wishing: boolean;
+  readonly onWish: () => void;
   readonly selected: boolean;
   readonly onSelect: () => void;
   readonly detailsOpen: boolean;
@@ -373,6 +401,8 @@ function PressingRow({
   owned,
   adding,
   onAdd,
+  wishing,
+  onWish,
   selected,
   onSelect,
   detailsOpen,
@@ -455,20 +485,35 @@ function PressingRow({
           )}
         </button>
 
-        {owned ? (
-          <span className="text-right font-mono text-[9.5px] uppercase tracking-[0.08em] text-ink-subtle">
-            {t("addDialog.inLibrary")}
-          </span>
-        ) : (
+        {/* Both destinations, as they are on every other row that offers a release. A
+            pressing three levels into a discography is as much a record you might covet as
+            one in the search list, and owning one does not take either away — it renames
+            the right-hand pill and leaves the choice where it was. */}
+        <div className="flex flex-none justify-end gap-1.5">
           <Button
+            variant={owned ? "secondary" : "primary"}
+            onClick={onWish}
+            loading={wishing}
+            className="h-9 flex-none rounded-full px-3 text-[12px] sm:h-7 sm:px-2.5 sm:text-[11.5px]"
+          >
+            {!wishing && <Heart size={13} strokeWidth={2} aria-hidden />}
+            {t("addDialog.wishlist")}
+          </Button>
+          <Button
+            variant={owned ? "secondary" : "primary"}
             onClick={onAdd}
             loading={adding}
-            className="h-9 flex-none rounded-md px-3 text-[12px] sm:h-7 sm:px-2.5 sm:text-[11.5px]"
+            className="h-9 flex-none whitespace-nowrap rounded-full px-3 text-[12px] sm:h-7 sm:px-2.5 sm:text-[11.5px]"
           >
-            {!adding && <Plus size={13} strokeWidth={2} aria-hidden />}
-            {t("addDialog.add")}
+            {!adding &&
+              (owned ? (
+                <CopyPlus size={13} strokeWidth={2} aria-hidden />
+              ) : (
+                <LibraryBig size={13} strokeWidth={2} aria-hidden />
+              ))}
+            {owned ? t("addDialog.secondCopy") : t("addDialog.shelf")}
           </Button>
-        )}
+        </div>
       </div>
 
       {detailsOpen && <PressingDetails pressing={pressing} />}

@@ -28,6 +28,7 @@ function copy(id: string, releaseId: string, overrides: Partial<Copy> = {}): Cop
   return {
     id,
     releaseId,
+    pendingBarcode: null,
     manualTitle: null,
     manualArtist: null,
     manualYear: null,

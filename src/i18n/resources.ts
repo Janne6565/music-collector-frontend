@@ -287,6 +287,15 @@ const enCommon = {
     loading: "loading…",
   },
   photos: {
+    thisBrowser: "this browser",
+    refusal: {
+      /* 28d: each sentence names its own fix and rules the other one out. Deleting does not
+         help a picture that is too big, and a smaller picture does not help a full account. */
+      full: "One photo was not uploaded. Your photo space is full. It stays in this browser and goes up by itself once there is room.",
+      tooLarge:
+        "One photo was not uploaded: it is over 5 MB, the ceiling for a single upload. Choose another picture or a smaller export of this one. Deleting photos will not help.",
+      showStorage: "Show storage",
+    },
     add: "Add a photo of your copy",
     remove: "Remove this photo",
     show: "Show this image",
@@ -1391,6 +1400,13 @@ const deCommon: CommonSchema = {
     loading: "lädt…",
   },
   photos: {
+    thisBrowser: "nur hier",
+    refusal: {
+      full: "Ein Foto wurde nicht hochgeladen. Dein Speicherplatz ist voll. Es bleibt in diesem Browser und lädt von selbst hoch, sobald wieder Platz ist.",
+      tooLarge:
+        "Ein Foto wurde nicht hochgeladen: es ist größer als 5 MB, die Obergrenze für ein einzelnes Bild. Wähle ein anderes Bild oder einen kleineren Export. Andere Fotos zu löschen hilft hier nicht.",
+      showStorage: "Speicherplatz anzeigen",
+    },
     add: "Foto deines Exemplars hinzufügen",
     remove: "Dieses Foto entfernen",
     show: "Dieses Bild anzeigen",

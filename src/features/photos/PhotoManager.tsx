@@ -1,4 +1,5 @@
 import { ReleaseArt } from "@/components/ReleaseArt";
+import { Link } from "@tanstack/react-router";
 import { ConfirmDialog } from "@/components/ui";
 import {
   type ShownImage,
@@ -10,7 +11,8 @@ import type { PhotoStripLogic } from "@/features/photos/usePhotoStripLogic";
 import { cn } from "@/lib/utils";
 import type { Release } from "@janne6565/rekordo-shared";
 import { catalogArtShown } from "@janne6565/rekordo-shared";
-import { ImagePlus, Star, X } from "lucide-react";
+import { useUploadRefusal } from "@/features/photos/useUploadRefusal";
+import { CloudOff, ImagePlus, Star, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -144,6 +146,16 @@ export function PhotoManager({ logic, release }: PhotoManagerProps) {
             >
               <X size={9} strokeWidth={2.4} aria-hidden />
             </button>
+            {/* 28e: one small chip and nothing else. No dimming and no red, because the
+                photo itself is fine and fully usable here; what is missing is its copy
+                everywhere else. It mirrors the Preview and Catalog tags the grid already
+                wears, in the opposite corner. */}
+            {photo.storageKey === null && (
+              <span className="pointer-events-none absolute bottom-0.75 left-0.75 flex items-center gap-1 rounded-[4px] bg-ink/80 px-1.25 py-0.75 font-mono text-[7px] uppercase tracking-[0.05em] text-paper">
+                <CloudOff size={8} strokeWidth={2} aria-hidden />
+                {t("photos.thisBrowser")}
+              </span>
+            )}
           </div>
         ))}
 
@@ -208,6 +220,11 @@ export function PhotoManager({ logic, release }: PhotoManagerProps) {
           {t("photos.restoreCatalog")}
         </button>
       )}
+
+      {/* 28d on the web: the same sentence as the phone's sheet, but as a banner rather
+          than a modal. Nothing was lost and nothing needs answering, so it sits beside the
+          photos it is about instead of interrupting the edit. */}
+      <RefusalBanner />
 
       <p className="mt-2 text-[11px] leading-normal text-ink-muted text-pretty">
         {t("photos.managerHint")}
@@ -287,5 +304,34 @@ function StarBadge({ isPreview, disabled, onStar, previewLabel, starLabel }: Sta
     >
       <Star size={9} strokeWidth={2.4} aria-hidden />
     </button>
+  );
+}
+
+/**
+ * What a refused upload says here (design 28d).
+ *
+ * Each wording names its own fix and rules the other's out: a full account is fixed by
+ * deleting a photo, a picture over the single-upload ceiling by choosing another one, and
+ * advice that cannot work is worse than none.
+ */
+function RefusalBanner() {
+  const { t } = useTranslation();
+  const refusal = useUploadRefusal();
+  if (refusal === null) return null;
+
+  return (
+    <div className="mt-3 flex items-start gap-2.5 rounded-[10px] bg-ink/5 px-3.25 py-2.75">
+      <CloudOff size={15} strokeWidth={1.75} className="mt-0.25 flex-none text-ink-muted" aria-hidden />
+      <p className="text-[11.5px] leading-[1.55] text-ink-muted text-pretty">
+        {refusal.reason === "tooLarge"
+          ? t("photos.refusal.tooLarge")
+          : t("photos.refusal.full")}{" "}
+        {refusal.reason === "full" && (
+          <Link to="/account" className="font-semibold text-accent">
+            {t("photos.refusal.showStorage")}
+          </Link>
+        )}
+      </p>
+    </div>
   );
 }

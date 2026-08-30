@@ -719,6 +719,34 @@ const enCommon = {
   },
   account: {
     title: "Account",
+    storage: {
+      photosLabel: "Photos",
+      photos_one: "{{count}} photo",
+      photos_other: "{{count}} photos",
+      ofQuota: "{{used}} of {{quota}} MB",
+      free: "{{mb}} MB free",
+      offlineFigure: "offline",
+      shared: {
+        body: "Sleeve photos and your profile picture share the {{quota}} MB. Cover art is looked up, never stored: the sleeves you did not photograph are free.",
+      },
+      empty: {
+        title: "No photos yet",
+        body: "Photograph a sleeve on any copy or wishlist entry and it lands here. Cover art never counts.",
+      },
+      offline: {
+        body: "The server is unreachable. Photos keep saving on this device; the figure returns with the connection.",
+      },
+      nearlyFull: {
+        body_one: "Room for about one more photo. Deleting a photo frees its space right away.",
+        body_other: "Room for about {{count}} more photos. Deleting a photo frees its space right away.",
+      },
+      full: {
+        body: "Full. New photos stay on the device that took them and upload by themselves once something is deleted.",
+      },
+      over: {
+        body: "{{over}} MB over, from originals uploaded before Rekordo scaled photos down. Nothing is deleted for you; adding waits until this is under {{quota}} MB.",
+      },
+    },
     since: "collecting since {{year}}",
     passwordBody: "Change it from the reset link on the sign-in screen.",
     confirmEmail: {
@@ -1797,6 +1825,34 @@ const deCommon: CommonSchema = {
   },
   account: {
     title: "Konto",
+    storage: {
+      photosLabel: "Fotos",
+      photos_one: "{{count}} Foto",
+      photos_other: "{{count}} Fotos",
+      ofQuota: "{{used}} von {{quota}} MB",
+      free: "{{mb}} MB frei",
+      offlineFigure: "offline",
+      shared: {
+        body: "Plattenfotos und dein Profilbild teilen sich die {{quota}} MB. Coverbilder werden nachgeschlagen, nie gespeichert: die Hüllen, die du nicht fotografiert hast, sind frei.",
+      },
+      empty: {
+        title: "Noch keine Fotos",
+        body: "Fotografiere die Hülle eines Exemplars oder Wunschs, dann landet sie hier. Coverbilder zählen nie mit.",
+      },
+      offline: {
+        body: "Der Server ist nicht erreichbar. Fotos werden weiter auf diesem Gerät gespeichert; die Zahl kommt mit der Verbindung zurück.",
+      },
+      nearlyFull: {
+        body_one: "Platz für etwa ein weiteres Foto. Ein gelöschtes Foto gibt seinen Platz sofort frei.",
+        body_other: "Platz für etwa {{count}} weitere Fotos. Ein gelöschtes Foto gibt seinen Platz sofort frei.",
+      },
+      full: {
+        body: "Voll. Neue Fotos bleiben auf dem Gerät, das sie aufgenommen hat, und laden von selbst hoch, sobald etwas gelöscht wird.",
+      },
+      over: {
+        body: "{{over}} MB darüber, von Originalen aus einer Zeit, bevor Rekordo Fotos verkleinert hat. Es wird nichts für dich gelöscht; Hinzufügen wartet, bis das wieder unter {{quota}} MB liegt.",
+      },
+    },
     since: "sammelt seit {{year}}",
     passwordBody: "Änderbar über den Zurücksetzen-Link auf der Anmeldeseite.",
     confirmEmail: {

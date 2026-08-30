@@ -4,6 +4,7 @@ import { Card, LinkRow, Row, SectionTitle } from "@/components/rows";
 import { Button, buttonClassName } from "@/components/ui";
 import { formatMoney } from "@/domain/currency";
 import { PictureRow } from "@/features/account/PictureRow";
+import { StorageMeterRow } from "@/features/account/StorageMeterRow";
 import { useAccountLogic } from "@/features/account/useAccountLogic";
 import { useCollectionSpend } from "@/features/account/useCollectionSpend";
 import { useProfilePictureLogic } from "@/features/account/useProfilePictureLogic";
@@ -165,16 +166,10 @@ export function AccountPage() {
 
           <SectionTitle>{t("account.section.storage")}</SectionTitle>
           <Card>
-            {/* 20f: the two device toggles moved to Settings, because they describe this
-                browser rather than the account. One pointer row replaces them, so the sync
-                switch stays findable from the page people already know it by — and it is
-                the only thing left on Account that mentions a device at all. */}
-            <LinkRow
-              to="/settings"
-              icon={<SettingsIcon size={16} strokeWidth={1.75} aria-hidden />}
-              title={t("account.deviceSettings.title")}
-              body={t("account.deviceSettings.body")}
-            />
+            {/* 28a: the allowance goes first, above the exports, and is what finally makes
+                this card's name true. Everything below it is about getting data out; this
+                is the only row about what the account is holding. */}
+            <StorageMeterRow />
             {/* Two files, not one. The collection and the wishlist are different shapes —
                 a copy has a price, a condition and a pressing; a wish has an album and a
                 format — and a single sheet with half its columns blank on every other row
@@ -234,6 +229,17 @@ export function AccountPage() {
                   {t("account.export.action")}
                 </Button>
               }
+            />
+            {/* 20f: the two device toggles moved to Settings, because they describe this
+                browser rather than the account. One pointer row replaces them, so the sync
+                switch stays findable from the page people already know it by — and it is
+                the only thing left on Account that mentions a device at all. 28a puts it
+                last: it is the row that leaves this card, and those go at the bottom. */}
+            <LinkRow
+              to="/settings"
+              icon={<SettingsIcon size={16} strokeWidth={1.75} aria-hidden />}
+              title={t("account.deviceSettings.title")}
+              body={t("account.deviceSettings.body")}
             />
           </Card>
 

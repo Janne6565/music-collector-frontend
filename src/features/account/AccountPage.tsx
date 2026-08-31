@@ -10,6 +10,7 @@ import { useCollectionSpend } from "@/features/account/useCollectionSpend";
 import { useProfilePictureLogic } from "@/features/account/useProfilePictureLogic";
 import { Avatar } from "@/features/friends/Avatar";
 import { SharingPanel } from "@/features/friends/SharingPanel";
+import { cn } from "@/lib/utils";
 import { Link, Navigate } from "@tanstack/react-router";
 import {
   FileArchive,
@@ -21,7 +22,7 @@ import {
   ShieldCheck,
   UserRound,
 } from "lucide-react";
-import { useId } from "react";
+import { useEffect, useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 /** Screen 7a — reached by clicking your name in the sidebar footer. */
@@ -162,6 +163,7 @@ export function AccountPage() {
             {/* 21g. One row, two addresses, for as long as the change waits. */}
             {logic.pendingEmail !== null && <PendingChangeRow logic={logic} />}
             <Row title={t("auth.password")} body={t("account.passwordBody")} />
+            <SignOutEverywhereRow logic={logic} />
           </Card>
 
           <SectionTitle>{t("account.section.storage")}</SectionTitle>
@@ -289,6 +291,56 @@ export function AccountPage() {
         </div>
       </div>
     </AppShell>
+  );
+}
+
+/**
+ * Ending every session, in two clicks.
+ *
+ * Two because it reaches devices that are not in the room: a stray click here signs out a
+ * phone somebody else is holding. Not the typed confirmation deletion uses — nothing is
+ * lost here, and asking someone to spell a word to sign out would be theatre. The armed
+ * state forgets itself, so a tab left open does not stay dangerous.
+ */
+function SignOutEverywhereRow({ logic }: { readonly logic: ReturnType<typeof useAccountLogic> }) {
+  const { t } = useTranslation();
+  const [armed, setArmed] = useState(false);
+
+  useEffect(() => {
+    if (!armed) return;
+    const timer = setTimeout(() => setArmed(false), 5000);
+    return () => clearTimeout(timer);
+  }, [armed]);
+
+  return (
+    <Row
+      title={t("auth.signOutEverywhere")}
+      body={
+        logic.signOutEverywhereFailed
+          ? t("auth.signOutEverywhereFailed")
+          : t("auth.signOutEverywhereBody")
+      }
+      trailing={
+        <Button
+          variant="secondary"
+          loading={logic.signingOutEverywhere}
+          onClick={() => {
+            if (!armed) {
+              setArmed(true);
+              return;
+            }
+            setArmed(false);
+            logic.signOutEverywhere();
+          }}
+          className={cn(
+            "h-[30px] flex-none rounded-md px-3 text-xs",
+            armed && "border-accent/40 text-accent-strong",
+          )}
+        >
+          {armed ? t("common.confirm") : t("auth.signOutEverywhereAction")}
+        </Button>
+      }
+    />
   );
 }
 

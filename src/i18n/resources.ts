@@ -695,6 +695,11 @@ const enCommon = {
     continueWithout: "Continue without an account",
     continueWithoutBody: "Everything is saved in this browser only.",
     signOut: "Sign out",
+    signOutEverywhere: "Sign out everywhere",
+    signOutEverywhereAction: "Sign out",
+    signOutEverywhereBody: "Ends the session on every device, this one included.",
+    signOutEverywhereFailed:
+      "That did not reach the server. This browser is signed out; the other devices may not be.",
     error: {
       badCredentials: "That e-mail address and password do not match.",
       emailTaken: "That e-mail address is already registered.",
@@ -1105,6 +1110,7 @@ const enCommon = {
     cancel: "Cancel",
     back: "Back",
     close: "Close",
+    confirm: "Confirm",
   },
 } as const;
 
@@ -1813,6 +1819,11 @@ const deCommon: CommonSchema = {
     continueWithout: "Ohne Konto fortfahren",
     continueWithoutBody: "Alles wird nur in diesem Browser gespeichert.",
     signOut: "Abmelden",
+    signOutEverywhere: "Überall abmelden",
+    signOutEverywhereAction: "Abmelden",
+    signOutEverywhereBody: "Beendet die Sitzung auf jedem Gerät, dieses eingeschlossen.",
+    signOutEverywhereFailed:
+      "Das hat den Server nicht erreicht. Dieser Browser ist abgemeldet, die anderen Geräte vielleicht nicht.",
     error: {
       badCredentials: "E-Mail-Adresse und Passwort passen nicht zusammen.",
       emailTaken: "Diese E-Mail-Adresse ist bereits registriert.",
@@ -2222,6 +2233,7 @@ const deCommon: CommonSchema = {
     save: "Speichern",
     cancel: "Abbrechen",
     back: "Zurück",
+    confirm: "Bestätigen",
     close: "Schließen",
   },
 };

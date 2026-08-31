@@ -115,14 +115,26 @@ export const exchange = (
       );
     }
   /**
- * Clears the refresh cookie and invalidates all outstanding refresh tokens.
- * @summary Sign out on every device
+ * Clears the refresh cookie. Sessions on other devices are left alone — signing out of a browser is not a statement about a phone.
+ * @summary Sign out on this device
  */
 export const logout = (
     
  ) => {
       return customInstance<void>(
       {url: `/api/v1/auth/logout`, method: 'POST'
+    },
+      );
+    }
+  /**
+ * Invalidates every outstanding refresh token for this account, on every device, and clears this one's cookie. The deliberate version of what logout used to do to everybody.
+ * @summary Sign out everywhere
+ */
+export const logoutEverywhere = (
+    
+ ) => {
+      return customInstance<void>(
+      {url: `/api/v1/auth/logout-all`, method: 'POST'
     },
       );
     }
@@ -316,6 +328,7 @@ export type CallbackResult = NonNullable<Awaited<ReturnType<typeof callback>>>
 export type CallbackPostedResult = NonNullable<Awaited<ReturnType<typeof callbackPosted>>>
 export type ExchangeResult = NonNullable<Awaited<ReturnType<typeof exchange>>>
 export type LogoutResult = NonNullable<Awaited<ReturnType<typeof logout>>>
+export type LogoutEverywhereResult = NonNullable<Awaited<ReturnType<typeof logoutEverywhere>>>
 export type LoginResult = NonNullable<Awaited<ReturnType<typeof login>>>
 export type ForgotPasswordResult = NonNullable<Awaited<ReturnType<typeof forgotPassword>>>
 export type ChangeEmailResult = NonNullable<Awaited<ReturnType<typeof changeEmail>>>

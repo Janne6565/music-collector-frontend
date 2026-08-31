@@ -3,6 +3,7 @@ import {
   cancelEmailChange,
   emailConfirmation,
   logout,
+  logoutEverywhere,
   resendEmailConfirmation,
   updateProfile,
 } from "@/api/generated/auth/auth";
@@ -214,6 +215,29 @@ export function useAccountLogic() {
     },
   });
 
+  /**
+   * Ending every session, this browser's included.
+   *
+   * Not best effort, unlike signing out here: somebody asking for this wants the other
+   * devices gone, and it may be because one of them is not in their hands any more. So a
+   * failure is reported rather than swallowed — but this browser is signed out either way,
+   * because staying signed in after pressing it is the one outcome nobody wants.
+   */
+  const signOutEverywhere = useMutation({
+    mutationFn: async () => {
+      try {
+        await logoutEverywhere();
+      } finally {
+        setAccessToken(null);
+      }
+    },
+    onSettled: async () => {
+      dispatch(signedOut());
+      await queryClient.invalidateQueries();
+      void navigate({ to: "/" });
+    },
+  });
+
   const signOut = useMutation({
     mutationFn: async () => {
       await logout().catch(() => undefined);
@@ -287,5 +311,8 @@ export function useAccountLogic() {
     archiveFailed: exportArchive.isError,
     signOut: () => signOut.mutate(),
     signingOut: signOut.isPending,
+    signOutEverywhere: () => signOutEverywhere.mutate(),
+    signingOutEverywhere: signOutEverywhere.isPending,
+    signOutEverywhereFailed: signOutEverywhere.isError,
   };
 }

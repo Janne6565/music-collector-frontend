@@ -508,6 +508,38 @@ function RelationshipAction({ logic, block }: { readonly logic: Logic; readonly 
           {t("friends.state.requested")}
         </span>
       );
+    /*
+     * They asked first. Without this case the switch fell through to the ask button, which
+     * reads as though nothing had happened and, pressed, is refused — the row is already
+     * there. Decline sits before Accept in the same order as the request card on Friends.
+     */
+    case "REQUEST_RECEIVED": {
+      const requestId = person?.pendingRequestId;
+      if (requestId === undefined) return null;
+      const busy = logic.acceptRequest.isPending || logic.declineRequest.isPending;
+      return (
+        <div
+          className={wide ? "flex w-full items-center gap-2" : "flex flex-none items-center gap-2"}
+        >
+          <button
+            type="button"
+            onClick={() => logic.declineRequest.mutate(requestId)}
+            disabled={busy}
+            className="flex-none px-2 py-1 text-[12.5px] text-ink-muted disabled:opacity-50"
+          >
+            {t("friends.decline")}
+          </button>
+          <Button
+            onClick={() => logic.acceptRequest.mutate(requestId)}
+            disabled={busy}
+            className={action}
+          >
+            <UserCheck size={15} strokeWidth={1.75} aria-hidden />
+            {t("friends.accept")}
+          </Button>
+        </div>
+      );
+    }
     default:
       return (
         <Button

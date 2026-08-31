@@ -428,6 +428,7 @@ export interface ProfileDto {
   displayName?: string;
   avatarUrl?: string;
   relationship?: ProfileDtoRelationship;
+  pendingRequestId?: string;
   canSeeCollection?: boolean;
   canSeeWishlist?: boolean;
   pricesVisible?: boolean;

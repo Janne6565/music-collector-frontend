@@ -62,6 +62,30 @@ function logicFor(pricesVisible: boolean): ReturnType<typeof useProfileLogic> {
   } as unknown as ReturnType<typeof useProfileLogic>;
 }
 
+/**
+ * The same shelf, seen by somebody the owner has asked to be friends with.
+ *
+ * The two buttons are what this fixture is for: before turn 29 the switch had no case for
+ * REQUEST_RECEIVED and fell through to "Ask to be friends", which the server refuses.
+ */
+function askedLogic(accept: () => void, declineIt: () => void): ReturnType<typeof useProfileLogic> {
+  return {
+    ...logicFor(true),
+    person: {
+      handle: "janne2",
+      displayName: "Janne Keipert",
+      relationship: "REQUEST_RECEIVED",
+      pendingRequestId: "request-1",
+      canSeeCollection: false,
+      canSeeWishlist: false,
+      copyCount: 3,
+      wishlistCount: 0,
+    },
+    acceptRequest: { mutate: accept, isPending: false },
+    declineRequest: { mutate: declineIt, isPending: false },
+  } as unknown as ReturnType<typeof useProfileLogic>;
+}
+
 function shelf(openId: string | undefined, onOpen = vi.fn(), pricesVisible = true) {
   // A hidden shelf arrives with no amounts on it at all, which is what the server does.
   const view = render(
@@ -127,5 +151,44 @@ describe("the public shelf", () => {
     shelf("gone");
 
     expect(screen.queryByRole("heading", { name: "Remain in Light" })).toBeNull();
+  });
+});
+
+describe("a shelf whose owner asked first", () => {
+  function asked() {
+    const accept = vi.fn();
+    const declineIt = vi.fn();
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <ProfileBody
+          logic={askedLogic(accept, declineIt)}
+          tab="collection"
+          onTab={vi.fn()}
+          openId={undefined}
+          onOpen={vi.fn()}
+        />
+      </QueryClientProvider>,
+    );
+    return { accept, declineIt };
+  }
+
+  it("offers an answer rather than the ask button", () => {
+    asked();
+
+    // Both shapes are in the document — the one beside the name and 15c's own row — so
+    // each label is found twice, and neither of them is the ask.
+    expect(screen.getAllByRole("button", { name: "Accept" }).length).toBe(2);
+    expect(screen.getAllByRole("button", { name: "Decline" }).length).toBe(2);
+    expect(screen.queryByRole("button", { name: /Ask to be friends/ })).toBeNull();
+  });
+
+  it("answers the request, not the person", () => {
+    const { accept, declineIt } = asked();
+
+    fireEvent.click(screen.getAllByRole("button", { name: "Accept" })[0]);
+    expect(accept).toHaveBeenCalledWith("request-1");
+
+    fireEvent.click(screen.getAllByRole("button", { name: "Decline" })[0]);
+    expect(declineIt).toHaveBeenCalledWith("request-1");
   });
 });

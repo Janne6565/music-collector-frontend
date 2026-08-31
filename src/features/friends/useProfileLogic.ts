@@ -1,4 +1,4 @@
-import { remove, request } from "@/api/generated/friends/friends";
+import { accept, decline, remove, request } from "@/api/generated/friends/friends";
 import { collection, profile, wishlist } from "@/api/generated/profiles/profiles";
 import { useAppSelector } from "@/store/hooks";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -58,6 +58,23 @@ export function useProfileLogic(handle: string) {
     onSuccess: refresh,
   });
 
+  /*
+   * Answering from the shelf you are already looking at.
+   *
+   * Both name the request rather than the person, which is why the profile carries
+   * `pendingRequestId` at all — a handle is what got you here, and it is not what the
+   * endpoints take.
+   */
+  const acceptRequest = useMutation({
+    mutationFn: async (id: string) => accept(id),
+    onSuccess: refresh,
+  });
+
+  const declineRequest = useMutation({
+    mutationFn: async (id: string) => decline(id),
+    onSuccess: refresh,
+  });
+
   const unfriend = useMutation({
     mutationFn: async (userId: string) => remove(userId),
     onSuccess: refresh,
@@ -75,6 +92,8 @@ export function useProfileLogic(handle: string) {
     wishes: wishes.data?.wishes ?? [],
     loadingLists: copies.isLoading || wishes.isLoading,
     ask,
+    acceptRequest,
+    declineRequest,
     unfriend,
   };
 }

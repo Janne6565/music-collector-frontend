@@ -142,33 +142,76 @@ function Disc() {
   );
 }
 
-/** The shell seen end-on: the window and the two hubs are what read at a glance. */
+/**
+ * The shell seen end-on, which is how a cassette sits on a shelf.
+ *
+ * The mark is read at the rim: only the 16.67% of the frame to the right of the cover is
+ * ever visible, so everything here is placed by where it lands in that strip. The shell's
+ * gradient lightens from 55% to 94% and darkens again at the very edge, which is the whole
+ * of its roundness — the flat left half of that ramp is behind the cover and costs nothing.
+ *
+ * The two winds are deliberately different sizes: a tape that has been played is wound onto
+ * one hub, and drawing both spools equal is the detail that makes a cassette look like an
+ * icon of one. The top is the full spool, the bottom the near-empty one.
+ */
 function Cassette() {
   return (
     <>
+      {/* The shell, and the light down its outer edge. */}
       <div
-        className="absolute right-0 top-[13%] h-[74%] w-[33%] rounded-[2px_3px_3px_2px]"
+        className="absolute right-0 top-[13%] h-[74%] w-[33%] rounded-[2px_4px_4px_2px]"
         style={{
-          background: "linear-gradient(90deg,#2c2822 0 40%,#22201b 100%)",
-          boxShadow: "0 2px 7px rgba(25,23,19,.3),inset 0 0 0 1px rgba(0,0,0,.4)",
+          background: "linear-gradient(90deg,#211e18 0 55%,#2b2721 82%,#332e26 94%,#262219 100%)",
+          boxShadow:
+            "0 2px 7px rgba(25,23,19,.3),inset 0 0 0 1px rgba(0,0,0,.42),inset -1px 1px 0 rgba(250,248,245,.09)",
         }}
       />
+      {/* The paper label, which is the only light mass in the mark and so the thing that
+          separates a cassette from the plug at 44px. */}
       <div
-        className="absolute right-[8%] top-[22%] h-[56%] w-[17%] rounded-[2px]"
+        className="absolute right-[3%] top-[17%] h-[66%] w-[27%] rounded-[1px_3px_3px_1px]"
         style={{
-          background: "rgba(250,248,245,.34)",
-          boxShadow: "inset 0 0 0 1px rgba(0,0,0,.35)",
+          background: "linear-gradient(90deg,#ddd6c8 0 70%,#e9e3d6 100%)",
+          boxShadow: "inset 0 0 0 1px rgba(25,23,19,.22)",
         }}
       />
-      {[28, 58].map((top) => (
+      {/* The spine the label wraps around. */}
+      <div className="absolute right-[3%] top-[17%] h-[66%] w-[2.6%] rounded-[0_3px_3px_0] bg-[#8b8880]" />
+      {/* The window, cut through the label into the dark of the shell. */}
+      <div
+        className="absolute right-[7%] top-[29%] h-[42%] w-[12%] rounded-[5px]"
+        style={{
+          background: "#14120f",
+          boxShadow: "inset 0 0 0 1px rgba(25,23,19,.5),inset 0 1px 2px rgba(0,0,0,.6)",
+        }}
+      />
+      {/* The tape itself: brown, and wound unevenly. */}
+      <div
+        className="absolute right-[7.5%] top-[33.4%] h-[13.2%] w-[11%] rounded-full"
+        style={{ background: "radial-gradient(circle,#3a2c22 0 60%,#2a2019 100%)" }}
+      />
+      <div
+        className="absolute right-[8.75%] top-[54.9%] h-[10.2%] w-[8.5%] rounded-full"
+        style={{ background: "radial-gradient(circle,#3a2c22 0 60%,#2a2019 100%)" }}
+      />
+      {/* The hubs, the same size on both spools whatever is wound on them. */}
+      {[35.5, 55.5].map((top) => (
         <div
           key={top}
-          className="absolute right-[11.5%] h-[14%] w-[10%] rounded-full"
+          className="absolute right-[9.25%] h-[9%] w-[7.5%] rounded-full"
           style={{
             top: `${top}%`,
-            background: "#191713",
-            boxShadow: "inset 0 0 0 1.5px rgba(250,248,245,.55)",
+            background: "radial-gradient(circle,#14120f 0 32%,#e8e3d8 32% 100%)",
+            boxShadow: "inset 0 0 0 1px rgba(25,23,19,.4)",
           }}
+        />
+      ))}
+      {/* The two screws at the corners of the shell. */}
+      {[15, 82.6].map((top) => (
+        <div
+          key={top}
+          className="absolute right-[1%] h-[2.4%] w-[2%] rounded-full bg-[#0e0d0b]"
+          style={{ top: `${top}%` }}
         />
       ))}
     </>

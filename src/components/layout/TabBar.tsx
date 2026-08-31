@@ -1,3 +1,4 @@
+import { useSectionActive } from "@/components/layout/navActive";
 import { cn } from "@/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { Heart, LibraryBig, User, Users } from "lucide-react";
@@ -28,7 +29,11 @@ export function TabBar() {
         "pb-safe",
       )}
     >
-      <Tab to="/" icon={<LibraryBig size={21} strokeWidth={2} aria-hidden />}>
+      <Tab
+        to="/"
+        alsoActiveOn={["/copies"]}
+        icon={<LibraryBig size={21} strokeWidth={2} aria-hidden />}
+      >
         {t("nav.library")}
       </Tab>
       <Tab to="/wishlist" icon={<Heart size={21} strokeWidth={2} aria-hidden />}>
@@ -44,22 +49,32 @@ export function TabBar() {
   );
 }
 
+/** One class list, so the router's own match and ours cannot drift apart. */
+const ACTIVE_TAB = "text-accent [&_span]:font-semibold";
+
 function Tab({
   to,
+  alsoActiveOn,
   icon,
   children,
 }: {
   readonly to: string;
+  /** Sections that live outside this entry's own path — a record, opened from the shelf. */
+  readonly alsoActiveOn?: readonly string[];
   readonly icon: ReactNode;
   readonly children: ReactNode;
 }) {
+  const active = useSectionActive(alsoActiveOn === undefined ? [] : [to, ...alsoActiveOn]);
   return (
     <Link
       to={to}
       // 56px, which clears the 44px minimum on its own — the label under the icon is not a
       // tap target of its own, so the whole cell has to be one.
-      className="flex h-14 flex-1 flex-col items-center justify-center gap-[3px] text-ink/50"
-      activeProps={{ className: "text-accent [&_span]:font-semibold" }}
+      className={cn(
+        "flex h-14 flex-1 flex-col items-center justify-center gap-[3px] text-ink/50",
+        active && ACTIVE_TAB,
+      )}
+      activeProps={{ className: ACTIVE_TAB }}
       activeOptions={{ exact: to === "/" }}
     >
       {icon}

@@ -1,5 +1,7 @@
 import { TabBar } from "@/components/layout/TabBar";
+import { useSectionActive } from "@/components/layout/navActive";
 import { SidebarAccount } from "@/features/auth/SidebarAccount";
+import { cn } from "@/lib/utils";
 import type { CollectionStats } from "@janne6565/rekordo-shared";
 import { FORMAT_LABELS } from "@janne6565/rekordo-shared";
 import { Link } from "@tanstack/react-router";
@@ -56,6 +58,7 @@ function Sidebar({ stats }: { readonly stats: CollectionStats | undefined }) {
       <div className="flex flex-col gap-0.5">
         <SidebarLink
           to="/"
+          alsoActiveOn={["/copies"]}
           icon={<LibraryBig size={15} strokeWidth={1.75} aria-hidden />}
           count={stats?.copyCount}
         >
@@ -98,21 +101,28 @@ function FormatCounts({ stats }: { readonly stats: CollectionStats }) {
   );
 }
 
+/** One class list, so the router's own match and ours cannot drift apart. */
+const ACTIVE_LINK = "bg-surface text-ink font-semibold shadow-[0_1px_2px_rgba(25,23,19,.06)]";
+
 interface SidebarLinkProps {
   readonly to: string;
+  /** Sections that live outside this entry's own path — a record, opened from the shelf. */
+  readonly alsoActiveOn?: readonly string[];
   readonly icon: ReactNode;
   readonly count?: number;
   readonly children: ReactNode;
 }
 
-function SidebarLink({ to, icon, count, children }: SidebarLinkProps) {
+function SidebarLink({ to, alsoActiveOn, icon, count, children }: SidebarLinkProps) {
+  const active = useSectionActive(alsoActiveOn === undefined ? [] : [to, ...alsoActiveOn]);
   return (
     <Link
       to={to}
-      className="flex items-center justify-between rounded-md px-2.5 py-2 text-[13px] font-medium text-ink/65 transition-colors duration-(--mc-quick) hover:bg-surface"
-      activeProps={{
-        className: "bg-surface text-ink font-semibold shadow-[0_1px_2px_rgba(25,23,19,.06)]",
-      }}
+      className={cn(
+        "flex items-center justify-between rounded-md px-2.5 py-2 text-[13px] font-medium text-ink/65 transition-colors duration-(--mc-quick) hover:bg-surface",
+        active && ACTIVE_LINK,
+      )}
+      activeProps={{ className: ACTIVE_LINK }}
       activeOptions={{ exact: to === "/" }}
     >
       <span className="flex items-center gap-2.5">

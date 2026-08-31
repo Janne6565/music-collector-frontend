@@ -4,6 +4,7 @@ import { Button, Skeleton } from "@/components/ui";
 import { Modal } from "@/components/ui/Modal";
 import { AddDialog } from "@/features/add/AddDialog";
 import { ConfirmStrip } from "@/features/auth/ConfirmStrip";
+import { SyncOutcomeStrip } from "@/features/auth/SyncOutcomeStrip";
 import { CopyDetailsDialog } from "@/features/copy/CopyDetailsDialog";
 import { useUndo } from "@/features/detail/UndoDelete";
 import {
@@ -140,6 +141,7 @@ export function LibraryPage() {
           again. Above the header it would have read as chrome rather than as a line
           about the collection you are looking at. */}
       <ConfirmStrip />
+      <SyncOutcomeStrip logic={logic} />
 
       <div className="hidden flex-none gap-1.5 px-7 pb-3 sm:flex">
         {FILTERS.map((filter) => (

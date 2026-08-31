@@ -1,6 +1,5 @@
 import { Button, buttonClassName } from "@/components/ui";
 import { AuthBrandPanel } from "@/features/auth/AuthBrandPanel";
-import { FirstSyncPrompt } from "@/features/auth/FirstSyncPrompt";
 import { PasswordField } from "@/features/auth/PasswordField";
 import type { AuthError } from "@/features/auth/useAuthLogic";
 import { useAuthLogic } from "@/features/auth/useAuthLogic";
@@ -22,25 +21,24 @@ export function SignInPage() {
    * Somebody who is already signed in has nothing to do on this page, so it hands them
    * their shelf instead — the same place signing in ends up.
    *
-   * Three things it deliberately does not do. It waits for `signedIn` rather than acting
+   * Two things it deliberately does not do. It waits for `signedIn` rather than acting
    * on "not anonymous": the session is restored from the refresh cookie after the first
-   * paint, and status is `unknown` until then. It stands aside while `firstSyncPending`,
-   * because the prompt asking what to do with a local collection is drawn on this page
-   * and redirecting would take the question away unanswered. And it leaves a failed
-   * provider sign-in alone, because that lands here to be told about — with a session
-   * still restorable from an earlier one, it would otherwise be swept off the screen.
+   * paint, and status is `unknown` until then. And it leaves a failed provider sign-in
+   * alone, because that lands here to be told about — with a session still restorable
+   * from an earlier one, it would otherwise be swept off the screen.
+   *
+   * It no longer stands aside for a pending first sync (29). That question is now asked
+   * over the library, above the router, so sending somebody there is what *shows* it —
+   * keeping them on this page would leave the dialogue floating over a sign-in form they
+   * have already used.
    *
    * `replace` so the back gesture returns to wherever they were, not to a page that
    * bounces them forward again.
    */
-  const signedInAlready = logic.auth.status === "signedIn" && !logic.auth.firstSyncPending;
+  const signedInAlready = logic.auth.status === "signedIn";
   useEffect(() => {
     if (signedInAlready && oauthError === undefined) void navigate({ to: "/", replace: true });
   }, [signedInAlready, oauthError, navigate]);
-
-  if (logic.auth.firstSyncPending) {
-    return <FirstSyncPrompt />;
-  }
 
   const registering = logic.mode === "REGISTER";
 

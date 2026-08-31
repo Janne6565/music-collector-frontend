@@ -103,7 +103,9 @@ export function useAuthLogic() {
     onSuccess: ({ user, firstSyncPending }) => {
       dispatch(signedIn({ user, firstSyncPending }));
       setFailed([]);
-      if (!firstSyncPending) void navigate({ to: "/" });
+      // Always, now: the conflict dialogue is drawn over the library rather than here, so
+      // the library is where the question gets asked (29).
+      void navigate({ to: "/" });
     },
     onError: (error: unknown) => {
       setFailed(errorsFrom(error));

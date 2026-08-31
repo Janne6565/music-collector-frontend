@@ -709,22 +709,125 @@ const enCommon = {
       generic: "Something went wrong. Try again in a moment.",
     },
   },
-  firstSync: {
-    title: "You already have {{count}} copies on this device",
-    body: "Your account holds {{count}}. Decide what happens to the local ones before we sync.",
-    merge: {
-      title: "Merge them",
-      body: "{{added}} new copies added, {{skipped}} already in your account. Nothing is overwritten.",
+  conflict: {
+    signedInAs: "Signed in as {{email}}",
+    untitled: "Untitled",
+    emptyValue: "Nothing",
+    never: "Never",
+    copies_one: "{{count}} copy",
+    copies_other: "{{count}} copies",
+    entries_one: "{{count}} entry",
+    entries_other: "{{count}} entries",
+    kind: { copy: "Copy", wish: "Wishlist" },
+    sides: { local: "This browser", account: "Your account" },
+    field: {
+      rating: "Rating",
+      notes: "Note",
+      condition: "Condition",
+      sleeveCondition: "Sleeve",
+      pricePaidCents: "Price",
+      purchasedOn: "Bought on",
+      note: "Note",
+      desiredFormat: "Format",
     },
-    keepAccount: {
-      title: "Keep the account version",
-      body: "The {{count}} local copies stay on this device, unsynced.",
+    comparing: {
+      title: "Comparing your shelves",
+      body_one:
+        "{{count}} copy here. This takes a few seconds and nothing changes until you choose.",
+      body_other:
+        "{{count}} copies here. This takes a few seconds and nothing changes until you choose.",
     },
-    exportFirst: "Export the local copies as CSV first",
-    confirmMerge: "Merge and sync",
-    confirmKeep: "Keep the account version",
-    later: "Decide later",
-    failed: "That did not work. Nothing was changed, so try again.",
+    unreachable: {
+      title: "Your shelf here is untouched",
+      body: "The server did not answer, so the account has not been read. You are signed in, sync is paused, and this device keeps working as it did. Rekordo will ask again when it can compare.",
+      open: "Open library",
+      retry: "Try again",
+    },
+    uploading: {
+      title_one: "Your {{count}} copy is going up",
+      title_other: "Your {{count}} copies are going up",
+      body: "The account was empty, so there was nothing to compare. Nothing was replaced and nothing was deleted.",
+    },
+    noLoss: {
+      title_one: "Your account adds {{count}} entry",
+      title_other: "Your account adds {{count}} entries",
+      body: "Everything in this browser is already in the account. Nothing is replaced and nothing is deleted. You end up with {{copies}} copies and {{wishes}} wishlist entries.",
+      show_one: "Show the {{count}} entry",
+      show_other: "Show the {{count}} entries",
+      continue: "Continue",
+    },
+    conflict: {
+      title: "Both sides changed since you were last signed in",
+      body: "Neither one contains everything, so this is the one thing Rekordo cannot decide for you.",
+    },
+    rows: {
+      header: "Only on one side",
+      copies: "Copies",
+      wishes: "Wishlist entries",
+      values: "Ratings and notes",
+      valuesCount_one: "{{count}} differs",
+      valuesCount_other: "{{count}} differ",
+      valuesBody: "Same copy, edited on both sides. Merging keeps the later edit.",
+      photos_zero: "No choice here deletes a photo.",
+      photos_one:
+        "Your {{count}} sleeve photo stays in this browser whatever you choose. Photos are never deleted here.",
+      photos_other:
+        "Your {{count}} sleeve photos stay in this browser whatever you choose. Photos are never deleted here.",
+    },
+    seeDifference: "See what differs",
+    keepBoth: "Keep both",
+    keepLocal: "Keep this browser",
+    keepAccount: "Keep the account",
+    keepCost_one:
+      "Keeping one side drops {{count}} entry from the other. Nothing is deleted by Keep both.",
+    keepCost_other:
+      "Keeping one side drops {{count}} entries from the other. Nothing is deleted by Keep both.",
+    decideMyself_one: "Decide the {{count}} edit myself",
+    decideMyself_other: "Decide the {{count}} edits myself",
+    difference: {
+      title: "What differs",
+      hide: "Hide",
+      lede_one:
+        "{{count}} entry. {{copies}} copies and {{wishes}} wishlist entries are identical on both sides and are not listed.",
+      lede_other:
+        "{{count}} entries. {{copies}} copies and {{wishes}} wishlist entries are identical on both sides and are not listed.",
+      onlyLocal: "Only in this browser · {{count}}",
+      onlyAccount: "Only in your account · {{count}}",
+      both: "On both, with different values · {{count}}",
+      wins: "Keep both takes the {{side}} value",
+    },
+    review: {
+      title: "Decide each",
+      progress: "{{done}} of {{total}} decided",
+      undecided: "Undecided entries are kept, not dropped.",
+      keepAll: "Keep all",
+      values: "Ratings and notes · {{count}}",
+      oneSided: "On one side only · {{count}}",
+      keep: "Keep",
+      drop: "Drop",
+      apply: "Apply",
+      applyTotal: "{{copies}} copies, {{wishes}} wishlist",
+    },
+    drop: {
+      localTitle_one: "{{count}} entry leaves the account",
+      localTitle_other: "{{count}} entries leave the account",
+      accountTitle_one: "{{count}} entry leaves this browser",
+      accountTitle_other: "{{count}} entries leave this browser",
+      localBody:
+        "{{copies}} copies and {{wishes}} wishlist entries exist only in your account. Keeping this browser deletes them there, on every other device too. The {{edits}} differing values become this browser's.",
+      accountBody:
+        "{{copies}} copies and {{wishes}} wishlist entries exist only here. Keeping the account deletes them from this browser. Your {{photos}} sleeve photos stay, and reattach if their copy comes back.",
+      export_one: "Download the {{count}} entry as CSV first",
+      export_other: "Download the {{count}} entries as CSV first",
+    },
+    banner: {
+      MERGED: "Merged. {{arrived}} entries came in, {{edits}} values took their later edit.",
+      REVIEWED: "Done. {{arrived}} entries came in, and the rest went the way you decided.",
+      KEPT_LOCAL: "This browser was kept. The account now holds what is on this shelf.",
+      KEPT_ACCOUNT: "The account was kept. {{arrived}} entries came in.",
+      show: "Show them",
+    },
+    failed: "That did not work. Nothing was changed, so you can try again.",
   },
   authPanel: {
     signInHeadline: "Every copy you own, on one shelf.",
@@ -1833,22 +1936,128 @@ const deCommon: CommonSchema = {
       generic: "Da ist etwas schiefgegangen. Versuche es gleich noch einmal.",
     },
   },
-  firstSync: {
-    title: "Auf diesem Gerät liegen schon {{count}} Exemplare",
-    body: "In deinem Konto sind es {{count}}. Entscheide vor dem Sync, was mit den lokalen passiert.",
-    merge: {
-      title: "Zusammenführen",
-      body: "{{added}} neue Exemplare kommen dazu, {{skipped}} sind schon im Konto. Nichts wird überschrieben.",
+  conflict: {
+    signedInAs: "Angemeldet als {{email}}",
+    untitled: "Ohne Titel",
+    emptyValue: "Nichts",
+    never: "Nie",
+    copies_one: "{{count}} Exemplar",
+    copies_other: "{{count}} Exemplare",
+    entries_one: "{{count}} Eintrag",
+    entries_other: "{{count}} Einträge",
+    kind: { copy: "Exemplar", wish: "Wunschliste" },
+    sides: { local: "Dieser Browser", account: "Dein Konto" },
+    field: {
+      rating: "Bewertung",
+      notes: "Notiz",
+      condition: "Zustand",
+      sleeveCondition: "Hülle",
+      pricePaidCents: "Preis",
+      purchasedOn: "Gekauft am",
+      note: "Notiz",
+      desiredFormat: "Format",
     },
-    keepAccount: {
-      title: "Version aus dem Konto behalten",
-      body: "Die {{count}} lokalen Exemplare bleiben auf diesem Gerät, ohne Sync.",
+    comparing: {
+      title: "Deine Regale werden verglichen",
+      body_one:
+        "{{count}} Exemplar liegt hier. Das dauert ein paar Sekunden, und bis zu deiner Entscheidung ändert sich nichts.",
+      body_other:
+        "{{count}} Exemplare liegen hier. Das dauert ein paar Sekunden, und bis zu deiner Entscheidung ändert sich nichts.",
     },
-    exportFirst: "Die lokalen Exemplare vorher als CSV exportieren",
-    confirmMerge: "Zusammenführen und synchronisieren",
-    confirmKeep: "Version aus dem Konto behalten",
-    later: "Später entscheiden",
-    failed: "Das hat nicht geklappt. Es wurde nichts geändert, versuche es erneut.",
+    unreachable: {
+      title: "Dein Regal hier ist unberührt",
+      body: "Der Server hat nicht geantwortet, das Konto wurde also nicht gelesen. Du bist angemeldet, der Sync pausiert, und dieses Gerät arbeitet weiter wie bisher. Rekordo fragt erneut, sobald es vergleichen kann.",
+      open: "Bibliothek öffnen",
+      retry: "Erneut versuchen",
+    },
+    uploading: {
+      title_one: "Dein {{count}} Exemplar geht hoch",
+      title_other: "Deine {{count}} Exemplare gehen hoch",
+      body: "Das Konto war leer, es gab also nichts zu vergleichen. Nichts wurde ersetzt und nichts gelöscht.",
+    },
+    noLoss: {
+      title_one: "Dein Konto steuert {{count}} Eintrag bei",
+      title_other: "Dein Konto steuert {{count}} Einträge bei",
+      body: "Alles in diesem Browser ist bereits im Konto. Nichts wird ersetzt und nichts gelöscht. Am Ende hast du {{copies}} Exemplare und {{wishes}} Wunschlisteneinträge.",
+      show_one: "Den {{count}} Eintrag zeigen",
+      show_other: "Die {{count}} Einträge zeigen",
+      continue: "Weiter",
+    },
+    conflict: {
+      title: "Beide Seiten haben sich seit deiner letzten Anmeldung geändert",
+      body: "Keine der beiden enthält alles, und genau das ist das Einzige, was Rekordo nicht für dich entscheiden kann.",
+    },
+    rows: {
+      header: "Nur auf einer Seite",
+      copies: "Exemplare",
+      wishes: "Wunschlisteneinträge",
+      values: "Bewertungen und Notizen",
+      valuesCount_one: "{{count}} weicht ab",
+      valuesCount_other: "{{count}} weichen ab",
+      valuesBody:
+        "Dasselbe Exemplar, auf beiden Seiten bearbeitet. Beim Zusammenführen gilt die spätere Änderung.",
+      photos_zero: "Keine Wahl hier löscht ein Foto.",
+      photos_one:
+        "Dein {{count}} Hüllenfoto bleibt in diesem Browser, egal wie du dich entscheidest. Fotos werden hier nie gelöscht.",
+      photos_other:
+        "Deine {{count}} Hüllenfotos bleiben in diesem Browser, egal wie du dich entscheidest. Fotos werden hier nie gelöscht.",
+    },
+    seeDifference: "Unterschiede ansehen",
+    keepBoth: "Beides behalten",
+    keepLocal: "Diesen Browser behalten",
+    keepAccount: "Das Konto behalten",
+    keepCost_one:
+      "Eine Seite zu behalten verwirft {{count}} Eintrag der anderen. Beides behalten löscht nichts.",
+    keepCost_other:
+      "Eine Seite zu behalten verwirft {{count}} Einträge der anderen. Beides behalten löscht nichts.",
+    decideMyself_one: "Die {{count}} Abweichung selbst entscheiden",
+    decideMyself_other: "Die {{count}} Abweichungen selbst entscheiden",
+    difference: {
+      title: "Was sich unterscheidet",
+      hide: "Ausblenden",
+      lede_one:
+        "{{count}} Eintrag. {{copies}} Exemplare und {{wishes}} Wunschlisteneinträge sind auf beiden Seiten gleich und werden nicht aufgeführt.",
+      lede_other:
+        "{{count}} Einträge. {{copies}} Exemplare und {{wishes}} Wunschlisteneinträge sind auf beiden Seiten gleich und werden nicht aufgeführt.",
+      onlyLocal: "Nur in diesem Browser · {{count}}",
+      onlyAccount: "Nur in deinem Konto · {{count}}",
+      both: "Auf beiden, mit anderen Werten · {{count}}",
+      wins: "Beides behalten nimmt den Wert aus: {{side}}",
+    },
+    review: {
+      title: "Einzeln entscheiden",
+      progress: "{{done}} von {{total}} entschieden",
+      undecided: "Nicht entschiedene Einträge werden behalten, nicht verworfen.",
+      keepAll: "Alle behalten",
+      values: "Bewertungen und Notizen · {{count}}",
+      oneSided: "Nur auf einer Seite · {{count}}",
+      keep: "Behalten",
+      drop: "Verwerfen",
+      apply: "Übernehmen",
+      applyTotal: "{{copies}} Exemplare, {{wishes}} Wunschliste",
+    },
+    drop: {
+      localTitle_one: "{{count}} Eintrag verlässt das Konto",
+      localTitle_other: "{{count}} Einträge verlassen das Konto",
+      accountTitle_one: "{{count}} Eintrag verlässt diesen Browser",
+      accountTitle_other: "{{count}} Einträge verlassen diesen Browser",
+      localBody:
+        "{{copies}} Exemplare und {{wishes}} Wunschlisteneinträge gibt es nur in deinem Konto. Diesen Browser zu behalten löscht sie dort, und damit auch auf allen anderen Geräten. Die {{edits}} abweichenden Werte werden die dieses Browsers.",
+      accountBody:
+        "{{copies}} Exemplare und {{wishes}} Wunschlisteneinträge gibt es nur hier. Das Konto zu behalten löscht sie aus diesem Browser. Deine {{photos}} Hüllenfotos bleiben und hängen sich wieder an, falls ihr Exemplar zurückkommt.",
+      export_one: "Den {{count}} Eintrag vorher als CSV laden",
+      export_other: "Die {{count}} Einträge vorher als CSV laden",
+    },
+    banner: {
+      MERGED:
+        "Zusammengeführt. {{arrived}} Einträge sind dazugekommen, {{edits}} Werte haben ihre spätere Änderung übernommen.",
+      REVIEWED:
+        "Fertig. {{arrived}} Einträge sind dazugekommen, der Rest ist so ausgegangen, wie du entschieden hast.",
+      KEPT_LOCAL: "Dieser Browser wurde behalten. Im Konto steht jetzt, was in diesem Regal liegt.",
+      KEPT_ACCOUNT: "Das Konto wurde behalten. {{arrived}} Einträge sind dazugekommen.",
+      show: "Zeigen",
+    },
+    failed: "Das hat nicht geklappt. Es wurde nichts geändert, du kannst es erneut versuchen.",
   },
   authPanel: {
     signInHeadline: "Jedes Exemplar, das du besitzt, in einem Regal.",

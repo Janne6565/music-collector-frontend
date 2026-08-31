@@ -14,11 +14,6 @@ vi.mock("@tanstack/react-router", () => ({
   useSearch: () => mocked.search(),
 }));
 vi.mock("@/features/auth/useAuthLogic", () => ({ useAuthLogic: mocked.logic }));
-// The prompt reads the local store, which this test has no business standing up: what is
-// under test is whether the page redirects, not what the prompt asks.
-vi.mock("@/features/auth/FirstSyncPrompt", () => ({
-  FirstSyncPrompt: () => <p>first sync</p>,
-}));
 
 type Auth = { status: string; firstSyncPending: boolean };
 
@@ -69,10 +64,12 @@ describe("the sign-in page when there is nothing to sign in to", () => {
     expect(mocked.navigate).not.toHaveBeenCalled();
   });
 
-  it("leaves the first-sync question on the screen it is asked on", () => {
+  it("sends a pending first sync to the library, which is where it is now asked", () => {
+    // 29: the conflict dialogue is mounted above the router and drawn over the shelf, so
+    // staying on this page would leave the question floating over a form nobody needs.
     page({ status: "signedIn", firstSyncPending: true });
 
-    expect(mocked.navigate).not.toHaveBeenCalled();
+    expect(mocked.navigate).toHaveBeenCalledWith({ to: "/", replace: true });
   });
 
   it("does not sweep away a failed provider sign-in", () => {

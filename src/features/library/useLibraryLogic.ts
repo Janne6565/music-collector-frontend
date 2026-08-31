@@ -1,5 +1,7 @@
 import { useDebouncedSearch } from "@/lib/useDebouncedSearch";
 import { useStore } from "@/local/StoreProvider";
+import { syncOutcomeCleared } from "@/store/authSlice";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import type {
   CollectionStats,
   Copy,
@@ -45,6 +47,15 @@ export function useLibraryLogic() {
   const [format, setFormat] = useState<FormatFilter>("ALL");
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<SortKey>("ADDED_DESC");
+  /**
+   * 29e-5: the shelf filtered down to the records the sign-in brought in.
+   *
+   * Held here rather than in the URL because it is not a place — it is the second half of
+   * a sentence the banner is still saying, and it goes away with the banner.
+   */
+  const [showingArrived, setShowingArrived] = useState(false);
+  const dispatch = useAppDispatch();
+  const outcome = useAppSelector((state) => state.auth.syncOutcome);
 
   /** What the grid is filtered by — the box stays instant, this trails it. */
   const searchTerm = useDebouncedSearch(search, SEARCH_DEBOUNCE_MS);
@@ -60,7 +71,12 @@ export function useLibraryLogic() {
     },
   });
 
-  const rows = useMemo<LibraryRow[]>(() => copiesQuery.data ?? [], [copiesQuery.data]);
+  const all = useMemo<LibraryRow[]>(() => copiesQuery.data ?? [], [copiesQuery.data]);
+  const rows = useMemo<LibraryRow[]>(() => {
+    if (!showingArrived || outcome === null) return all;
+    const arrived = new Set(outcome.ids);
+    return all.filter((row) => arrived.has(row.copy.id));
+  }, [all, outcome, showingArrived]);
 
   const handleFormat = useCallback((next: FormatFilter) => setFormat(next), []);
   const handleSearch = useCallback((next: string) => setSearch(next), []);
@@ -89,5 +105,14 @@ export function useLibraryLogic() {
     cycleSort,
     /** 24b: the phone picks a mode from a sheet rather than cycling through three. */
     setSort,
+
+    /** What the sign-in resolved to, until it has been read once. */
+    outcome,
+    showingArrived,
+    showArrived: () => setShowingArrived(true),
+    dismissOutcome: () => {
+      setShowingArrived(false);
+      dispatch(syncOutcomeCleared());
+    },
   };
 }

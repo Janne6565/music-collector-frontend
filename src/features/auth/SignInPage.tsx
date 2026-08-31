@@ -4,16 +4,39 @@ import { FirstSyncPrompt } from "@/features/auth/FirstSyncPrompt";
 import { PasswordField } from "@/features/auth/PasswordField";
 import type { AuthError } from "@/features/auth/useAuthLogic";
 import { useAuthLogic } from "@/features/auth/useAuthLogic";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { ChevronLeft, Disc3, HardDrive, Mail, User } from "lucide-react";
 import type { ReactNode } from "react";
-import { useId } from "react";
+import { useEffect, useId } from "react";
 import { Trans, useTranslation } from "react-i18next";
 
 /** Screens 4c and 4d: a dark brand panel beside the form. */
 export function SignInPage() {
   const { t } = useTranslation();
   const logic = useAuthLogic();
+  const navigate = useNavigate();
+  /* The failure the server sends people back here with. Nothing renders it yet. */
+  const { oauthError } = useSearch({ strict: false }) as { oauthError?: string };
+
+  /*
+   * Somebody who is already signed in has nothing to do on this page, so it hands them
+   * their shelf instead — the same place signing in ends up.
+   *
+   * Three things it deliberately does not do. It waits for `signedIn` rather than acting
+   * on "not anonymous": the session is restored from the refresh cookie after the first
+   * paint, and status is `unknown` until then. It stands aside while `firstSyncPending`,
+   * because the prompt asking what to do with a local collection is drawn on this page
+   * and redirecting would take the question away unanswered. And it leaves a failed
+   * provider sign-in alone, because that lands here to be told about — with a session
+   * still restorable from an earlier one, it would otherwise be swept off the screen.
+   *
+   * `replace` so the back gesture returns to wherever they were, not to a page that
+   * bounces them forward again.
+   */
+  const signedInAlready = logic.auth.status === "signedIn" && !logic.auth.firstSyncPending;
+  useEffect(() => {
+    if (signedInAlready && oauthError === undefined) void navigate({ to: "/", replace: true });
+  }, [signedInAlready, oauthError, navigate]);
 
   if (logic.auth.firstSyncPending) {
     return <FirstSyncPrompt />;

@@ -318,13 +318,22 @@ function Swap({
 
   return (
     /*
-     * Deliberately not `overflow-hidden`. The height here is measured, and a measurement
-     * taken a frame early is a box that is a few pixels short — which, clipped, is the
-     * bottom of the roll button gone. Nothing sits below this block, so letting it spill
-     * costs nothing and a wrong number can no longer hide a control.
+     * Clipped sideways, open downwards, and the two axes are deliberately different.
+     *
+     * Sideways, because the band leans to scale(1.06) for the throw and its negative
+     * margins already reach both edges of the dialog — so those 6% hang over the side and
+     * the scroll container, whose `overflow-x` is `auto` by implication, grew a horizontal
+     * scrollbar the moment anybody rolled.
+     *
+     * Downwards, because the height here is measured, and a measurement taken a frame
+     * early is a box a few pixels short — which, clipped, is the bottom of the roll button
+     * gone. Nothing sits below this block, so letting it spill costs nothing.
+     *
+     * `clip` rather than `hidden` is what makes that possible: `hidden` on one axis forces
+     * the other to `auto`, and the box would clip both ways again.
      */
     <div
-      className="relative flex-none"
+      className="relative flex-none overflow-x-clip"
       style={{ height, transition: `height ${ROLL_SWAP_MS}ms var(--mc-move)` }}
     >
       {/*

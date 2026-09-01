@@ -14,13 +14,14 @@ import {
   useLibraryLogic,
 } from "@/features/library/useLibraryLogic";
 import { useCoverPhotos } from "@/features/photos/useCoverPhotos";
+import { RollDialog } from "@/features/roll/RollDialog";
 import { useMark, useSettle } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import type { Format } from "@janne6565/rekordo-shared";
 import { catalogArtShown, copyFormat, copyPreviewSrc } from "@janne6565/rekordo-shared";
 import { FORMAT_LABELS } from "@janne6565/rekordo-shared";
 import { Link } from "@tanstack/react-router";
-import { ArrowDownNarrowWide, Check, Plus, Search, X } from "lucide-react";
+import { ArrowDownNarrowWide, Check, Dices, Plus, Search, X } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -75,6 +76,14 @@ export function LibraryPage() {
    * screen 6a is a modal instead of the page it replaced.
    */
   const [adding, setAdding] = useState(false);
+  /**
+   * 27 — the roll, over the shelf rather than instead of it.
+   *
+   * Local state and not a route, for the same reason the add sheet is: the dialog carries
+   * its own pool and the library keeps its filter, its search and its scroll underneath,
+   * which is the whole reason the dice can live in the toolbar.
+   */
+  const [rolling, setRolling] = useState(false);
   /** The copy whose details step is open over the sheet, if any (screen 8d). */
   const [detailsFor, setDetailsFor] = useState<string | null>(null);
   /**
@@ -115,6 +124,22 @@ export function LibraryPage() {
         >
           <ArrowDownNarrowWide size={15} strokeWidth={1.75} aria-hidden />
           {t(`library.sort.${sortKey(logic.sort)}`)}
+        </button>
+        {/* Left of Add, which is where 27a puts it. Outlined rather than filled: the deck
+            draws Roll as the dark button because its toolbar has no other, and two solid
+            blocks side by side would make the shelf look like it had two front doors. */}
+        <button
+          type="button"
+          onClick={() => setRolling(true)}
+          disabled={logic.collectionEmpty}
+          aria-label={t("roll.openLabel")}
+          className={cn(
+            "flex h-9 flex-none items-center gap-1.75 rounded-lg border border-line px-3.5",
+            "text-[12.5px] font-semibold text-accent hover:bg-canvas disabled:opacity-50",
+          )}
+        >
+          <Dices size={15} strokeWidth={1.75} aria-hidden />
+          {t("roll.open")}
         </button>
         <Button onClick={() => setAdding(true)} className="h-9 rounded-lg px-4 text-[13px]">
           {t("library.addItem")}
@@ -164,15 +189,31 @@ export function LibraryPage() {
        * edges or the grid shows through its gutters as it passes underneath.
        */}
       <div className="min-h-0 flex-1 overflow-auto pb-7 sm:px-7">
-        <h1 className="px-4 pt-4 pb-2.5 font-serif text-2xl leading-none sm:hidden">
-          {t("library.title")}
-        </h1>
+        {/* 27c draws Roll beside the title on a narrow screen — the row under it already
+            holds search, sort and add, and a fourth control there is a row of icons. */}
+        <div className="flex items-center justify-between gap-3 px-4 pt-4 pb-2.5 sm:hidden">
+          <h1 className="font-serif text-2xl leading-none">{t("library.title")}</h1>
+          <button
+            type="button"
+            onClick={() => setRolling(true)}
+            disabled={logic.collectionEmpty}
+            aria-label={t("roll.openLabel")}
+            className={cn(
+              "flex h-7.5 flex-none items-center gap-1.5 rounded-[7px] bg-ink px-3",
+              "text-[11.5px] font-semibold text-paper disabled:opacity-40",
+            )}
+          >
+            <Dices size={13} strokeWidth={1.75} aria-hidden />
+            {t("roll.open")}
+          </button>
+        </div>
         <PhoneHeader logic={logic} onAdd={() => setAdding(true)} />
         <div className="px-4 sm:px-0">
           <LibraryBody {...logic} onAdd={() => setAdding(true)} marked={mark.marked} />
         </div>
       </div>
 
+      {rolling && <RollDialog onClose={() => setRolling(false)} />}
       {adding && <AddDialog onClose={() => setAdding(false)} onAdded={setDetailsFor} />}
       {/*
        * Stacked over the add sheet rather than replacing it (screen 8d): both are native

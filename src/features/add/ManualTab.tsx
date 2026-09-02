@@ -1,8 +1,9 @@
 import { Button, Field } from "@/components/ui";
+import { CHOOSABLE_FORMATS } from "@/domain/formats";
 import { useManualEntryLogic } from "@/features/add/useManualEntryLogic";
 import { cn } from "@/lib/utils";
 import type { Condition, Format } from "@janne6565/rekordo-shared";
-import { CONDITIONS, CONDITION_LABELS, FORMATS, FORMAT_LABELS } from "@janne6565/rekordo-shared";
+import { CONDITIONS, CONDITION_LABELS, FORMAT_LABELS } from "@janne6565/rekordo-shared";
 import { ImagePlus, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -168,7 +169,7 @@ export function ManualTab({ onClose, onAdded }: ManualTabProps) {
                 {t("manual.format")}
               </legend>
               <div className="mt-2 flex gap-1.75">
-                {FORMATS.map((format) => (
+                {CHOOSABLE_FORMATS.map((format) => (
                   <FormatChip
                     key={format}
                     format={format}

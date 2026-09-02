@@ -7,6 +7,7 @@ import {
   useModalDismiss,
   useModalRefused,
 } from "@/components/ui";
+import { CHOOSABLE_FORMATS } from "@/domain/formats";
 import { useCopyDetailsLogic } from "@/features/copy/useCopyDetailsLogic";
 import { ConditionScale } from "@/features/detail/ConditionScale";
 import { PhotoManager } from "@/features/photos/PhotoManager";
@@ -452,9 +453,6 @@ function DialogActions({
   );
 }
 
-/** The formats screen 8d puts under the sleeve, of which the pressing's own is lit. */
-const FORMAT_CHIPS: readonly Format[] = ["VINYL", "CD", "CASSETTE", "DIGITAL"];
-
 /**
  * The format, as a rail of chips.
  *
@@ -465,6 +463,9 @@ const FORMAT_CHIPS: readonly Format[] = ["VINYL", "CD", "CASSETTE", "DIGITAL"];
  * can be a cassette of a record it only lists as vinyl, and the alternative — pointing the
  * copy at a different release — throws away its photos, grades and price to fix one word.
  * The copy's answer is stored as `manualFormat` and read back through `copyFormat`.
+ *
+ * Four, never five. A copy sitting at `OTHER` — the sentinel `copyFormat` answers with
+ * when nothing has said yet — lights none of them, which is the question it actually is.
  */
 function FormatChips({
   format,
@@ -473,11 +474,9 @@ function FormatChips({
   readonly format: Format;
   readonly onSelect: (format: Format) => void;
 }) {
-  const chips = FORMAT_CHIPS.includes(format) ? FORMAT_CHIPS : [...FORMAT_CHIPS, format];
-
   return (
     <div className="mt-1.5 flex flex-wrap gap-1.5">
-      {chips.map((chip) => {
+      {CHOOSABLE_FORMATS.map((chip) => {
         const className = cn(
           "rounded-full px-2.5 py-1.25 text-[11.5px]",
           chip === format

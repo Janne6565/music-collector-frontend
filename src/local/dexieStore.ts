@@ -341,8 +341,32 @@ export class DexieLocalStore implements LocalStore {
     await this.writePendingIds([...pending]);
   }
 
+  /**
+   * Refreshes the catalogue rows, without letting a refresh take anything away.
+   *
+   * A `coverArtUrl` of null means two different things — this pressing has no artwork, and
+   * the server could not find out — and until it was taught the difference the server wrote
+   * a cover probe that timed out down as the first. The client then cached the null over the
+   * URL it already had, so a record lost its sleeve everywhere at once with nothing to bring
+   * it back. Reported from the field after an evening of scanning CDs.
+   *
+   * So a cover is kept once it is known. The worst this can do is hold on to an address that
+   * has stopped resolving, which `ReleaseArt` already survives.
+   *
+   * The same rule as `mergeCachedRelease` in the shared package, inlined only because this
+   * app is still on an earlier release of it. Mirrored by
+   * rekordo-mobile/src/local/sqliteStore.ts.
+   */
   async cacheReleases(releases: readonly Release[]): Promise<void> {
-    await this.db.releaseCache.bulkPut([...releases]);
+    const held = await this.db.releaseCache.bulkGet(releases.map((release) => release.id));
+    await this.db.releaseCache.bulkPut(
+      releases.map((release, index) => {
+        const known = held[index]?.coverArtUrl;
+        return release.coverArtUrl !== null || known == null
+          ? release
+          : { ...release, coverArtUrl: known };
+      }),
+    );
   }
 
   async getRelease(releaseId: string): Promise<Release | undefined> {

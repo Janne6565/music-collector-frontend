@@ -1,5 +1,6 @@
 import type { TrackMedium, Tracklist as TracklistData } from "@/api/tracklist";
 import {
+  PHONE_INLINE_CAP,
   TRACK_ROW_CAP,
   capMedia,
   durationParts,
@@ -8,7 +9,8 @@ import {
   trackTotal,
 } from "@/features/tracklist/tracklistFormat";
 import { useTracklistLogic } from "@/features/tracklist/useTracklistLogic";
-import { ChevronDown, CloudOff } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { ChevronDown, ChevronRight, CloudOff } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -30,6 +32,13 @@ export interface TracklistProps {
    * yours, stored here" is a sentence about your own record and nobody else's.
    */
   readonly shared?: boolean;
+  /**
+   * The copy this sheet is about, when there is a page to send a long tracklist to (25e).
+   *
+   * Absent for a wishlist entry and for somebody else's shelf: neither has a copy of its
+   * own to hang a URL on, so both keep every row inline however many there are.
+   */
+  readonly copyId?: string;
 }
 
 /**
@@ -55,6 +64,7 @@ function Section({
   trackCount,
   discCount,
   shared = false,
+  copyId,
 }: TracklistProps & { readonly releaseId: string }) {
   const { t } = useTranslation();
   const { tracklist, loading, unreachable, retry } = useTracklistLogic(releaseId);
@@ -66,6 +76,9 @@ function Section({
   const tracks =
     counted !== null && counted > 0 ? counted : (tracklist?.trackCount ?? trackCount ?? null);
   const discs = tracklist?.media.length || (tracklist?.discCount ?? discCount ?? null);
+  // Ten or fewer stay inline on the phone as in the app; past that the rows plus a pinned
+  // save bar leave nothing to read, and the list earns a page and a URL of its own.
+  const long = copyId !== undefined && tracks !== null && tracks > PHONE_INLINE_CAP;
 
   return (
     <section className="mt-5 border-t border-line pt-4.5 sm:mt-6.5 sm:pt-5.5">
@@ -81,7 +94,21 @@ function Section({
       ) : tracklist === undefined || tracklist.absence !== null ? (
         <Absent tracklist={tracklist} />
       ) : (
-        <Rows media={tracklist.media} expanded={expanded} onExpand={() => setExpanded(true)} />
+        <>
+          {/*
+           * 25e, both forms rendered so CSS picks one. Whether a tracklist is long is a
+           * fact about the data and whether the screen is narrow is a fact about the
+           * viewport, and only the first of those is knowable here — so the long case
+           * draws the rows *and* the way to the page, and the breakpoint hides one.
+           */}
+          <Rows
+            media={tracklist.media}
+            expanded={expanded}
+            onExpand={() => setExpanded(true)}
+            className={long ? "max-sm:hidden" : undefined}
+          />
+          {long && <PhonePageLink copyId={copyId as string} tracks={tracks} />}
+        </>
       )}
     </section>
   );
@@ -139,14 +166,16 @@ function Summary({
   );
 }
 
-function Rows({
+export function Rows({
   media,
   expanded,
   onExpand,
+  className,
 }: {
   readonly media: readonly TrackMedium[];
   readonly expanded: boolean;
   readonly onExpand: () => void;
+  readonly className?: string;
 }) {
   const { t } = useTranslation();
   const { shown, hidden } = expanded ? { shown: [...media], hidden: 0 } : capMedia(media);
@@ -154,7 +183,7 @@ function Rows({
   const headed = media.length > 1;
 
   return (
-    <div className="mt-1">
+    <div className={`mt-1 ${className ?? ""}`}>
       {shown.map((medium) => (
         <div key={medium.position}>
           {headed && (
@@ -222,7 +251,7 @@ function Rows({
  * when the titles land a second later — which they routinely do, at one upstream request
  * per second shared by the whole app.
  */
-function Skeleton({ rows }: { readonly rows: number }) {
+export function Skeleton({ rows }: { readonly rows: number }) {
   const { t } = useTranslation();
   // Varied widths, because eight identical bars read as a table and not as titles.
   const widths = ["62%", "48%", "78%", "55%", "70%", "42%", "66%", "58%"];
@@ -249,7 +278,7 @@ function Skeleton({ rows }: { readonly rows: number }) {
  * Dashed, which is the deck's mark for a fact that is absent rather than empty, and without
  * a button — none of these three is a thing retrying can change.
  */
-function Absent({ tracklist }: { readonly tracklist: TracklistData | undefined }) {
+export function Absent({ tracklist }: { readonly tracklist: TracklistData | undefined }) {
   const { t } = useTranslation();
   const key =
     tracklist?.absence === "HAND_ENTERED"
@@ -267,7 +296,7 @@ function Absent({ tracklist }: { readonly tracklist: TracklistData | undefined }
 }
 
 /** The one tracklist state worth touching: solid edge, the accent, and a retry (26e). */
-function Unreachable({
+export function Unreachable({
   shared,
   onRetry,
 }: {
@@ -291,5 +320,39 @@ function Unreachable({
         </button>
       </div>
     </div>
+  );
+}
+
+/**
+ * The way to the tracklist's own page, in the space its rows would have taken (25e).
+ *
+ * Own page, own URL, so a tracklist survives being shared or bookmarked. The count is on
+ * the row because it is the reason the row exists: "twenty-six tracks" is what makes going
+ * somewhere else to read them an obviously fair trade rather than an extra tap.
+ */
+function PhonePageLink({
+  copyId,
+  tracks,
+}: { readonly copyId: string; readonly tracks: number | null }) {
+  const { t } = useTranslation();
+  return (
+    <Link
+      to="/copies/$copyId/tracks"
+      params={{ copyId }}
+      className="mt-2.5 flex min-h-11 items-center gap-3 rounded-[10px] border border-line bg-surface px-3.5 py-2.5 sm:hidden"
+    >
+      <span className="min-w-0 flex-1 text-[12.5px] font-semibold">{t("tracklist.openPage")}</span>
+      {tracks !== null && (
+        <span className="flex-none font-mono text-[11px] text-ink-subtle">
+          {t("tracklist.tracks", { count: tracks })}
+        </span>
+      )}
+      <ChevronRight
+        size={15}
+        strokeWidth={1.75}
+        className="flex-none text-ink-subtle"
+        aria-hidden
+      />
+    </Link>
   );
 }

@@ -1,5 +1,6 @@
 import { TabBar } from "@/components/layout/TabBar";
 import { useSectionActive } from "@/components/layout/navActive";
+import { AppBanner } from "@/features/app/AppBanner";
 import { SidebarAccount } from "@/features/auth/SidebarAccount";
 import { cn } from "@/lib/utils";
 import type { CollectionStats } from "@janne6565/rekordo-shared";
@@ -35,6 +36,10 @@ export function AppShell({ stats, phoneBottom = "tabs", children }: AppShellProp
       <Sidebar stats={stats} />
       <div className="flex min-w-0 flex-1 flex-col">
         {children}
+        {/* 25b: above the tab bar, and only where the tab bar is. The levels that pass
+            `none` are exactly the deck's never-list — the detail with its own bar, the
+            account pages, and the legal documents a stranger opens from a shared link. */}
+        {phoneBottom === "tabs" && <AppBanner />}
         {phoneBottom === "tabs" && <TabBar />}
       </div>
     </div>

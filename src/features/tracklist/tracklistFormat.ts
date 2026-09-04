@@ -15,6 +15,16 @@ import type { TrackMedium } from "@/api/tracklist";
  */
 export const TRACK_ROW_CAP = 30;
 
+/**
+ * How many rows a phone-width sheet keeps inline before the tracklist gets its own page
+ * (25e).
+ *
+ * Ten, which is the length of a single LP side plus a little, and the point at which the
+ * rows plus a pinned save bar leave nothing left to read. Ten or fewer stay where they
+ * are, as in the app.
+ */
+export const PHONE_INLINE_CAP = 10;
+
 /** "6:59". Empty for an unknown length — the column stays blank rather than showing a dash. */
 export function trackDuration(lengthMs: number | null): string {
   if (lengthMs === null || lengthMs < 0) return "";

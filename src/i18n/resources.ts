@@ -13,6 +13,42 @@ const enCommon = {
     you: "You",
     tabs: "Sections",
   },
+  /** The one offer of the native app the web app makes on its own (25b). */
+  appBanner: {
+    app: {
+      IOS: "Rekordo for iPhone",
+      ANDROID: "Rekordo for Android",
+    },
+    body: "Scan barcodes, keep sleeve photos, add copies with no signal.",
+    shared: {
+      title: "Keep a shelf of your own",
+      body: "{{app}} scans barcodes and works with no signal.",
+    },
+    get: "Get",
+    /** Android is a closed test, not a listing — see `androidIsTesterSignup`. */
+    joinTest: "Join",
+    closedTest: "Closed test",
+    dismiss: "Hide this",
+  },
+  /** The same offer, as a row under "You" (25a). */
+  appRow: {
+    section: "The app",
+    body: "Barcode scanning, sleeve photos, offline adding",
+    bodyTest: "Barcode scanning and offline adding, in the closed test",
+  },
+  /** Screen 25c — the handoff sheet the scan row opens. */
+  scanHandoff: {
+    title: "Scanning lives in the app",
+    body: "{{app}} reads the barcode off the sleeve, keeps a tray of scans while you carry on through the shop, and saves them with no signal. Your shelf is the same shelf, so anything you add there is here when you come back.",
+    bulletScan: "Barcode scanning, one copy or a whole crate",
+    bulletPhotos: "Sleeve photos of the copy you actually own",
+    bulletOffline: "Adding with no signal, in the basement of the shop",
+    get: "Get {{app}}",
+    searchInstead: "Search the catalogue instead",
+    joinTest: "Join the {{app}} test",
+    freeNote: "Free, and it does not ask you to sign in first.",
+    testNote: "The Android app is in a closed test. You leave an address and get a link back.",
+  },
   you: {
     title: "You",
     copies: "{{count}} copy",
@@ -318,6 +354,17 @@ const enCommon = {
     close: "Close the roll",
   },
   photos: {
+    /** 25f: the upload the browser refused before it stored anything. */
+    full: {
+      title: "Your photo space is full",
+      body: "{{used}} of {{quota}} MB used, so this photo was not uploaded. A browser has nowhere to keep it in the meantime, so nothing was attached to the copy. Free some space and pick the file again.",
+      bodyUnknown:
+        "There is no room left, so this photo was not uploaded. A browser has nowhere to keep it in the meantime, so nothing was attached to the copy. Free some space and pick the file again.",
+      showStorage: "Show storage",
+      notNow: "Not now",
+      inTheApp:
+        "In the app the photo is kept on the phone and goes up by itself once there is room.",
+    },
     thisBrowser: "this browser",
     refusal: {
       /* 28d: each sentence names its own fix and rules the other one out. Deleting does not
@@ -485,6 +532,12 @@ const enCommon = {
     clearSearch: "Clear the search",
     searchingSource: "Searching MusicBrainz",
     barcodePlaceholder: "Scan or type the barcode",
+    /** 25c: the camera path the browser does not have, named where it would sit. */
+    scanRow: {
+      title: "Scan a barcode",
+      appOnly: "app only",
+      why: "The browser cannot reach the camera reliably",
+    },
     allFormats: "All formats",
     matchCount: "{{count}} matching releases",
     noReleasesButArtists: "Nothing is titled that. Open an artist above to see their records.",
@@ -623,6 +676,9 @@ const enCommon = {
     rating: "Rating",
     edit: "Edit copy",
     notes: "Notes",
+    /** 25d: the photo strip on the phone detail, and the half of it the browser lacks. */
+    yourPhotos: "Your photos",
+    photosNeedApp: "Taking a photo needs the app. Files upload in Edit.",
     notesEmpty: "No notes yet.",
     conflict: {
       title: "Also written on another device",
@@ -873,6 +929,15 @@ const enCommon = {
   account: {
     title: "Account",
     storage: {
+      /** 25f: the allowance on a page of its own, reached from You and from a refusal. */
+      pageTitle: "Photo storage",
+      guest:
+        "The allowance belongs to an account. Without one your photos are on this browser only, and how much room there is depends on the browser rather than on Rekordo.",
+      freeSomeUp: "Free some up",
+      exportTitle: "Download all photos",
+      exportBody: "In the archive export, then delete what you like",
+      photosOnly:
+        "The allowance covers photos only. Copies, notes, ratings and wishlist entries do not count against it.",
       photosLabel: "Photos",
       photos_one: "{{count}} photo",
       photos_other: "{{count}} photos",
@@ -1207,6 +1272,10 @@ const enCommon = {
   },
   /* 26a-26e: the titles under the sleeve, on every detail sheet that has a release. */
   tracklist: {
+    /** 25e: the phone's way to the tracklist's own page, and the line at its foot. */
+    openPage: "See all tracks",
+    fromCatalogue:
+      "Sides and durations come from the catalogue. They are not editable, and they are the same for every copy of this release.",
     label: "Tracklist",
     /* The header count, which is known before the titles are and stays true if they never
        arrive. The phone (26d) drops the word and keeps the number. */
@@ -1267,6 +1336,39 @@ const deCommon: CommonSchema = {
     settings: "Einstellungen",
     you: "Du",
     tabs: "Bereiche",
+  },
+  appBanner: {
+    app: {
+      IOS: "Rekordo für iPhone",
+      ANDROID: "Rekordo für Android",
+    },
+    body: "Barcodes scannen, Hüllenfotos behalten, Exemplare ohne Empfang hinzufügen.",
+    shared: {
+      title: "Leg dir dein eigenes Regal an",
+      body: "{{app}} scannt Barcodes und funktioniert ohne Empfang.",
+    },
+    get: "Laden",
+    joinTest: "Mitmachen",
+    closedTest: "Geschlossener Test",
+    dismiss: "Ausblenden",
+  },
+  appRow: {
+    section: "Die App",
+    body: "Barcodes scannen, Hüllenfotos, ohne Empfang hinzufügen",
+    bodyTest: "Barcodes scannen und ohne Empfang hinzufügen, im geschlossenen Test",
+  },
+  scanHandoff: {
+    title: "Scannen gibt es in der App",
+    body: "{{app}} liest den Barcode von der Hülle, sammelt die Scans, während du weiter durch den Laden gehst, und speichert sie ohne Empfang. Dein Regal ist dasselbe Regal: Was du dort hinzufügst, ist hier, wenn du zurückkommst.",
+    bulletScan: "Barcodes scannen, ein Exemplar oder eine ganze Kiste",
+    bulletPhotos: "Hüllenfotos von dem Exemplar, das dir wirklich gehört",
+    bulletOffline: "Hinzufügen ohne Empfang, im Keller des Ladens",
+    get: "{{app}} laden",
+    searchInstead: "Stattdessen im Katalog suchen",
+    joinTest: "Beim {{app}}-Test mitmachen",
+    freeNote: "Kostenlos, und du musst dich nicht erst anmelden.",
+    testNote:
+      "Die Android-App ist in einem geschlossenen Test. Du hinterlässt eine Adresse und bekommst einen Link zurück.",
   },
   you: {
     title: "Du",
@@ -1570,6 +1672,16 @@ const deCommon: CommonSchema = {
     close: "Würfeln schließen",
   },
   photos: {
+    full: {
+      title: "Dein Fotospeicher ist voll",
+      body: "{{used}} von {{quota}} MB belegt, deshalb wurde dieses Foto nicht hochgeladen. Ein Browser kann es solange nirgends aufbewahren, also wurde nichts an das Exemplar gehängt. Schaff Platz und wähl die Datei noch einmal aus.",
+      bodyUnknown:
+        "Es ist kein Platz mehr frei, deshalb wurde dieses Foto nicht hochgeladen. Ein Browser kann es solange nirgends aufbewahren, also wurde nichts an das Exemplar gehängt. Schaff Platz und wähl die Datei noch einmal aus.",
+      showStorage: "Speicher anzeigen",
+      notNow: "Jetzt nicht",
+      inTheApp:
+        "In der App bleibt das Foto auf dem Telefon und geht von selbst hoch, sobald wieder Platz ist.",
+    },
     thisBrowser: "nur hier",
     refusal: {
       full: "Ein Foto wurde nicht hochgeladen. Dein Speicherplatz ist voll. Es bleibt in diesem Browser und lädt von selbst hoch, sobald wieder Platz ist.",
@@ -1738,6 +1850,11 @@ const deCommon: CommonSchema = {
     clearSearch: "Suche leeren",
     searchingSource: "Suche bei MusicBrainz",
     barcodePlaceholder: "Barcode scannen oder eingeben",
+    scanRow: {
+      title: "Barcode scannen",
+      appOnly: "nur App",
+      why: "Der Browser kommt nicht zuverlässig an die Kamera",
+    },
     allFormats: "Alle Formate",
     matchCount: "{{count}} passende Veröffentlichungen",
     noReleasesButArtists:
@@ -1877,6 +1994,8 @@ const deCommon: CommonSchema = {
     rating: "Bewertung",
     edit: "Exemplar bearbeiten",
     notes: "Notizen",
+    yourPhotos: "Deine Fotos",
+    photosNeedApp: "Fotografieren geht nur in der App. Dateien lädst du beim Bearbeiten hoch.",
     notesEmpty: "Noch keine Notizen.",
     conflict: {
       title: "Auch auf einem anderen Gerät geschrieben",
@@ -2132,6 +2251,14 @@ const deCommon: CommonSchema = {
   account: {
     title: "Konto",
     storage: {
+      pageTitle: "Fotospeicher",
+      guest:
+        "Das Kontingent gehört zu einem Konto. Ohne Konto liegen deine Fotos nur in diesem Browser, und wie viel Platz da ist, entscheidet der Browser und nicht Rekordo.",
+      freeSomeUp: "Platz schaffen",
+      exportTitle: "Alle Fotos herunterladen",
+      exportBody: "Im Archiv-Export, danach löschen, was du möchtest",
+      photosOnly:
+        "Das Kontingent gilt nur für Fotos. Exemplare, Notizen, Bewertungen und Wunschlisten-Einträge zählen nicht dazu.",
       photosLabel: "Fotos",
       photos_one: "{{count}} Foto",
       photos_other: "{{count}} Fotos",
@@ -2469,6 +2596,9 @@ const deCommon: CommonSchema = {
     },
   },
   tracklist: {
+    openPage: "Alle Titel ansehen",
+    fromCatalogue:
+      "Seiten und Spielzeiten kommen aus dem Katalog. Sie sind nicht bearbeitbar und für jedes Exemplar dieser Veröffentlichung gleich.",
     label: "Titelliste",
     tracks_one: "{{count}} Titel",
     tracks_other: "{{count}} Titel",

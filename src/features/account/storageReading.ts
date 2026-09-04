@@ -60,6 +60,20 @@ export type StorageReading =
       readonly overBy: number;
     };
 
+/**
+ * How many bytes are left, or null when this browser has no figure to reason from (25f).
+ *
+ * Loading and offline are null rather than zero on purpose: an unknown allowance must not
+ * refuse an upload. The server stays the authority on whether a photo fits, and it counts
+ * bytes; this is only what lets the web refuse *before* it stores anything, which it has
+ * to do because a browser has nowhere to keep a photo that will not go up.
+ */
+export function freeBytes(reading: StorageReading): number | null {
+  if (reading.kind === "loading" || reading.kind === "offline") return null;
+  if (reading.kind === "empty") return reading.freeBytes;
+  return Math.max(0, reading.quota - reading.used);
+}
+
 /** How much of the track is ink. Never past 100: over its own end is drawn differently. */
 export function fillPercent(reading: StorageReading): number {
   if (!("used" in reading)) return 0;

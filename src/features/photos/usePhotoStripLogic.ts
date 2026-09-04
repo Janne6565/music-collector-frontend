@@ -1,3 +1,5 @@
+import { freeBytes } from "@/features/account/storageReading";
+import { useStorageMeter } from "@/features/account/useStorageMeter";
 import { scalePhoto } from "@/features/photos/scalePhoto";
 import type { ShownImage } from "@/features/photos/shownImage";
 import { useStore } from "@/local/StoreProvider";
@@ -26,7 +28,7 @@ export type PhotoStripLogic = ReturnType<typeof usePhotoStripLogic>;
 export function usePhotoStripLogic(copyId: string) {
   const { store, clock } = useStore();
   const queryClient = useQueryClient();
-  const [rejected, setRejected] = useState<"type" | "size" | null>(null);
+  const [rejected, setRejected] = useState<"type" | "size" | "full" | null>(null);
 
   const photos = useQuery({
     queryKey: ["photos", copyId],
@@ -76,6 +78,8 @@ export function usePhotoStripLogic(copyId: string) {
     };
   }, [photos.data, store]);
 
+  const allowance = useStorageMeter();
+
   const add = useMutation({
     mutationFn: async (file: File) => {
       setRejected(null);
@@ -87,6 +91,23 @@ export function usePhotoStripLogic(copyId: string) {
       // Scaled before it is stored, not before it is uploaded: the device keeps the same
       // bytes the bucket does, so one photo id is one picture everywhere.
       const scaled = await scalePhoto(file);
+      /*
+       * 25f: refused before it is stored, not after it fails to upload.
+       *
+       * The phone keeps a photo that will not fit and sends it when there is room. A
+       * browser has nowhere to keep it — this tab is the only place it exists, and closing
+       * it loses the picture — so storing one that can never go up would attach an image
+       * to a copy that no other device will ever see. Better to say so while the file
+       * picker is still fresh in mind.
+       *
+       * The server remains the authority: an unknown allowance refuses nothing, and a
+       * photo that fits here but not there still comes back through the refusal banner.
+       */
+      const free = freeBytes(allowance);
+      if (free !== null && scaled.blob.size > free) {
+        setRejected("full");
+        return;
+      }
       // Bytes first: a record whose image is missing would render as a permanent
       // placeholder, whereas bytes with no record are simply unreferenced.
       await store.putPhotoBytes(id, await scaled.blob.arrayBuffer(), scaled.contentType);
@@ -200,6 +221,8 @@ export function usePhotoStripLogic(copyId: string) {
     add: (file: File) => add.mutate(file),
     adding: add.isPending,
     rejected,
+    /** 25f: the full-storage sheet is the only rejection with a way to dismiss it. */
+    clearRejected: () => setRejected(null),
     remove: (photo: Photo) => remove.mutate(photo),
     removing: remove.isPending ? remove.variables?.id : undefined,
     /** False until the catalogue's own artwork has been starred for this copy. */

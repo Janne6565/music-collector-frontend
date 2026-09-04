@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui";
+import { AppBanner } from "@/features/app/AppBanner";
 import type { ProfileTab } from "@/features/friends/ProfilePage";
 import { ProfileBody } from "@/features/friends/ProfilePage";
 import { useProfileLogic } from "@/features/friends/useProfileLogic";
@@ -79,6 +80,11 @@ export function PublicProfilePage({
         />
       </main>
 
+      {/* 25b, variant two: a stranger who arrived from a shared link. The offer leads
+          with the shelf they do not have rather than with a product name they have not
+          adopted, and it sits above the legal footer because the footer is the last thing
+          on this page by obligation. */}
+      <AppBanner context="SHARED" />
       <PublicFooter />
     </div>
   );

@@ -1,5 +1,6 @@
 import { ReleaseArt } from "@/components/ReleaseArt";
 import { ConfirmDialog } from "@/components/ui";
+import { StorageFullSheet } from "@/features/photos/StorageFullSheet";
 import {
   type ShownImage,
   previewImage,
@@ -232,6 +233,10 @@ export function PhotoManager({ logic, release }: PhotoManagerProps) {
       {logic.rejected === "type" && (
         <p className="mt-2 text-xs text-accent">{t("photos.wrongType")}</p>
       )}
+      {/* 25f: a refusal that happened before anything was stored. It interrupts because
+          the file picker has just closed and nothing was kept — there is no banner it
+          could sit quietly in and still be read in time to pick another file. */}
+      {logic.rejected === "full" && <StorageFullSheet onClose={logic.clearRejected} />}
 
       {confirmingHide && (
         <ConfirmDialog
@@ -330,7 +335,7 @@ function RefusalBanner() {
       <p className="text-[11.5px] leading-[1.55] text-ink-muted text-pretty">
         {refusal.reason === "tooLarge" ? t("photos.refusal.tooLarge") : t("photos.refusal.full")}{" "}
         {refusal.reason === "full" && (
-          <Link to="/account" className="font-semibold text-accent">
+          <Link to="/account/storage" className="font-semibold text-accent">
             {t("photos.refusal.showStorage")}
           </Link>
         )}

@@ -45,7 +45,7 @@ function SignInConflict() {
         role="dialog"
         aria-modal="true"
         aria-labelledby="conflict-title"
-        className="flex max-h-full w-full max-w-[520px] flex-col overflow-hidden rounded-[14px] bg-paper shadow-[0_16px_50px_rgba(20,18,15,0.32)]"
+        className="flex h-full w-full flex-col overflow-hidden rounded-t-[20px] bg-paper shadow-[0_-10px_40px_rgba(20,18,15,0.22)] sm:h-auto sm:max-h-full sm:max-w-[520px] sm:rounded-[14px] sm:shadow-[0_16px_50px_rgba(20,18,15,0.32)]"
       >
         {logic.view === "COMPARING" && (
           <Panel>
@@ -176,9 +176,15 @@ function ConflictQuestion({
       </div>
 
       <div className="flex-none border-t border-line px-6.5 py-4">
-        <div className="flex flex-wrap items-center gap-2.5">
+        {/*
+         * 25g: three choices in a row at 390px would be three 118px pills, and "Keep the
+         * account" does not fit in one. So the recommended one takes its own full-width
+         * line and the two that lose something share the line below it — the shape says
+         * which is which before the words are read. Above 640px it is the deck's row.
+         */}
+        <div className="flex flex-col gap-2.25 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2.5">
           <Button
-            className="h-10 gap-2.25 px-5 text-[13.5px]"
+            className="h-12 gap-2.25 px-5 text-sm sm:h-10 sm:text-[13.5px]"
             loading={logic.working}
             onClick={logic.keepBoth}
           >
@@ -187,22 +193,24 @@ function ConflictQuestion({
               {t("conflict.copies", { count: logic.mergedCopies })}
             </span>
           </Button>
-          <Button
-            variant="secondary"
-            className="h-10 px-4 text-[13px]"
-            disabled={logic.working}
-            onClick={() => logic.askKeep("LOCAL")}
-          >
-            {t("conflict.keepLocal")}
-          </Button>
-          <Button
-            variant="secondary"
-            className="h-10 px-4 text-[13px]"
-            disabled={logic.working}
-            onClick={() => logic.askKeep("ACCOUNT")}
-          >
-            {t("conflict.keepAccount")}
-          </Button>
+          <div className="flex gap-2.25 sm:contents">
+            <Button
+              variant="secondary"
+              className="h-12 flex-1 px-4 text-[13px] sm:h-10 sm:flex-none"
+              disabled={logic.working}
+              onClick={() => logic.askKeep("LOCAL")}
+            >
+              {t("conflict.keepLocal")}
+            </Button>
+            <Button
+              variant="secondary"
+              className="h-12 flex-1 px-4 text-[13px] sm:h-10 sm:flex-none"
+              disabled={logic.working}
+              onClick={() => logic.askKeep("ACCOUNT")}
+            >
+              {t("conflict.keepAccount")}
+            </Button>
+          </div>
         </div>
         <div className="mt-3 flex items-baseline justify-between gap-4">
           <p className="text-[11px] leading-[1.5] text-ink-subtle">
@@ -337,7 +345,13 @@ function differenceTotal(logic: Logic): number {
  */
 function Scrim({ children }: { readonly children: ReactNode }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4 sm:p-6">
+    /*
+     * 25g: a sheet on a phone, a centred card above 640px. It starts 88px down rather than
+     * covering the screen, because the library behind it is the thing being changed and
+     * seeing it is part of the decision — the same argument every other bottom sheet in
+     * the app makes, and the reason this one is not full height.
+     */
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 max-sm:pt-22 sm:items-center sm:p-6">
       {children}
     </div>
   );

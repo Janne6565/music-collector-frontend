@@ -1,7 +1,7 @@
 import { useSectionActive } from "@/components/layout/navActive";
 import { cn } from "@/lib/utils";
 import { Link } from "@tanstack/react-router";
-import { Heart, LibraryBig, User, Users } from "lucide-react";
+import { CircleUser, Heart, LibraryBig, Users } from "lucide-react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -32,25 +32,32 @@ export function TabBar() {
       <Tab
         to="/"
         alsoActiveOn={["/copies"]}
-        icon={<LibraryBig size={21} strokeWidth={2} aria-hidden />}
+        icon={<LibraryBig size={20} strokeWidth={1.75} aria-hidden />}
       >
         {t("nav.library")}
       </Tab>
-      <Tab to="/wishlist" icon={<Heart size={21} strokeWidth={2} aria-hidden />}>
+      <Tab to="/wishlist" icon={<Heart size={20} strokeWidth={1.75} aria-hidden />}>
         {t("nav.wishlist")}
       </Tab>
-      <Tab to="/friends" icon={<Users size={21} strokeWidth={2} aria-hidden />}>
+      <Tab to="/friends" icon={<Users size={20} strokeWidth={1.75} aria-hidden />}>
         {t("nav.friends")}
       </Tab>
-      <Tab to="/you" icon={<User size={21} strokeWidth={2} aria-hidden />}>
+      <Tab to="/you" icon={<CircleUser size={20} strokeWidth={1.75} aria-hidden />}>
         {t("nav.you")}
       </Tab>
     </nav>
   );
 }
 
-/** One class list, so the router's own match and ours cannot drift apart. */
-const ACTIVE_TAB = "text-accent [&_span]:font-semibold";
+/**
+ * One class list, so the router's own match and ours cannot drift apart.
+ *
+ * Ink, not accent (25a). Rust was doing two jobs at once here: it is the colour of a link
+ * and of the wording next to a deletion, and a tab bar in which one of four cells is
+ * permanently rust reads as one cell being a warning. The active tab is the darkest thing
+ * in the row instead, which is what the native app settled on.
+ */
+const ACTIVE_TAB = "text-ink [&_span]:font-semibold";
 
 function Tab({
   to,
@@ -71,16 +78,18 @@ function Tab({
       // 56px, which clears the 44px minimum on its own — the label under the icon is not a
       // tap target of its own, so the whole cell has to be one.
       className={cn(
-        "flex h-14 flex-1 flex-col items-center justify-center gap-[3px] text-ink/50",
+        "flex h-14 flex-1 flex-col items-center justify-center gap-[5px] text-ink-muted",
         active && ACTIVE_TAB,
       )}
       activeProps={{ className: ACTIVE_TAB }}
       activeOptions={{ exact: to === "/" }}
     >
       {icon}
-      {/* 9.5px is small, and deliberate: "Wunschliste" is eleven characters and the cell is
-          97px wide at 390px. The icon above it is what is actually read. */}
-      <span className="text-[9.5px] font-medium tracking-[0.01em]">{children}</span>
+      {/* 10px, the native app's size. The German labels this was shrunk for are the long
+          case, not the default: "Wunschliste" is eleven characters in a 97px cell and
+          wraps to nothing at 10px either, and the icon above it is what is actually read
+          in both languages. */}
+      <span className="text-[10px] font-medium tracking-[0.01em]">{children}</span>
     </Link>
   );
 }

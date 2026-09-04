@@ -358,6 +358,7 @@ export function CopyDetailsDialog({
           releaseId={release?.id}
           trackCount={release?.trackCount}
           discCount={release?.discCount}
+          copyId={copyId}
         />
       </form>
 

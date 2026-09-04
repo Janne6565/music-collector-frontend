@@ -1,7 +1,7 @@
 import { DetailPage } from "@/features/detail/DetailPage";
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/copies/$copyId")({
+export const Route = createFileRoute("/copies/$copyId/")({
   component: CopyDetailRoute,
 });
 

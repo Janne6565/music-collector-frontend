@@ -1,4 +1,5 @@
 import "fake-indexeddb/auto";
+import type { StorageReading } from "@/features/account/storageReading";
 import { DexieLocalStore } from "@/local/dexieStore";
 import type { Hlc } from "@janne6565/rekordo-shared";
 import type { Release } from "@janne6565/rekordo-shared";
@@ -7,7 +8,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
 import Dexie from "dexie";
 import { createElement } from "react";
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 let store: DexieLocalStore;
 
@@ -25,6 +26,19 @@ const clock = (() => {
 
 vi.mock("@/local/StoreProvider", () => ({
   useStore: () => ({ store, clock }),
+}));
+
+/**
+ * The allowance, which adding a photo now consults before it stores anything (25f).
+ *
+ * Mocked as a reading rather than stubbed away, and set to "offline" — the reading that
+ * means "no figure to reason from", which refuses nothing. That keeps every test below
+ * about ordering and stamping, which is what they are for, and leaves the refusal itself
+ * to the tests that set a real number.
+ */
+const allowance = vi.hoisted(() => ({ current: { kind: "offline" } as StorageReading }));
+vi.mock("@/features/account/useStorageMeter", () => ({
+  useStorageMeter: () => allowance.current,
 }));
 
 const { usePhotoStripLogic } = await import("@/features/photos/usePhotoStripLogic");
@@ -210,5 +224,58 @@ describe("usePhotoStripLogic", () => {
 
     await waitFor(() => expect(result.current.catalogArt).toBe("AUTO"));
     expect(await order()).toEqual(["p-c", "p-a", "p-b"]);
+  });
+
+  describe("a photo that will not fit (25f)", () => {
+    /**
+     * A 1×1 JPEG, so `scalePhoto` has something real to decode. Its scaled size is a few
+     * hundred bytes at most, which is why the allowance below is set to zero rather than
+     * to a plausible-looking number: the test is about the comparison, not the codec.
+     */
+    function jpeg(): File {
+      return new File([new Uint8Array([0xff, 0xd8, 0xff, 0xd9])], "sleeve.jpg", {
+        type: "image/jpeg",
+      });
+    }
+
+    afterEach(() => {
+      allowance.current = { kind: "offline" };
+    });
+
+    it("stores nothing when the account is full", async () => {
+      // The whole point of refusing here rather than on upload: a browser has nowhere to
+      // keep the file, so a photo row written now would name bytes no device ever gets.
+      allowance.current = {
+        kind: "full",
+        photos: 60,
+        used: 20 * 1024 * 1024,
+        quota: 20 * 1024 * 1024,
+      };
+      const { result } = harness();
+      await waitFor(() => expect(result.current.tiles).toHaveLength(3));
+
+      result.current.add(jpeg());
+
+      await waitFor(() => expect(result.current.rejected).toBe("full"));
+      expect(await order()).toEqual(["p-a", "p-b", "p-c"]);
+    });
+
+    it("refuses nothing while the allowance is unknown", async () => {
+      // Offline is "no figure to reason from". Refusing on it would make a flaky network
+      // look like a full account, and the server is still the authority on what fits.
+      //
+      // Only the refusal is asserted, not the photo landing: jsdom's File has no
+      // `arrayBuffer`, so storing the bytes cannot complete here whatever the allowance
+      // says. That the picture is written when it fits is what every other test in this
+      // file already stands on.
+      allowance.current = { kind: "offline" };
+      const { result } = harness();
+      await waitFor(() => expect(result.current.tiles).toHaveLength(3));
+
+      result.current.add(jpeg());
+
+      await waitFor(() => expect(result.current.adding).toBe(false));
+      expect(result.current.rejected).toBeNull();
+    });
   });
 });

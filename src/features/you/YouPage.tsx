@@ -1,5 +1,6 @@
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui";
+import { AppRow } from "@/features/app/AppRow";
 import { useYouLogic } from "@/features/you/useYouLogic";
 import { cn } from "@/lib/utils";
 import type { CollectionStats } from "@janne6565/rekordo-shared";
@@ -35,6 +36,10 @@ export function YouPage() {
           </p>
 
           {logic.stats !== undefined && <FormatStats stats={logic.stats} />}
+
+          {/* 25a: where the banner's offer goes to live. Above the account block, because
+              it is the one row on this page that is not about this account. */}
+          <AppRow />
 
           {logic.status === "anonymous" ? (
             <GuestBlock copyCount={logic.stats?.copyCount} />
@@ -108,6 +113,9 @@ function AccountBlock({
       <SectionLabel>{t("you.section.account")}</SectionLabel>
       <Card>
         <MenuLink to="/account">{t("account.title")}</MenuLink>
+        {/* 25a draws the allowance as a row of its own here, because it is the one number
+            on this tab somebody comes looking for rather than stumbles into. */}
+        <MenuLink to="/account/storage">{t("account.storage.pageTitle")}</MenuLink>
         <MenuLink to="/settings">{t("nav.settings")}</MenuLink>
         <MenuLink to="/settings/notifications">{t("notifications.title")}</MenuLink>
         {/* Where the export lives — the archive, both CSVs and the deletion request. The

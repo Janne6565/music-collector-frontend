@@ -8,16 +8,10 @@ import { PhotoStrip } from "@/features/photos/PhotoStrip";
 import { type ShownImage, resolveShown } from "@/features/photos/shownImage";
 import { usePhotoStripLogic } from "@/features/photos/usePhotoStripLogic";
 import { markBackNavigation } from "@/lib/motion";
-import { cn } from "@/lib/utils";
 import type { Copy, Release } from "@janne6565/rekordo-shared";
-import {
-  CONDITION_SHORT,
-  FORMAT_LABELS,
-  catalogArtShown,
-  copyFormat,
-} from "@janne6565/rekordo-shared";
+import { CONDITION_SHORT, FORMAT_LABELS, copyFormat } from "@janne6565/rekordo-shared";
 import { Link } from "@tanstack/react-router";
-import { ArrowLeft, PencilLine, Plus, Star } from "lucide-react";
+import { ArrowLeft, CameraOff, PencilLine, Plus, Star } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -141,9 +135,7 @@ export function DetailPage({ copyId }: { readonly copyId: string }) {
             release={release}
             previewSrc={heroSrc}
             allowCatalogArt={photos.catalogArt !== "HIDDEN"}
-            photos={photos}
-            shown={currentImage}
-            onShow={setShown}
+            onEdit={() => setEditing(true)}
           />
           <div className="hidden flex-none sm:block">
             <Cover
@@ -161,21 +153,12 @@ export function DetailPage({ copyId }: { readonly copyId: string }) {
             <PhoneFields copy={copy} />
             <Fields copy={copy} />
 
+            <PhonePhotos photos={photos} release={release} shown={currentImage} onShow={setShown} />
+
             <Notes copy={copy} saving={logic.saving} onKeep={(notes) => logic.save({ notes })} />
             {otherCopies.length > 0 && <OtherCopies copies={otherCopies} />}
           </div>
         </div>
-      </div>
-
-      {/* The bar the tab bar stepped aside for. One action, the width of the screen. */}
-      <div className="flex flex-none gap-2 border-t border-line bg-paper/95 px-4 pt-2.5 pb-3 pb-safe sm:hidden">
-        <Button
-          onClick={() => setEditing(true)}
-          className="h-12 flex-1 rounded-xl text-sm font-bold"
-        >
-          <PencilLine size={16} strokeWidth={2} aria-hidden />
-          {t("detail.edit")}
-        </Button>
       </div>
 
       {/* Screen 12b — the add flow's step two, reached from here instead. Removing the
@@ -215,46 +198,35 @@ function Breadcrumb({ release }: { readonly release: Release | undefined }) {
 }
 
 /**
- * The phone's hero — screen 24c.
+ * The phone's hero — screens 24c and 25d.
  *
- * The sleeve runs edge to edge and is cropped to 320px rather than shown whole. A square
- * at 390px would be 390px tall and push the title off the fold; the crop keeps the record
- * first and the title visible under it, which is the order the deck asks for.
+ * The sleeve runs edge to edge and is cropped to 300px rather than shown whole. Native
+ * gives it a full square, 402 tall; in the browser that plus Safari's own bar pushes the
+ * title under the fold, so the crop keeps the record first and the title readable under
+ * it without scrolling.
  *
- * The way back and the pictures both sit *on* the artwork, in blurred pills: the header
- * bar this page has above 640px would be a second horizontal band over a photograph.
+ * Both controls sit *on* the artwork, at opposite ends of the same line: the header bar
+ * this page has above 640px would be a second horizontal band over a photograph. Edit is
+ * on the right because that is where the app puts it, and because the page below it is
+ * read far more often than it is changed.
  */
 function PhoneHero({
   copy,
   release,
   previewSrc,
   allowCatalogArt,
-  photos,
-  shown,
-  onShow,
+  onEdit,
 }: {
   readonly copy: Copy;
   readonly release: Release | undefined;
   readonly previewSrc: string | null;
   readonly allowCatalogArt: boolean;
-  readonly photos: ReturnType<typeof usePhotoStripLogic>;
-  readonly shown: ShownImage;
-  readonly onShow: (shown: ShownImage) => void;
+  readonly onEdit: () => void;
 }) {
   const { t } = useTranslation();
-  const hasCatalog = catalogArtShown(
-    { catalogArt: photos.catalogArt },
-    release?.coverArtUrl != null && release.coverArtUrl !== "",
-  );
-  /*
-   * Four at most. The deck stops at four and sends the rest to a screen of their own;
-   * until that screen exists the strip simply ends, because five 44px tiles plus their
-   * gaps are wider than the 390px they would have to sit in.
-   */
-  const tiles = photos.tiles.slice(0, hasCatalog ? 3 : 4);
 
   return (
-    <div className="relative h-80 overflow-hidden sm:hidden">
+    <div className="relative h-[300px] overflow-hidden sm:hidden">
       <ReleaseArt
         release={release}
         format={copyFormat(copy, release)}
@@ -263,14 +235,12 @@ function PhoneHero({
         previewSrc={previewSrc}
         allowCatalogArt={allowCatalogArt}
       />
-      {/* So a pale sleeve cannot swallow the tiles sitting on its bottom edge. */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[70px] bg-gradient-to-b from-transparent to-paper/90" />
 
       <Link
         to="/"
         viewTransition
         onClick={markBackNavigation}
-        className="absolute top-3.5 left-3.5 flex h-10 items-center gap-1.5 rounded-full bg-paper/92 pr-3.5 pl-2.5 text-[12.5px] font-semibold backdrop-blur-sm"
+        className="absolute top-3.5 left-3.5 flex h-11 items-center gap-1.5 rounded-full bg-paper/92 pr-4 pl-3 text-[12.5px] font-semibold backdrop-blur-sm"
       >
         <ArrowLeft size={17} strokeWidth={2.2} aria-hidden />
         {/* One level, not two: 12a's "artist / title" trail has no room here, and the
@@ -278,41 +248,56 @@ function PhoneHero({
         {t("nav.library")}
       </Link>
 
-      {(tiles.length > 0 || hasCatalog) && (
-        <div className="absolute bottom-2.5 left-4 flex gap-1.5">
-          {tiles.map(({ photo, src }) => (
-            <button
-              type="button"
-              key={photo.id}
-              onClick={() => onShow({ kind: "PHOTO", id: photo.id })}
-              aria-label={t("photos.show")}
-              aria-current={shown.kind === "PHOTO" && shown.id === photo.id ? "true" : undefined}
-              className={cn(
-                "relative size-11 overflow-hidden rounded-[7px] shadow-[0_1px_3px_rgba(0,0,0,.15)]",
-                shown.kind === "PHOTO" && shown.id === photo.id
-                  ? "ring-2 ring-accent"
-                  : "ring-1 ring-ink/10",
-              )}
-            >
-              {src !== null && <img src={src} alt="" className="size-full object-cover" />}
-            </button>
-          ))}
-          {hasCatalog && (
-            <button
-              type="button"
-              onClick={() => onShow({ kind: "CATALOG" })}
-              aria-label={t("photos.show")}
-              aria-current={shown.kind === "CATALOG" ? "true" : undefined}
-              className={cn(
-                "relative size-11 overflow-hidden rounded-[7px] bg-surface shadow-[0_1px_3px_rgba(0,0,0,.15)]",
-                shown.kind === "CATALOG" ? "ring-2 ring-accent" : "ring-1 ring-ink/10",
-              )}
-            >
-              <ReleaseArt release={release} variant="bleed" />
-            </button>
-          )}
-        </div>
-      )}
+      {/* 25d: the pill the bottom bar became. A full-width bar at the foot of the screen
+          gave one action the weight of a tab bar on a page that is mostly read, and it
+          spent 60px of a 300px sleeve's worth of height doing it. */}
+      <button
+        type="button"
+        onClick={onEdit}
+        className="absolute top-3.5 right-3.5 flex h-11 items-center gap-1.75 rounded-full bg-ink pr-4 pl-3.5 text-[12.5px] font-semibold text-paper"
+      >
+        <PencilLine size={14} strokeWidth={1.75} aria-hidden />
+        {t("detail.edit")}
+      </button>
+    </div>
+  );
+}
+
+/**
+ * The copy's pictures, under the facts rather than on the sleeve — screen 25d.
+ *
+ * 24c put the tiles on the artwork, where they were four 44px squares fighting whatever
+ * was behind them. Here they are the same strip the desktop has, with a heading, at the
+ * size a photograph of a sleeve corner is actually legible at.
+ *
+ * The line underneath is the honest half of 25d. Taking a photo needs a camera the browser
+ * cannot reach, but choosing a file it already has is the same gesture and works, and the
+ * place both of those live is the edit sheet — since turn 12 there is one screen where a
+ * copy's pictures change rather than two that have to agree.
+ */
+function PhonePhotos({
+  photos,
+  release,
+  shown,
+  onShow,
+}: {
+  readonly photos: ReturnType<typeof usePhotoStripLogic>;
+  readonly release: Release | undefined;
+  readonly shown: ShownImage;
+  readonly onShow: (shown: ShownImage) => void;
+}) {
+  const { t } = useTranslation();
+
+  return (
+    <div className="mt-5 sm:hidden">
+      <div className="font-mono text-[9.5px] tracking-[0.09em] text-ink-muted uppercase">
+        {t("detail.yourPhotos")}
+      </div>
+      <PhotoStrip logic={photos} release={release} shown={shown} onShow={onShow} />
+      <div className="mt-2.5 flex items-start gap-1.75 text-[11.5px] leading-[1.5] text-ink-subtle">
+        <CameraOff size={13} strokeWidth={1.75} className="mt-0.5 flex-none" aria-hidden />
+        {t("detail.photosNeedApp")}
+      </div>
     </div>
   );
 }

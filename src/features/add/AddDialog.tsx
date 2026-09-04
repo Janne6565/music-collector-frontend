@@ -10,12 +10,15 @@ import {
   useAddDialogLogic,
 } from "@/features/add/useAddDialogLogic";
 import { useArtistSearchLogic } from "@/features/add/useArtistSearchLogic";
+import { ScanHandoffSheet } from "@/features/app/ScanHandoffSheet";
+import { appStoreUrl, mobilePlatform } from "@/lib/appStores";
 import { cn } from "@/lib/utils";
 import type { Format, Release, WishlistItem } from "@janne6565/rekordo-shared";
 import { CONDITION_SHORT, FORMAT_LABELS } from "@janne6565/rekordo-shared";
 import {
   ArrowUpLeft,
   Check,
+  ChevronRight,
   Clock,
   CopyPlus,
   FileUp,
@@ -27,7 +30,7 @@ import {
   SearchX,
   X,
 } from "lucide-react";
-import { useId, useRef } from "react";
+import { useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 const FILTERS: readonly AddFormatFilter[] = ["ALL", "VINYL", "CD", "CASSETTE", "DIGITAL"];
@@ -146,6 +149,73 @@ export function AddDialog({ onClose, onAdded, seedTerm = "", hunting = null }: A
 
 type Logic = ReturnType<typeof useAddDialogLogic>;
 
+/**
+ * The camera path, named rather than hidden — screen 25c.
+ *
+ * The web app has no scanner, so the row that would open one says so and keeps its place
+ * at the bottom of what this tab offers, under the field that does work. Hiding it would
+ * leave a reader who came here to scan wondering whether they had missed a button; a
+ * degraded web scanner would be worse still, because the native flow keeps a tray across
+ * many scans, survives the tab being backgrounded, and works with no signal at all.
+ *
+ * Dimmed but tappable, which is the deck's whole gesture: the row is not disabled, it goes
+ * somewhere. It appears only on a phone with a store to send anyone to. On a desktop there
+ * is no camera anybody expected and no phone in the room to hand off to, and typing the
+ * digits from the sleeve is simply the way this is done there.
+ */
+function ScanRow({ logic }: { readonly logic: Logic }) {
+  const { t } = useTranslation();
+  const [handing, setHanding] = useState(false);
+  if (appStoreUrl(mobilePlatform()) === null) return null;
+
+  return (
+    <>
+      <div className="flex-none px-4 pt-3 sm:px-6">
+        <button
+          type="button"
+          onClick={() => setHanding(true)}
+          className="flex min-h-15 w-full items-center gap-3.25 rounded-[10px] border border-line bg-ink/3 px-3.5 py-3 text-left"
+        >
+          <ScanBarcode
+            size={18}
+            strokeWidth={1.75}
+            className="flex-none text-ink-subtle"
+            aria-hidden
+          />
+          <span className="min-w-0 flex-1">
+            <span className="flex items-center gap-1.75">
+              <span className="text-[13.5px] font-semibold text-ink-muted">
+                {t("addDialog.scanRow.title")}
+              </span>
+              <span className="rounded-[3px] bg-ink/8 px-1.25 py-px font-mono text-[9px] uppercase tracking-[0.08em] text-ink-muted">
+                {t("addDialog.scanRow.appOnly")}
+              </span>
+            </span>
+            <span className="mt-0.5 block text-[11.5px] text-ink-subtle">
+              {t("addDialog.scanRow.why")}
+            </span>
+          </span>
+          <ChevronRight
+            size={16}
+            strokeWidth={1.75}
+            className="flex-none text-ink/30"
+            aria-hidden
+          />
+        </button>
+      </div>
+      {handing && (
+        <ScanHandoffSheet
+          onClose={() => setHanding(false)}
+          onSearchInstead={() => {
+            setHanding(false);
+            logic.setTab("SEARCH");
+          }}
+        />
+      )}
+    </>
+  );
+}
+
 function SearchTab({
   logic,
   hunting,
@@ -227,6 +297,8 @@ function SearchTab({
           </div>
         )}
       </form>
+
+      {barcode && <ScanRow logic={logic} />}
 
       {hunting !== null && <HuntingBanner item={hunting} />}
 

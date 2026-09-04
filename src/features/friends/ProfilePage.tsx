@@ -283,11 +283,11 @@ function copyDetail(
   push(
     "paid",
     t("profile.detail.paid"),
-    prices && copy?.pricePaidCents !== undefined && copy.currency !== undefined
+    prices && copy?.pricePaidCents != null && copy.currency != null
       ? formatMoney(copy.pricePaidCents, copy.currency)
       : undefined,
   );
-  const added = copy?.createdAt === undefined ? undefined : monthAndYear(copy.createdAt, language);
+  const added = copy?.createdAt == null ? undefined : monthAndYear(copy.createdAt, language);
   push("added", t("profile.detail.added"), added);
 
   // 23e: two columns hold four cells at 390px, so the conditions share a line and the date
@@ -333,9 +333,11 @@ function wishDetail(
   t: TFunction,
 ): SharedDetailItem {
   const facts: DetailFact[] = [];
-  if (wish?.year !== undefined)
+  // The generated types say `number | undefined`, but the wire carries null for a
+  // wish nobody has pinned a year on — so check for both before touching it.
+  if (wish?.year != null)
     facts.push({ key: "year", label: t("profile.detail.year"), value: wish.year.toString() });
-  if (wish?.desiredFormat !== undefined)
+  if (wish?.desiredFormat != null)
     facts.push({
       key: "lookingFor",
       label: t("profile.detail.lookingFor"),
@@ -608,7 +610,7 @@ function CollectionGrid({
                 copy.artistName,
                 copy.format ? FORMAT_LABELS[copy.format] : undefined,
                 copy.year?.toString(),
-                copy.pricePaidCents !== undefined && copy.currency
+                copy.pricePaidCents != null && copy.currency
                   ? formatMoney(copy.pricePaidCents, copy.currency)
                   : undefined,
               ]
@@ -698,5 +700,5 @@ function WishRows({
  */
 function wishFormat(wish: SharedWishDto): Format {
   const desired = wish.desiredFormat;
-  return desired !== undefined && desired in FORMAT_LABELS ? (desired as Format) : "OTHER";
+  return desired != null && desired in FORMAT_LABELS ? (desired as Format) : "OTHER";
 }

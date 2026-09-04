@@ -1,6 +1,6 @@
 // The shelf is mostly translated strings, so the real bundle is what it is rendered with.
 import "@/i18n/config";
-import type { SharedCopyDto } from "@/api/generated/rekordoAPI.schemas";
+import type { SharedCopyDto, SharedWishDto } from "@/api/generated/rekordoAPI.schemas";
 import { ProfileBody } from "@/features/friends/ProfilePage";
 import type { useProfileLogic } from "@/features/friends/useProfileLogic";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -33,6 +33,19 @@ const COPIES: SharedCopyDto[] = [
   { id: "two", title: "Lanquidity", artistName: "Sun Ra", format: "VINYL" },
 ];
 
+// The generated types say every field is optional, but the wire sends null for a wish
+// with no year and no format on it — which is what crashed the sheet.
+const WISHES: SharedWishDto[] = [
+  { id: "wish-one", title: "Bitches Brew", artistName: "Miles Davis", year: 1970 },
+  {
+    id: "wish-two",
+    title: "Nobody Pinned A Year On This",
+    artistName: "Unknown",
+    year: null,
+    desiredFormat: null,
+  } as unknown as SharedWishDto,
+];
+
 /**
  * A profile that is entirely readable, seen by its owner.
  *
@@ -57,7 +70,7 @@ function logicFor(pricesVisible: boolean): ReturnType<typeof useProfileLogic> {
     notFound: false,
     copies: pricesVisible ? COPIES : COPIES.map(({ pricePaidCents, currency, ...rest }) => rest),
     copiesTruncated: false,
-    wishes: [],
+    wishes: WISHES,
     loadingLists: false,
   } as unknown as ReturnType<typeof useProfileLogic>;
 }
@@ -84,6 +97,20 @@ function askedLogic(accept: () => void, declineIt: () => void): ReturnType<typeo
     acceptRequest: { mutate: accept, isPending: false },
     declineRequest: { mutate: declineIt, isPending: false },
   } as unknown as ReturnType<typeof useProfileLogic>;
+}
+
+function wishShelf(openId: string | undefined) {
+  return render(
+    <QueryClientProvider client={new QueryClient()}>
+      <ProfileBody
+        logic={logicFor(true)}
+        tab="wishlist"
+        onTab={vi.fn()}
+        openId={openId}
+        onOpen={vi.fn()}
+      />
+    </QueryClientProvider>,
+  );
 }
 
 function shelf(openId: string | undefined, onOpen = vi.fn(), pricesVisible = true) {
@@ -151,6 +178,26 @@ describe("the public shelf", () => {
     shelf("gone");
 
     expect(screen.queryByRole("heading", { name: "Remain in Light" })).toBeNull();
+  });
+});
+
+describe("the wishlist sheet", () => {
+  it("draws a wish whose year and format are null rather than throwing", () => {
+    // A `?wish=` link to an entry with no year read `null.toString()` and took the whole
+    // page down with it.
+    wishShelf("wish-two");
+    const sheet = within(screen.getByRole("dialog"));
+
+    expect(sheet.getByRole("heading", { name: "Nobody Pinned A Year On This" })).toBeDefined();
+    expect(sheet.queryByText("Year")).toBeNull();
+    expect(sheet.queryByText("Looking for")).toBeNull();
+  });
+
+  it("still rules the facts it does have", () => {
+    wishShelf("wish-one");
+    const sheet = within(screen.getByRole("dialog"));
+
+    expect(sheet.getAllByText("1970").length).toBeGreaterThan(0);
   });
 });
 

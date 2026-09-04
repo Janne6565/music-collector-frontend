@@ -8,7 +8,11 @@ import { describe, expect, it } from "vitest";
  * without an Ö is not a reason to be stuck with an account you asked to delete.
  */
 describe("isDeletionConfirmed", () => {
-  it("accepts the word the screen prints", () => {
+  it("accepts the word the English screen prints", () => {
+    expect(isDeletionConfirmed("DELETE")).toBe(true);
+  });
+
+  it("accepts the German word whatever the interface language is", () => {
     expect(isDeletionConfirmed("LÖSCHEN")).toBe(true);
   });
 
@@ -22,7 +26,7 @@ describe("isDeletionConfirmed", () => {
 
   it("refuses a near miss", () => {
     expect(isDeletionConfirmed("losche")).toBe(false);
-    expect(isDeletionConfirmed("delete")).toBe(false);
+    expect(isDeletionConfirmed("delet")).toBe(false);
     expect(isDeletionConfirmed("")).toBe(false);
   });
 });

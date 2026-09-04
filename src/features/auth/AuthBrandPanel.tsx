@@ -1,9 +1,5 @@
-import { FormatThumb } from "@/components/FormatThumb";
-import type { Format } from "@janne6565/rekordo-shared";
 import { Disc3, Heart, Layers, ScanBarcode } from "lucide-react";
 import { useTranslation } from "react-i18next";
-
-const SHOWCASE: readonly Format[] = ["VINYL", "CD", "CASSETTE", "DIGITAL"];
 
 /** The dark half of screens 4c and 4d. */
 export function AuthBrandPanel({ mode }: { readonly mode: "SIGN_IN" | "REGISTER" }) {
@@ -40,15 +36,10 @@ export function AuthBrandPanel({ mode }: { readonly mode: "SIGN_IN" | "REGISTER"
         )}
       </div>
 
-      {mode === "SIGN_IN" ? (
-        <div className="grid grid-cols-4 gap-3.5">
-          {SHOWCASE.map((format) => (
-            <div key={format} className="aspect-[6/5]">
-              <FormatThumb format={format} />
-            </div>
-          ))}
-        </div>
-      ) : (
+      {/* Sign-in has no foot line. The four format thumbnails that used to sit here were
+          decoration on a page whose whole job is to get out of the way, so the panel now
+          ends with the copy. Register keeps its note, which says something. */}
+      {mode === "REGISTER" && (
         <p className="font-mono text-[10.5px] uppercase tracking-[0.12em] text-white/35">
           {t("authPanel.freeNote")}
         </p>

@@ -1,6 +1,7 @@
 import { Button, buttonClassName } from "@/components/ui";
 import { AuthBrandPanel } from "@/features/auth/AuthBrandPanel";
 import { PasswordField } from "@/features/auth/PasswordField";
+import { ProviderIcon } from "@/features/auth/ProviderIcon";
 import type { AuthError } from "@/features/auth/useAuthLogic";
 import { useAuthLogic } from "@/features/auth/useAuthLogic";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
@@ -195,6 +196,7 @@ export function SignInPage() {
                     href={`/api/v1/auth/oauth/${provider.id}/authorize`}
                     className="flex h-11 flex-1 items-center justify-center gap-2 rounded-[9px] border border-line bg-surface text-[13px] font-semibold hover:bg-canvas"
                   >
+                    <ProviderIcon providerId={provider.id} />
                     {provider.displayName}
                   </a>
                 ))}

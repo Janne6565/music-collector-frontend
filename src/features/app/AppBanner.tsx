@@ -1,5 +1,6 @@
 import { useAppBannerLogic } from "@/features/app/useAppBannerLogic";
 import { androidIsTesterSignup, getLabelKey } from "@/lib/appStores";
+import { cn } from "@/lib/utils";
 import { Disc3, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -15,7 +16,10 @@ import { useTranslation } from "react-i18next";
  * does not need a camera in a record shop can dismiss it without wondering what they gave
  * up. That is also why there is no second ask: see {@link useAppBannerLogic}.
  */
-export function AppBanner({ context = "OWN" }: { readonly context?: BannerContext }) {
+export function AppBanner({
+  context = "OWN",
+  placement = "BOTTOM",
+}: { readonly context?: BannerContext; readonly placement?: BannerPlacement }) {
   const { t } = useTranslation();
   const banner = useAppBannerLogic();
   if (banner === null) return null;
@@ -25,7 +29,14 @@ export function AppBanner({ context = "OWN" }: { readonly context?: BannerContex
   const app = t(`appBanner.app.${banner.platform}`);
 
   return (
-    <aside className="flex flex-none items-center gap-2.5 border-t border-line bg-surface py-2.5 pr-2 pl-3 sm:hidden">
+    <aside
+      className={cn(
+        "flex flex-none items-center gap-2.5 bg-surface py-2.5 pr-2 pl-3 sm:hidden",
+        // The rule goes on the side facing the page, so the banner reads as attached to
+        // the shell it hangs off rather than floating between two borders.
+        placement === "BOTTOM" ? "border-t border-line" : "border-b border-line",
+      )}
+    >
       <div className="flex size-10 flex-none items-center justify-center rounded-[10px] bg-ink">
         <Disc3 size={21} strokeWidth={1.6} className="text-paper" aria-hidden />
       </div>
@@ -74,3 +85,13 @@ export function AppBanner({ context = "OWN" }: { readonly context?: BannerContex
  * a product name they have not adopted.
  */
 export type BannerContext = "OWN" | "SHARED";
+
+/**
+ * Where in the shell the banner is mounted.
+ *
+ * `BOTTOM` is the app's own shell, where it sits in the flow above the tab bar and the tab
+ * bar keeps the bottom edge. `TOP` is a page with no tab bar at all — the public profile a
+ * stranger opens from a shared link, where the bottom of the page is the legal footer and
+ * a good way down a scroll. On that page the offer has to be where the reader lands.
+ */
+export type BannerPlacement = "TOP" | "BOTTOM";

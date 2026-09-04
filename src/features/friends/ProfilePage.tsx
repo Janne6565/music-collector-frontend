@@ -203,16 +203,10 @@ export function ProfileBody({
             {t("profile.tab.wishlist")}
           </TabButton>
         </div>
-        {/* Nothing is said about being read-only: a page with no controls on it already
-            says so, and a label repeating it spends the line on the obvious. What is not
-            obvious is a column that is missing on purpose. */}
-        {person.pricesVisible === false && (
-          // Wraps rather than running off the right edge: it is a whole sentence in mono,
-          // and a name in it can be any length at all.
-          <span className="min-w-0 font-mono text-[10.5px] tracking-[0.08em] text-ink-subtle uppercase">
-            {t("profile.pricesHidden", { name })}
-          </span>
-        )}
+        {/* Nothing is said here about what the page is not. It has no controls, so it
+            already reads as somebody else's shelf, and it never showed prices in the first
+            place — a label naming a column that was never drawn asks the reader to notice
+            an absence they had not felt. */}
       </div>
 
       {!showing ? (

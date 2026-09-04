@@ -64,6 +64,17 @@ export function PublicProfilePage({
         </div>
       </header>
 
+      {/*
+       * 25b, variant two: a stranger who arrived from a shared link. The offer leads with
+       * the shelf they do not have rather than with a product name they have not adopted.
+       *
+       * At the top here, unlike in the app's own shell. There it sits above the tab bar,
+       * which is the bottom edge of the screen and always in view; this page has no tab
+       * bar, so the same position put it under a whole shelf and the legal footer, where
+       * nobody scrolled to it. The reader lands here, so the offer is here.
+       */}
+      <AppBanner context="SHARED" placement="TOP" />
+
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col">
         <ProfileBody
           logic={logic}
@@ -80,11 +91,6 @@ export function PublicProfilePage({
         />
       </main>
 
-      {/* 25b, variant two: a stranger who arrived from a shared link. The offer leads
-          with the shelf they do not have rather than with a product name they have not
-          adopted, and it sits above the legal footer because the footer is the last thing
-          on this page by obligation. */}
-      <AppBanner context="SHARED" />
       <PublicFooter />
     </div>
   );
